@@ -38,7 +38,7 @@ func sampleEntry(name string) index.Entry {
 	}
 }
 
-func TestIndexRongVaPhieuMaGhiDoc(t *testing.T) {
+func TestIndexEmptyAndBadChecksum(t *testing.T) {
 	fx := newIndex(t)
 	if fx.idx.Len() != 0 {
 		t.Fatalf("index mới phải rỗng")
@@ -56,7 +56,7 @@ func TestIndexRongVaPhieuMaGhiDoc(t *testing.T) {
 	}
 }
 
-func TestIndexGhiDocNhieuDuongDan(t *testing.T) {
+func TestIndexRoundTripsManyPaths(t *testing.T) {
 	fx := newIndex(t)
 	// Thêm theo thứ tự không sắp xếp để kiểm tra logic sắp xếp khi ghi.
 	for _, name := range []string{"z.txt", "a.txt", "dir/b.txt", "dir/a.txt", "m.txt"} {
@@ -91,7 +91,7 @@ func TestIndexGhiDocNhieuDuongDan(t *testing.T) {
 	}
 }
 
-func TestIndexNhieuStageChoMotDuongDan(t *testing.T) {
+func TestIndexMultipleStagesForOnePath(t *testing.T) {
 	fx := newIndex(t)
 	fx.idx.Add(sampleEntry("x.txt"))
 	// Ghi thêm các stage của xung đột.
@@ -130,7 +130,7 @@ func TestIndexNhieuStageChoMotDuongDan(t *testing.T) {
 	}
 }
 
-func TestIndexLayVaXoa(t *testing.T) {
+func TestIndexGetAndRemove(t *testing.T) {
 	fx := newIndex(t)
 	fx.idx.Add(sampleEntry("a.txt"))
 	fx.idx.Add(sampleEntry("b.txt"))
@@ -152,7 +152,7 @@ func TestIndexLayVaXoa(t *testing.T) {
 	}
 }
 
-func TestIndexCapNhatEntryCu(t *testing.T) {
+func TestIndexUpdatesExistingEntry(t *testing.T) {
 	fx := newIndex(t)
 	e := sampleEntry("a.txt")
 	fx.idx.Add(e)
@@ -172,7 +172,7 @@ func TestIndexCapNhatEntryCu(t *testing.T) {
 	}
 }
 
-func TestIndexCheDoFileKhacNhau(t *testing.T) {
+func TestIndexStoresDifferentFileModes(t *testing.T) {
 	fx := newIndex(t)
 	for name, mode := range map[string]object.FileMode{
 		"bin":        object.ModeExec,
@@ -205,7 +205,7 @@ func TestIndexCheDoFileKhacNhau(t *testing.T) {
 	}
 }
 
-func TestIndexFileHong(t *testing.T) {
+func TestIndexCorruptFile(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "index")
 	// Không có chữ ký DIRC thì phải báo lỗi.
 	if err := os.WriteFile(path, []byte("XXXX\x00\x00\x00\x02\x00\x00\x00\x00"), 0o644); err != nil {
@@ -216,7 +216,7 @@ func TestIndexFileHong(t *testing.T) {
 	}
 }
 
-func TestIndexTenRatDai(t *testing.T) {
+func TestIndexVeryLongName(t *testing.T) {
 	// Đường dẫn dài hơn giới hạn 0xFFF phải được cắt bớt ở cờ nhưng
 	// vẫn không làm hỏng việc đọc lại các đường dẫn bình thường.
 	fx := newIndex(t)

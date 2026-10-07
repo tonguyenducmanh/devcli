@@ -40,20 +40,14 @@ td vcs [flags]
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
   -h, --help         hiển thị phần trợ giúp của lệnh này
-```
-
-### Options inherited from parent commands
-
-```
-      --no-color   tắt màu trong output
-  -v, --verbose    in thêm thông tin chi tiết
+  -v, --verbose      in thêm tình trạng kho mã nguồn hiện tại
 ```
 
 ### SEE ALSO
 
 * [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 * [td vcs add](td_vcs_add.md)	 - Đưa thay đổi vào vùng chuẩn bị commit
-* [td vcs branch](td_vcs_branch.md)	 - Liệt kê, tạo hoặc xóa nhánh
+* [td vcs branch](td_vcs_branch.md)	 - Liệt kê, tạo, sao chép, đổi tên hoặc xoá các nhánh cục bộ
 * [td vcs cat-file](td_vcs_cat-file.md)	 - In nội dung của một object (blob, tree, commit, tag)
 * [td vcs checkout](td_vcs_checkout.md)	 - Chuyển sang nhánh hoặc commit khác
 * [td vcs cherry-pick](td_vcs_cherry-pick.md)	 - Áp dụng thay đổi của một commit cụ thể

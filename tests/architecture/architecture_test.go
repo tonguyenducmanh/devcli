@@ -13,9 +13,9 @@ import (
 	"github.com/tonguyenducmanh/devcli/cmd"
 )
 
-// chuViet là tập chữ cái tiếng Việt có dấu, dùng để chắc chắn mô tả của lệnh
+// vietnameseLetters là tập chữ cái tiếng Việt có dấu, dùng để chắc chắn mô tả của lệnh
 // không phải tiếng Anh rút gọn.
-const chuViet = "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ"
+const vietnameseLetters = "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ"
 
 // File này kiểm tra các bất biến kiến trúc của dự án. Chúng không kiểm tra
 // hành vi nghiệp vụ mà kiểm tra *hình dạng* của mã nguồn, nhằm ngăn một thay
@@ -75,12 +75,12 @@ func goFiles(t *testing.T) []string {
 	return out
 }
 
-// TestKhongGoiLenhHeThong bảo đảm mã nguồn không chạy tiến trình ngoài.
+// TestNoExternalCommands bảo đảm mã nguồn không chạy tiến trình ngoài.
 //
 // td tự chứa toàn bộ chức năng của mình. Nếu một tương lai nào đó thêm
 // exec.Command vào đây thì kho mã sẽ phụ thuộc vào công cụ được cài trên máy,
 // việc đóng gói và kiểm thử cũng trở nên bấp bênh. Vì vậy tận gốc cấm hẳn.
-func TestKhongGoiLenhHeThong(t *testing.T) {
+func TestNoExternalCommands(t *testing.T) {
 	for _, file := range goFiles(t) {
 		if strings.HasSuffix(file, "_test.go") {
 			continue // tệp kiểm thử được phép gọi chương trình khác
@@ -138,11 +138,11 @@ func internalPackages() map[string]bool {
 	return out
 }
 
-// TestKhongPhuThuocCheo giữa các tầng bảo đảm phụ thuộc đi đúng một chiều.
+// TestNoCrossLayerImports giữa các tầng bảo đảm phụ thuộc đi đúng một chiều.
 //
 // Khi một tầng biết tới tầng thấp hơn quá mức cần thiết, thứ tự phụ thuộc
 // sẽ hỗn loạn và việc thay thế một tầng trở nên rất tốn công.
-func TestKhongPhuThuocCheo(t *testing.T) {
+func TestNoCrossLayerImports(t *testing.T) {
 	known := internalPackages()
 	root := moduleRoot(t)
 
@@ -170,12 +170,12 @@ func TestKhongPhuThuocCheo(t *testing.T) {
 	}
 }
 
-// TestBinaryKhongPhuThuocLenhNgoai biên dịch rồi chạy td với PATH rỗng.
+// TestBinaryRunsWithoutExternalCommands biên dịch rồi chạy td với PATH rỗng.
 //
 // Nếu bản nhị phân vẫn chạy được khi không có bất kỳ chương trình nào khác
 // trên máy thì nó thật sự tự trị. Đây là kiểm chứng thực thi cho lời hứa của
-// TestKhongGoiLenhHeThong.
-func TestBinaryKhongPhuThuocLenhNgoai(t *testing.T) {
+// TestNoExternalCommands.
+func TestBinaryRunsWithoutExternalCommands(t *testing.T) {
 	root := moduleRoot(t)
 	bin := filepath.Join(t.TempDir(), "td")
 
@@ -268,12 +268,12 @@ func contains(list []string, want string) bool {
 	return false
 }
 
-// TestMoiLenhDeuCoMoTaDayDu bảo đảm không lệnh nào bị bỏ trống phần trợ giúp.
+// TestEveryCommandHasFullDescription bảo đảm không lệnh nào bị bỏ trống phần trợ giúp.
 //
 // Tài liệu sinh tự động trong docs/cli và phần trợ giúp trên dòng lệnh đều lấy
 // từ Short, Long và Example. Thiếu một trong ba thì tài liệu của dự án nghèo
 // nàn đi ngay lập tức, nên kiểm tra này giữ chất lượng tài liệu.
-func TestMoiLenhDeuCoMoTaDayDu(t *testing.T) {
+func TestEveryCommandHasFullDescription(t *testing.T) {
 	var check func(cmd *cobra.Command)
 	seen := 0
 	check = func(cmd *cobra.Command) {
@@ -290,7 +290,7 @@ func TestMoiLenhDeuCoMoTaDayDu(t *testing.T) {
 		if strings.TrimSpace(cmd.Example) == "" {
 			t.Errorf("lệnh %q thiếu Example, người dùng không có mẫu để làm theo", cmd.CommandPath())
 		}
-		if !strings.ContainsAny(cmd.Long, chuViet) {
+		if !strings.ContainsAny(cmd.Long, vietnameseLetters) {
 			t.Errorf("lệnh %q: Long nên viết bằng tiếng Việt", cmd.CommandPath())
 		}
 		for _, sub := range cmd.Commands() {
@@ -304,8 +304,8 @@ func TestMoiLenhDeuCoMoTaDayDu(t *testing.T) {
 	}
 }
 
-// TestMoiLenhDeuDatTenDichDung bảo đảm tên tham số ghi rõ ý nghĩa bằng tiếng Việt.
-func TestMoiLenhDeuDatTenDichDung(t *testing.T) {
+// TestEveryFlagNamedClearly bảo đảm tên tham số ghi rõ ý nghĩa bằng tiếng Việt.
+func TestEveryFlagNamedClearly(t *testing.T) {
 	var check func(cmd *cobra.Command)
 	check = func(cmd *cobra.Command) {
 		cmd.Flags().VisitAll(func(f *pflag.Flag) {
@@ -315,7 +315,7 @@ func TestMoiLenhDeuDatTenDichDung(t *testing.T) {
 			if strings.TrimSpace(f.Usage) == "" {
 				t.Errorf("cờ --%s của lệnh %q thiếu mô tả", f.Name, cmd.CommandPath())
 			}
-			if !strings.ContainsAny(f.Usage, chuViet) {
+			if !strings.ContainsAny(f.Usage, vietnameseLetters) {
 				t.Errorf("cờ --%s của lệnh %q: mô tả nên viết bằng tiếng Việt", f.Name, cmd.CommandPath())
 			}
 		})

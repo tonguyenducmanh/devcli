@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestComputeHashKhopChuanGit(t *testing.T) {
+func TestComputeHashMatchesGit(t *testing.T) {
 	// Giá trị này là mã băm ổn định của blob chứa "hello\n",
 	// dùng để chắc chắn thuật toán băm không bị thay đổi ngoài ý muốn.
 	got := object.ComputeHash(object.TypeBlob, []byte("hello\n"))
@@ -22,7 +22,7 @@ func TestComputeHashKhopChuanGit(t *testing.T) {
 	}
 }
 
-func TestParseHashVaHienThi(t *testing.T) {
+func TestParseHashAndRender(t *testing.T) {
 	h := object.ComputeHash(object.TypeBlob, []byte("hello\n"))
 	parsed, err := object.ParseHash(h.String())
 	if err != nil {
@@ -42,7 +42,7 @@ func TestParseHashVaHienThi(t *testing.T) {
 	}
 }
 
-func TestTreeSapXepVaMaHoa(t *testing.T) {
+func TestTreeSortsAndHashes(t *testing.T) {
 	// Entry thư mục "src" phải được so sánh như "src/" nên
 	// "src.txt" phải đứng trước "src" theo quy tắc so sánh có dấu "/" hậu tố.
 	tree := &object.Tree{Entries: []object.TreeEntry{
@@ -73,7 +73,7 @@ func TestTreeSapXepVaMaHoa(t *testing.T) {
 	}
 }
 
-func TestTreeUpsertVaRemove(t *testing.T) {
+func TestTreeUpsertAndRemove(t *testing.T) {
 	tree := &object.Tree{}
 	tree.Upsert(object.TreeEntry{Mode: object.ModeBlob, Name: "b.txt", Hash: object.ComputeHash(object.TypeBlob, []byte("b"))})
 	tree.Upsert(object.TreeEntry{Mode: object.ModeBlob, Name: "a.txt", Hash: object.ComputeHash(object.TypeBlob, []byte("a"))})
@@ -131,7 +131,7 @@ func TestCommitEncodeDecode(t *testing.T) {
 	}
 }
 
-func TestCommitThieuTreeBaoLoi(t *testing.T) {
+func TestCommitMissingTreeErrors(t *testing.T) {
 	if _, err := object.DecodeCommit([]byte("author A <a@b> 1 +0700\n\nmsg\n")); err == nil {
 		t.Fatalf("phải báo lỗi khi commit không có tree")
 	}

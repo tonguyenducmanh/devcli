@@ -20,7 +20,7 @@ func newStore(t *testing.T) *storage.ObjectStore {
 	return storage.NewObjectStore(dir)
 }
 
-func TestGhiVaDocBlob(t *testing.T) {
+func TestWriteAndReadBlob(t *testing.T) {
 	s := newStore(t)
 	content := []byte("nội dung thử nghiệm\n")
 
@@ -47,7 +47,7 @@ func TestGhiVaDocBlob(t *testing.T) {
 	}
 }
 
-func TestGhiHaiLanKhongHongFile(t *testing.T) {
+func TestWriteTwiceKeepsFileIntact(t *testing.T) {
 	s := newStore(t)
 	content := []byte("abc")
 	h1, err := s.WriteBlob(content)
@@ -74,14 +74,14 @@ func TestGhiHaiLanKhongHongFile(t *testing.T) {
 	}
 }
 
-func TestDocObjectKhongTonTai(t *testing.T) {
+func TestReadMissingObjectErrors(t *testing.T) {
 	s := newStore(t)
 	if _, _, err := s.Read(object.ComputeHash(object.TypeBlob, []byte("x"))); err == nil {
 		t.Fatalf("phải báo lỗi khi đọc object không tồn tại")
 	}
 }
 
-func TestDocTreeVaCommit(t *testing.T) {
+func TestReadTreeAndCommit(t *testing.T) {
 	s := newStore(t)
 	blobHash, err := s.WriteBlob([]byte("dữ liệu"))
 	if err != nil {
@@ -129,7 +129,7 @@ func TestDocTreeVaCommit(t *testing.T) {
 	}
 }
 
-func TestRefDocVaGhi(t *testing.T) {
+func TestRefReadWrite(t *testing.T) {
 	dir := t.TempDir()
 	r := storage.NewRefStore(dir)
 	hash := object.ComputeHash(object.TypeBlob, []byte("x"))
@@ -203,7 +203,7 @@ func TestReflog(t *testing.T) {
 	}
 }
 
-func TestObjectRong(t *testing.T) {
+func TestEmptyObject(t *testing.T) {
 	s := newStore(t)
 	// Tree rỗng vẫn phải ghi và đọc được.
 	h, err := s.WriteTree(&object.Tree{})

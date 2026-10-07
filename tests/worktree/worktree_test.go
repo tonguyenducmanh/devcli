@@ -10,7 +10,7 @@ import (
 	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
 )
 
-func TestFileModeTuStat(t *testing.T) {
+func TestFileModeFromStat(t *testing.T) {
 	dir := t.TempDir()
 
 	// File thường.
@@ -47,7 +47,7 @@ func TestFileModeTuStat(t *testing.T) {
 	}
 }
 
-func TestGhiVaDocFileTrenDia(t *testing.T) {
+func TestWriteAndReadFileOnDisk(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "thu-muc", "tệp.txt")
 
@@ -74,7 +74,7 @@ func TestGhiVaDocFileTrenDia(t *testing.T) {
 	}
 }
 
-func TestGhiSymlink(t *testing.T) {
+func TestWriteSymlink(t *testing.T) {
 	dir := t.TempDir()
 	target := filepath.Join(dir, "dich")
 	if err := os.WriteFile(target, []byte("x"), 0o644); err != nil {
@@ -100,7 +100,7 @@ func TestGhiSymlink(t *testing.T) {
 	}
 }
 
-func TestXoaFileVaDonThuMuc(t *testing.T) {
+func TestRemoveFileAndEmptyDirs(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "a", "b", "tệp.txt")
 	if err := worktree.WriteFileSymlinkAware(path, object.ModeBlob, []byte("x")); err != nil {
@@ -135,7 +135,7 @@ func TestSameContents(t *testing.T) {
 	}
 }
 
-func TestIgnoreKhacNhau(t *testing.T) {
+func TestIgnorePatternsDiffer(t *testing.T) {
 	root := t.TempDir()
 	ig := worktree.NewIgnore(root)
 
@@ -188,9 +188,9 @@ docs/*.tmp
 	}
 }
 
-// TestKhopMauDuongDan kiểm tra việc khớp mẫu thông qua giao diện công khai
+// TestPathPatternMatch kiểm tra việc khớp mẫu thông qua giao diện công khai
 // của bộ quy tắc bỏ qua, vì đó mới là hành vi người dùng thấy.
-func TestKhopMauDuongDan(t *testing.T) {
+func TestPathPatternMatch(t *testing.T) {
 	root := t.TempDir()
 	cases := []struct {
 		pattern, path string

@@ -23,7 +23,7 @@ func text(l []string) string {
 	return strings.Join(l, "\n") + "\n"
 }
 
-func TestMerge3CacTruongHopCoBan(t *testing.T) {
+func TestMerge3BasicCases(t *testing.T) {
 	cases := []struct {
 		name                     string
 		base, ours, theirs, want string
@@ -70,7 +70,7 @@ func TestMerge3CacTruongHopCoBan(t *testing.T) {
 	}
 }
 
-func TestMerge3BaoCaoXungDot(t *testing.T) {
+func TestMerge3ReportsConflict(t *testing.T) {
 	base := lines("a\nb\nc\nd\ne\n")
 	ours := lines("a\nB-cua-ta\nc\nd\ne\n")
 	theirs := lines("a\nB-cua-han\nc\nd\ne\n")
@@ -95,7 +95,7 @@ func TestMerge3BaoCaoXungDot(t *testing.T) {
 	}
 }
 
-func TestMerge3ChinhTacCungPhia(t *testing.T) {
+func TestMerge3EditsSameSide(t *testing.T) {
 	base := lines("a\nb\nc\n")
 	ours := lines("a\nb\nc\nd\n")
 	theirs := lines("a\nb\nc\nd\n")
@@ -108,7 +108,7 @@ func TestMerge3ChinhTacCungPhia(t *testing.T) {
 	}
 }
 
-func TestMerge3FileRong(t *testing.T) {
+func TestMerge3EmptyFile(t *testing.T) {
 	// File bên phía chúng ta rỗng, bên kia có nội dung.
 	got := merge.Merge3(nil, nil, lines("x\ny\n"), "o", "t")
 	if got.Conflict || text(got.Lines) != "x\ny\n" {

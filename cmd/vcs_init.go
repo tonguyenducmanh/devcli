@@ -46,6 +46,8 @@ nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
 }
 
 func init() {
+	addVerboseFlag(vcsCatFileCmd, "in ra dạng đã rút gọn cho dễ đọc")
+
 	vcsInitCmd.Flags().String("initial-branch", "main", "tên nhánh khởi tạo")
 }
 
@@ -101,7 +103,7 @@ toàn bộ phần thô.`,
 		if err != nil {
 			return err
 		}
-		return ops.CatFile(r, args[0], args[1], verboseEnabled(cmd))
+		return ops.CatFile(r, args[0], args[1], verboseOn(cmd))
 	},
 }
 

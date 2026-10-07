@@ -28,6 +28,7 @@ td vcs restore <tệp>... [flags]
   -h, --help            hiển thị phần trợ giúp của lệnh này
   -s, --source string   lấy nội dung từ một commit thay vì index
   -S, --staged          chỉ thay đổi vùng stage, giữ nguyên cây làm việc
+  -v, --verbose         in ra từng tệp đã khôi phục
   -W, --worktree        chỉ thay đổi cây làm việc
 ```
 
@@ -35,8 +36,6 @@ td vcs restore <tệp>... [flags]
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

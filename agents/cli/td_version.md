@@ -25,13 +25,6 @@ td version [flags]
   -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
-### Options inherited from parent commands
-
-```
-      --no-color   tắt màu trong output
-  -v, --verbose    in thêm thông tin chi tiết
-```
-
 ### SEE ALSO
 
 * [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất

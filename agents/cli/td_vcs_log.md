@@ -36,14 +36,13 @@ td vcs log [flags]
   -p, --patch           kèm nội dung diff của từng commit
       --reverse         in ngược thứ tự thời gian
       --stat            kèm thống kê số dòng thay đổi
+  -v, --verbose         in cả nội dung thay đổi của từng commit
 ```
 
 ### Options inherited from parent commands
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

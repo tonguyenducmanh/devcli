@@ -1,10 +1,10 @@
 ## td vcs branch
 
-Liệt kê, tạo hoặc xóa nhánh
+Liệt kê, tạo, sao chép, đổi tên hoặc xoá các nhánh cục bộ
 
 ### Synopsis
 
-Liệt kê, tạo, đổi tên và xoá các nhánh cục bộ.
+Liệt kê, tạo, sao chép, đổi tên và xoá các nhánh cục bộ.
 
 Nhánh chỉ là một con trỏ trỏ tới một commit nên tạo nhánh không tốn chi phí sao
 chép. Dấu * đánh dấu nhánh đang đứng.
@@ -15,6 +15,9 @@ Xoá nhánh chỉ thành công nếu nhánh đó đã được hợp nhất vào
 Không có tham số thì in danh sách. Một tham số là tạo nhánh mới tại HEAD, hai
 tham số là tạo nhánh mới từ một điểm xuất phát cho trước.
 
+Cờ liệt kê và cờ lọc dùng chung được, ví dụ --merged cùng --sort. Tham số
+đưa vào không phải thao tác thì được hiểu là mẫu lọc tên nhánh, giống git.
+
 ```
 td vcs branch [flags]
 ```
@@ -23,33 +26,46 @@ td vcs branch [flags]
 
 ```
   td vcs branch                  liệt kê các nhánh
-  td vcs branch --hash           liệt kê kèm mã băm của từng nhánh
-  td vcs branch -d ten           xóa nhánh đã hợp nhất
-  td vcs branch -D ten           xóa nhánh bất kể trạng thái
-  td vcs branch ten              tạo nhánh tại HEAD
+  td vcs branch -v               liệt kê kèm mã băm và tiêu đề commit
+  td vcs branch -vv              như trên, thêm cả nhánh đang theo dõi
+  td vcs branch --show-current   in tên nhánh đang đứng
+  td vcs branch -l 'tinh-*'      liệt kê các nhánh khớp mẫu
+  td vcs branch --merged main    chỉ liệt kê nhánh đã hợp nhất vào main
+  td vcs branch -d ten           xoá nhánh đã hợp nhất
+  td vcs branch -D ten           xoá nhánh bất kể trạng thái
+  td vcs branch ten              tạo nhánh và chuyển sang đó
   td vcs branch ten main         tạo nhánh từ nhánh main
   td vcs branch -m cũ mới        đổi tên nhánh
+  td vcs branch -c ten bản-sao   sao chép nhánh ten thành bản-sao
 ```
 
 ### Options
 
 ```
-  -d, --delete   xóa nhánh
-  -D, --force    xóa nhánh bất kể đã hợp nhất hay chưa
-      --hash     kèm mã băm của từng nhánh
-  -h, --help     hiển thị phần trợ giúp của lệnh này
-  -l, --list     liệt kê các nhánh
-  -m, --move     đổi tên nhánh
-  -s, --switch   chuyển sang nhánh mới sau khi đổi tên
-  -t, --track    ghi nhớ nhánh theo dõi cho nhánh mới
+      --abbrev string      số ký tự của mã băm rút gọn, mặc định 8, đặt 0 để in đầy đủ
+      --contains string    chỉ in nhánh có chứa commit cho trước
+  -c, --copy               sao chép nhánh
+  -f, --create-force       ép tạo, ghi đè nhánh đã có
+  -d, --delete             xoá nhánh đã hợp nhất
+  -D, --force              xoá nhánh bất kể đã hợp nhất hay chưa
+      --format string      định dạng từng dòng: %s tên, %h mã băm ngắn, %H mã băm đầy đủ, %d tiêu đề
+  -h, --help               hiển thị phần trợ giúp của lệnh này
+  -l, --list               liệt kê tên nhánh, có thể kèm mẫu lọc
+      --merged string      chỉ in nhánh đã hợp nhất vào commit cho trước
+  -m, --move               đổi tên nhánh
+      --no-merged string   chỉ in nhánh chưa hợp nhất vào commit cho trước
+      --points-at string   chỉ in nhánh trỏ tới đúng object cho trước
+  -q, --quiet              chỉ báo lỗi, không in thông báo thành công
+      --show-current       chỉ in tên nhánh đang đứng
+      --sort string        sắp xếp theo khoá: name, -name, committerdate, -committerdate
+  -t, --track              ghi nhớ nhánh theo dõi cho nhánh mới
+  -v, --verbose count      liệt kê kèm mã băm và tiêu đề commit, dùng hai lần thì in thêm nhánh đang theo dõi
 ```
 
 ### Options inherited from parent commands
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

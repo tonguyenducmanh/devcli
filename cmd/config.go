@@ -24,6 +24,7 @@ Cấu hình toàn cục được đọc trước, nên nên đặt user.name và
 		},
 	}
 	cmd.PersistentFlags().StringP("dir", "C", "", "chạy lệnh tại thư mục khác")
+	addVerboseFlag(cmd, "in ra tệp cấu hình đã dùng")
 	cmd.Flags().BoolP("global", "g", false, "áp dụng cho toàn bộ máy thay vì repo hiện tại")
 	cmd.Flags().BoolP("list", "l", false, "liệt kê toàn bộ cấu hình")
 	cmd.Flags().Bool("unset", false, "xóa một khóa cấu hình")
@@ -92,7 +93,7 @@ func applyConfig(cmd *cobra.Command, cfg *config.Config, listFlag, unsetFlag boo
 		if err := cfg.Save(); err != nil {
 			return err
 		}
-		if verboseEnabled(cmd) {
+		if verboseOn(cmd) {
 			printLine("đã lưu %s vào %s", key, path)
 		}
 		return nil

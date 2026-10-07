@@ -79,7 +79,7 @@ Mỗi nhóm tự quản lý toàn bộ dữ liệu của nó trong thư mục ri
 	},
 	// Chạy trước mọi lệnh con để quyết định có tô màu output hay không.
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		setupColor(cmd)
+		setupColor()
 	},
 }
 
@@ -91,16 +91,10 @@ func Execute() error {
 	return rootCmd.Execute()
 }
 
-// setupColor quyết định có tô màu output dựa trên cờ và khả năng của terminal.
-func setupColor(cmd *cobra.Command) {
-	noColor, _ := cmd.Flags().GetBool("no-color")
-	colorEnabled = !noColor && isTerminal()
-}
-
-// verboseEnabled báo cờ -v có đang bật không.
-func verboseEnabled(cmd *cobra.Command) bool {
-	v, _ := cmd.Flags().GetBool("verbose")
-	return v
+// setupColor quyết định có tô màu output hay không, dựa vào khả năng của
+// terminal và biến môi trường NO_COLOR.
+func setupColor() {
+	colorEnabled = isTerminal()
 }
 
 // errRepoNotFound trả về thông báo gợi ý khi lệnh cần repo nhưng không tìm thấy.
@@ -115,9 +109,13 @@ func init() {
 	rootCmd.SetVersionTemplate(AppName + " phiên bản {{.Version}}\n")
 	rootCmd.Version = Version
 
-	// Cờ toàn cục áp dụng cho mọi lệnh.
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "in thêm thông tin chi tiết")
-	rootCmd.PersistentFlags().Bool("no-color", false, "tắt màu trong output")
+	// Cố ý không đặt cờ toàn cục nào. Mỗi lệnh tự khai báo cờ của riêng nó, và
+	// -v mang nghĩa khác nhau tuỳ lệnh: `td -v` là phiên bản, còn
+	// `td vcs branch -v` là hiện mã băm, đúng như git. Dùng chung một cờ
+	// toàn cục sẽ khiến chữ viết tắt bị che trong lệnh con mà không ai hay.
+	//
+	// Tắt màu thì dùng biến môi trường NO_COLOR hoặc TERM=dumb, xem isTerminal.
+	addVerboseFlag(rootCmd, "in thêm thông tin môi trường")
 
 	// Tắt lệnh completion sinh tự động của cobra. Mô tả cờ của lệnh đó viết
 	// bằng tiếng Anh, mà dự án này không bán tài liệu hoàn chỉnh nào khác nữa.

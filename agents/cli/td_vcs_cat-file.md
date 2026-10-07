@@ -28,15 +28,14 @@ td vcs cat-file <loại> <mã-băm> [flags]
 ### Options
 
 ```
-  -h, --help   hiển thị phần trợ giúp của lệnh này
+  -h, --help      hiển thị phần trợ giúp của lệnh này
+  -v, --verbose   in ra dạng đã rút gọn cho dễ đọc
 ```
 
 ### Options inherited from parent commands
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

@@ -199,7 +199,7 @@ func printCommandList(cmd *cobra.Command) {
 	}
 
 	for _, title := range titles {
-		printLine("%s", colorize(colorCyan, title+":"))
+		printLine("%s", colorize(colorCyan, title))
 		for _, sub := range cmd.Commands() {
 			if !sub.IsAvailableCommand() || titleOf[sub.Name()] != title {
 				continue
@@ -219,7 +219,7 @@ func printCommandList(cmd *cobra.Command) {
 // Cờ -v bật thêm thông tin môi trường, vốn chẳng có tác dụng gì nếu chỉ in
 // trợ giúp.
 func runRoot(cmd *cobra.Command) error {
-	if verboseEnabled(cmd) {
+	if verboseOn(cmd) {
 		printVersionFull()
 		return nil
 	}

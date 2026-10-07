@@ -18,23 +18,23 @@ import (
 // gõ lệnh không kèm tham số, và không còn chỗ nào để lộ nhãn tiếng Anh của
 // cobra.
 
-// chayLenh chạy cây lệnh trong bộ nhớ rồi trả về output và lỗi phát sinh.
+// runCommand chạy cây lệnh trong bộ nhớ rồi trả về output và lỗi phát sinh.
 //
 // Phần trợ giúp do cobra in ra, còn phần thông báo của lệnh do hàm printLine
 // ghi thẳng ra os.Stdout. Vì vậy phải đổi os.Stdutdown đi một ống thật rồi đọc
 // lại, nếu không sẽ chỉ bắt được một nửa.
-func chayLenh(t *testing.T, args ...string) (string, error) {
+func runCommand(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 
 	reader, writer, err := os.Pipe()
 	if err != nil {
 		t.Fatal(err)
 	}
-	cu := os.Stdout
+	savedOut := os.Stdout
 	os.Stdout = writer
 
 	defer func() {
-		os.Stdout = cu
+		os.Stdout = savedOut
 	}()
 
 	root := cmd.Root()
@@ -43,7 +43,7 @@ func chayLenh(t *testing.T, args ...string) (string, error) {
 	root.SetErr(writer)
 	root.SetArgs(args)
 
-	loi := root.Execute()
+	runErr := root.Execute()
 
 	writer.Close()
 	var buf bytes.Buffer
@@ -52,7 +52,7 @@ func chayLenh(t *testing.T, args ...string) (string, error) {
 	}
 	reader.Close()
 
-	return buf.String(), loi
+	return buf.String(), runErr
 }
 
 // resetFlags trả mọi cờ về giá trị mặc định trước khi chạy lệnh kế tiếp.
@@ -61,34 +61,34 @@ func chayLenh(t *testing.T, args ...string) (string, error) {
 // đặt lại cờ sau mỗi lần Execute. Không reset thì cờ --help đã bật ở lần chạy
 // trước sẽ khiến lần sau in trợ giúp ngay, và kiểm thử sẽ báo động lung tung.
 func resetFlags(root *cobra.Command) {
-	var duyet func(c *cobra.Command)
-	duyet = func(c *cobra.Command) {
-		ve := func(f *pflag.Flag) {
+	var walkAll func(c *cobra.Command)
+	walkAll = func(c *cobra.Command) {
+		apply := func(f *pflag.Flag) {
 			_ = f.Value.Set(f.DefValue)
 			f.Changed = false
 		}
-		c.Flags().VisitAll(ve)
-		c.PersistentFlags().VisitAll(ve)
+		c.Flags().VisitAll(apply)
+		c.PersistentFlags().VisitAll(apply)
 		for _, sub := range c.Commands() {
-			duyet(sub)
+			walkAll(sub)
 		}
 	}
-	duyet(root)
+	walkAll(root)
 }
 
-// chayLenhOK chạy lệnh rồi trả về output, đồng thời đòi lệnh phải thành công.
-func chayLenhOK(t *testing.T, args ...string) string {
+// mustRunCommand chạy lệnh rồi trả về output, đồng thời đòi lệnh phải thành công.
+func mustRunCommand(t *testing.T, args ...string) string {
 	t.Helper()
-	dong, loi := chayLenh(t, args...)
-	if loi != nil {
-		t.Fatalf("%v phải chạy thành công, gặp lỗi: %v", args, loi)
+	out, runErr := runCommand(t, args...)
+	if runErr != nil {
+		t.Fatalf("%v phải chạy thành công, gặp lỗi: %v", args, runErr)
 	}
-	return dong
+	return out
 }
 
-// nhanTiengAnh là các nhãn do cobra in ra trong phần trợ giúp. Không nhãn nào
+// englishLabels là các nhãn do cobra in ra trong phần trợ giúp. Không nhãn nào
 // chứa chữ cái tiếng Việt có dấu, nên chỉ cần so khớp nguyên văn.
-var nhanTiengAnh = []string{
+var englishLabels = []string{
 	"help for", "version for", "Help about any command",
 	"Usage:", "Aliases:", "Examples:", "Available Commands:",
 	"Additional Commands:", "Flags:", "Global Flags:",
@@ -96,121 +96,121 @@ var nhanTiengAnh = []string{
 	"unknown command", "unknown flag",
 }
 
-// TestTroGiopKhongConTiengAnh bảo đảm không chỗ nào của trợ giúp còn sót nhãn
+// TestHelpHasNoEnglishLabels bảo đảm không chỗ nào của trợ giúp còn sót nhãn
 // tiếng Anh của cobra.
 //
 // Nếu bỏ qua kiểm thử này thì việc dịch phần trợ giúp rất dễ vỡ: chỉ cần ai
 // đó thêm một lệnh mới, hoặc cobra đổi cách dựng cờ, là tiếng Anh quay lại mà
 // không ai hay.
-func TestTroGiopKhongConTiengAnh(t *testing.T) {
-	var duyet func(c *cobra.Command)
-	duyet = func(c *cobra.Command) {
+func TestHelpHasNoEnglishLabels(t *testing.T) {
+	var walkAll func(c *cobra.Command)
+	walkAll = func(c *cobra.Command) {
 		path := strings.Fields(c.CommandPath())
 
-		dong := chayLenhOK(t, append(path, "--help")...)
-		for _, nhan := range nhanTiengAnh {
-			if strings.Contains(dong, nhan) {
-				t.Errorf("trợ giúp của %q chứa nhãn tiếng Anh %q", c.CommandPath(), nhan)
+		out := mustRunCommand(t, append(path, "--help")...)
+		for _, label := range englishLabels {
+			if strings.Contains(out, label) {
+				t.Errorf("trợ giúp của %q chứa nhãn tiếng Anh %q", c.CommandPath(), label)
 			}
 		}
 
 		for _, sub := range c.Commands() {
-			duyet(sub)
+			walkAll(sub)
 		}
 	}
-	duyet(cmd.Root())
+	walkAll(cmd.Root())
 }
 
-// TestMoTaCoBangTiengViet bảo đảm mọi cờ, kể cả cờ do cobra tự sinh, đều có mô
+// TestFlagDescriptionsAreVietnamese bảo đảm mọi cờ, kể cả cờ do cobra tự sinh, đều có mô
 // tả tiếng Việt.
-func TestMoTaCoBangTiengViet(t *testing.T) {
-	var duyet func(c *cobra.Command)
-	duyet = func(c *cobra.Command) {
+func TestFlagDescriptionsAreVietnamese(t *testing.T) {
+	var walkAll func(c *cobra.Command)
+	walkAll = func(c *cobra.Command) {
 		c.InitDefaultHelpFlag()
 		c.Flags().VisitAll(func(f *pflag.Flag) {
-			if !strings.ContainsAny(f.Usage, chuViet) {
+			if !strings.ContainsAny(f.Usage, vietnameseLetters) {
 				t.Errorf("cờ --%s của %q mô tả bằng tiếng Anh: %q", f.Name, c.CommandPath(), f.Usage)
 			}
 		})
 		for _, sub := range c.Commands() {
-			duyet(sub)
+			walkAll(sub)
 		}
 	}
-	duyet(cmd.Root())
+	walkAll(cmd.Root())
 }
 
-// TestLenhGocChayThatKhongInTroGiop bảo đảm gõ lệnh gốc không ra trang trợ giúp.
+// TestRootCommandRunsInsteadOfPrintingHelp bảo đảm gõ lệnh gốc không ra trang trợ giúp.
 //
 // `td` không kèm lệnh con nào thì phải làm được việc gì đó hữu ích, đó là in
 // phiên bản và danh sách lệnh. Nếu ai đó đổi lệnh gốc thành in trợ giúp thì
 // kiểm thử này đỏ.
-func TestLenhGocChayThatKhongInTroGiop(t *testing.T) {
-	dong := chayLenhOK(t)
+func TestRootCommandRunsInsteadOfPrintingHelp(t *testing.T) {
+	out := mustRunCommand(t)
 
-	if strings.Contains(dong, "Cách dùng:") {
+	if strings.Contains(out, "Cách dùng:") {
 		t.Error("gõ lệnh gốc không nên in trợ giúp, hãy in danh sách lệnh")
 	}
 	for _, can := range []string{"vcs", "config", "version"} {
-		if !strings.Contains(dong, can) {
+		if !strings.Contains(out, can) {
 			t.Errorf("danh sách lệnh thiếu %q", can)
 		}
 	}
 }
 
-// TestCoVerboseInThongTinMoiTruong bảo đảm cờ -v làm được việc gì đó.
+// TestVerboseFlagPrintsEnvironment bảo đảm cờ -v làm được việc gì đó.
 //
 // Cờ -v từng chỉ in trợ giúp nên vô dụng, giờ nó phải in thông tin môi trường.
-func TestCoVerboseInThongTinMoiTruong(t *testing.T) {
-	dong := chayLenhOK(t, "-v")
+func TestVerboseFlagPrintsEnvironment(t *testing.T) {
+	out := mustRunCommand(t, "-v")
 
-	if !strings.Contains(dong, "nền tảng:") {
-		t.Errorf("cờ -v chưa in thông tin môi trường, nhận được: %q", dong)
+	if !strings.Contains(out, "nền tảng:") {
+		t.Errorf("cờ -v chưa in thông tin môi trường, nhận được: %q", out)
 	}
-	if strings.Contains(dong, "Cách dùng:") {
+	if strings.Contains(out, "Cách dùng:") {
 		t.Error("cờ -v không nên in trợ giúp")
 	}
 }
 
-// TestNhomLenhChayThatKhongInTroGiop bảo đảm gõ một nhóm lệnh không ra trợ giúp.
-func TestNhomLenhChayThatKhongInTroGiop(t *testing.T) {
+// TestGroupCommandRunsInsteadOfPrintingHelp bảo đảm gõ một nhóm lệnh không ra trợ giúp.
+func TestGroupCommandRunsInsteadOfPrintingHelp(t *testing.T) {
 	for _, nhom := range []string{"vcs"} {
-		dong := chayLenhOK(t, nhom)
+		out := mustRunCommand(t, nhom)
 
-		if strings.Contains(dong, "Cách dùng:") {
+		if strings.Contains(out, "Cách dùng:") {
 			t.Errorf("%s không nên in trợ giúp", nhom)
 		}
-		if !strings.Contains(dong, "Xem chi tiết") {
+		if !strings.Contains(out, "Xem chi tiết") {
 			t.Errorf("%s phải chỉ dẫn cách xem chi tiết", nhom)
 		}
 	}
 }
 
-// TestTenLenhSaiBaoLoiTiengViet bảo đảm gõ sai tên lệnh thì báo lỗi tiếng Việt
+// TestWrongCommandNameErrorsInVietnamese bảo đảm gõ sai tên lệnh thì báo lỗi tiếng Việt
 // với mã thoát khác 0, chứ không in help hay báo bằng tiếng Anh.
-func TestTenLenhSaiBaoLoiTiengViet(t *testing.T) {
+func TestWrongCommandNameErrorsInVietnamese(t *testing.T) {
 	for _, args := range [][]string{
 		{"khongTonTai"},
 		{"vcs", "khongTonTai"},
 		{"version", "thuaThamSo"},
 	} {
-		dong, loi := chayLenh(t, args...)
+		out, runErr := runCommand(t, args...)
 
-		if loi == nil {
+		if runErr == nil {
 			t.Errorf("%v phải báo lỗi, lại chạy thành công", args)
 			continue
 		}
-		if strings.Contains(dong, "Cách dùng:") {
+		if strings.Contains(out, "Cách dùng:") {
 			t.Errorf("%v không nên in trợ giúp khi sai", args)
 		}
-		if !strings.ContainsAny(loi.Error(), chuViet) {
-			t.Errorf("%v báo lỗi bằng tiếng Anh: %q", args, loi)
+		if !strings.ContainsAny(runErr.Error(), vietnameseLetters) {
+			t.Errorf("%v báo lỗi bằng tiếng Anh: %q", args, runErr)
 		}
 	}
 }
 
 // TestXemTroGiopChiTietBằngTienViet bảo đảm xem trợ giúp chi tiết vẫn chạy được
 // sau khi dịch sang tiếng Việt.
-func TestXemTroGiopChiTietBangTienViet(t *testing.T) {
+func TestDetailedHelpIsVietnamese(t *testing.T) {
 	for _, args := range [][]string{
 		{"--help"},
 		{"vcs", "--help"},
@@ -218,18 +218,18 @@ func TestXemTroGiopChiTietBangTienViet(t *testing.T) {
 		{"help"},
 		{"help", "vcs", "merge"},
 	} {
-		dong := chayLenhOK(t, args...)
+		out := mustRunCommand(t, args...)
 
-		if !strings.Contains(dong, "Cách dùng:") {
+		if !strings.Contains(out, "Cách dùng:") {
 			t.Errorf("%v phải in phần trợ giúp", args)
 		}
-		if !strings.ContainsAny(dong, chuViet) {
-			t.Errorf("%v in trợ giúp không có tiếng Việt: %q", args, dong)
+		if !strings.ContainsAny(out, vietnameseLetters) {
+			t.Errorf("%v in trợ giúp không có tiếng Việt: %q", args, out)
 		}
 	}
 }
 
-// TestLenhConKhongDungLaiTenCoToanCuc bảo đảm không lệnh con nào khai báo cờ
+// TestChildCommandsDoNotReuseGlobalFlagNames bảo đảm không lệnh con nào khai báo cờ
 // trùng tên hoặc trùng chữ viết tắt với cờ toàn cục.
 //
 // Cơ chế của pflag là âm thầm bỏ qua cờ bị che, không báo lỗi. Lệnh con che cờ
@@ -239,28 +239,28 @@ func TestXemTroGiopChiTietBangTienViet(t *testing.T) {
 // Chỉ cờ do chính lệnh đó khai báo mới bị soi. Sau khi lệnh đã chạy, pflag nối
 // cờ toàn cục của các lệnh cha vào chính lệnh con, nên phải loại bỏ những cờ đó
 // ra trước.
-func TestLenhConKhongDungLaiTenCoToanCuc(t *testing.T) {
+func TestChildCommandsDoNotReuseGlobalFlagNames(t *testing.T) {
 	root := cmd.Root()
 
-	var duyet func(c *cobra.Command)
-	duyet = func(c *cobra.Command) {
+	var walkAll func(c *cobra.Command)
+	walkAll = func(c *cobra.Command) {
 		// Gom cờ toàn cục của mọi lệnh cha.
-		tenCha := map[string]bool{}
-		chuTatCha := map[string]string{}
+		parentName := map[string]bool{}
+		parentShorthand := map[string]string{}
 		for parent := c.Parent(); parent != nil; parent = parent.Parent() {
 			parent.PersistentFlags().VisitAll(func(f *pflag.Flag) {
-				tenCha[f.Name] = true
+				parentName[f.Name] = true
 				if f.Shorthand != "" {
-					chuTatCha[f.Shorthand] = f.Name
+					parentShorthand[f.Shorthand] = f.Name
 				}
 			})
 		}
 
 		c.Flags().VisitAll(func(f *pflag.Flag) {
-			if tenCha[f.Name] {
+			if parentName[f.Name] {
 				return // cờ này thuộc về lệnh cha, không phải lệnh này
 			}
-			if ten, ok := chuTatCha[f.Shorthand]; ok && f.Shorthand != "" {
+			if ten, ok := parentShorthand[f.Shorthand]; ok && f.Shorthand != "" {
 				t.Errorf("lệnh %q dùng chữ viết tắt -%s cho --%s, trùng cờ toàn cục --%s của lệnh cha",
 					c.CommandPath(), f.Shorthand, f.Name, ten)
 			}
@@ -273,47 +273,47 @@ func TestLenhConKhongDungLaiTenCoToanCuc(t *testing.T) {
 		})
 
 		for _, sub := range c.Commands() {
-			duyet(sub)
+			walkAll(sub)
 		}
 	}
-	duyet(root)
+	walkAll(root)
 }
 
-// TestGiaTriMacDinhKhopCauHinhBuild bảo đảm giá trị mặc định trong Go không
+// TestDefaultsMatchBuildConfig bảo đảm giá trị mặc định trong Go không
 // lệch với cấu hình build.
 //
 // Script build ghi đè các biến này bằng ldflags, nên khi chạy `go build` thẳng
 // mà không qua script thì dùng giá trị mặc định ở Go. Hai nơi phải giống nhau,
 // nếu không thì bản dựng tay sẽ mang tên khác bản dựng từ script. Có kiểm thử
 // này thì đổi một bên mà quên bên kia sẽ bị chặn.
-func TestGiaTriMacDinhKhopCauHinhBuild(t *testing.T) {
-	noiDung, err := os.ReadFile(filepath.Join(moduleRoot(t), "scripts", "build_binaries.sh"))
+func TestDefaultsMatchBuildConfig(t *testing.T) {
+	content, err := os.ReadFile(filepath.Join(moduleRoot(t), "scripts", "build_binaries.sh"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	canDoi := map[string]string{
+	expectedPairs := map[string]string{
 		"CMD_NAME": cmd.AppName,
 		"REPO_URL": cmd.RepoURL,
 		"AUTHOR":   cmd.Author,
 	}
-	for ten, gt := range canDoi {
-		trongScript := giaTriTrongScript(string(noiDung), ten)
-		if trongScript == "" {
+	for ten, gt := range expectedPairs {
+		inScript := scriptValue(string(content), ten)
+		if inScript == "" {
 			t.Errorf("không tìm thấy biến %s trong scripts/build_binaries.sh", ten)
 			continue
 		}
-		if trongScript != gt {
-			t.Errorf("%s lệch: script build là %q, mặc định trong Go là %q", ten, trongScript, gt)
+		if inScript != gt {
+			t.Errorf("%s lệch: script build là %q, mặc định trong Go là %q", ten, inScript, gt)
 		}
 	}
 }
 
-// giaTriTrongScript đọc giá trị của một biến gán thẳng trong tập lệnh shell,
+// scriptValue đọc giá trị của một biến gán thẳng trong tập lệnh shell,
 // bỏ dấu nháy quanh giá trị nếu có.
-func giaTriTrongScript(noiDung, ten string) string {
-	for _, dong := range strings.Split(noiDung, "\n") {
-		rest, ok := strings.CutPrefix(dong, ten+"=")
+func scriptValue(content, ten string) string {
+	for _, out := range strings.Split(content, "\n") {
+		rest, ok := strings.CutPrefix(out, ten+"=")
 		if !ok {
 			continue
 		}
@@ -324,19 +324,19 @@ func giaTriTrongScript(noiDung, ten string) string {
 	return ""
 }
 
-// TestNhanLienHeDuocInRa bảo đảm tên tác giả và nơi phát hành hiện ở nơi người
+// TestContactInfoIsPrinted bảo đảm tên tác giả và nơi phát hành hiện ở nơi người
 // đọc cần tìm.
-func TestNhanLienHeDuocInRa(t *testing.T) {
+func TestContactInfoIsPrinted(t *testing.T) {
 	for _, args := range [][]string{
 		{"version"},
 		{"-v"},
 		{"--help"},
 	} {
-		dong := chayLenhOK(t, args...)
-		if !strings.Contains(dong, cmd.Author) {
+		out := mustRunCommand(t, args...)
+		if !strings.Contains(out, cmd.Author) {
 			t.Errorf("%v không in tên tác giả %q", args, cmd.Author)
 		}
-		if !strings.Contains(dong, cmd.RepoURL) {
+		if !strings.Contains(out, cmd.RepoURL) {
 			t.Errorf("%v không in nơi phát hành %q", args, cmd.RepoURL)
 		}
 	}

@@ -13,7 +13,7 @@ func newConfig(t *testing.T) (*config.Config, string) {
 	return config.New(path), path
 }
 
-func TestDocGhiVaDocLai(t *testing.T) {
+func TestSaveAndLoadRoundTrip(t *testing.T) {
 	c, path := newConfig(t)
 	c.Set("user.name", "Tên Có Dấu Cách")
 	c.Set("user.email", "ten@example.com")
@@ -42,7 +42,7 @@ func TestDocGhiVaDocLai(t *testing.T) {
 	}
 }
 
-func TestKhongPhanBietHoaThuong(t *testing.T) {
+func TestCaseInsensitiveKeys(t *testing.T) {
 	c, path := newConfig(t)
 	c.Set("User.Name", "Tên")
 	if err := c.Save(); err != nil {
@@ -55,7 +55,7 @@ func TestKhongPhanBietHoaThuong(t *testing.T) {
 	}
 }
 
-func TestDatLaiVaXoa(t *testing.T) {
+func TestSetResetAndUnset(t *testing.T) {
 	c, _ := newConfig(t)
 	c.Set("user.name", "Một")
 	c.Set("user.name", "Hai")
@@ -74,7 +74,7 @@ func TestDatLaiVaXoa(t *testing.T) {
 	}
 }
 
-func TestGiaTriMacDinh(t *testing.T) {
+func TestDefaultValues(t *testing.T) {
 	c, _ := newConfig(t)
 	if got := c.GetString("khong.co", "mặc định"); got != "mặc định" {
 		t.Fatalf("phải trả về giá trị mặc định: %q", got)
@@ -105,7 +105,7 @@ func TestGiaTriMacDinh(t *testing.T) {
 	}
 }
 
-func TestDocFileKhongTonTai(t *testing.T) {
+func TestReadMissingFileErrors(t *testing.T) {
 	// Đọc file không tồn tại phải cho cấu hình rỗng chứ không phải lỗi.
 	c, err := config.Load(filepath.Join(t.TempDir(), "khong-co.txt"))
 	if err != nil {
@@ -116,7 +116,7 @@ func TestDocFileKhongTonTai(t *testing.T) {
 	}
 }
 
-func TestBoQuaChuThichVaDongTrong(t *testing.T) {
+func TestSkipCommentsAndBlankLines(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config")
 	content := `# dòng chú thích
@@ -152,7 +152,7 @@ func TestBoQuaChuThichVaDongTrong(t *testing.T) {
 	}
 }
 
-func TestGlobalPathTheoBienTruong(t *testing.T) {
+func TestGlobalPathFollowsEnv(t *testing.T) {
 	// Đường dẫn cấu hình toàn cục phải tôn trọng biến môi trường TD_CONFIG.
 	t.Setenv("TD_CONFIG", "/tmp/khung-kiem-thu/config")
 	got, err := config.GlobalPath()

@@ -32,8 +32,6 @@ td vcs show [commit] [flags]
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

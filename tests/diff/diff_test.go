@@ -40,7 +40,7 @@ func applyChanges(a []string, changes []diff.Change) []string {
 	return append(out, a[pos:]...)
 }
 
-func TestDiffLinesDungLuon(t *testing.T) {
+func TestDiffLinesInvariants(t *testing.T) {
 	cases := []struct {
 		name string
 		a, b string
@@ -83,7 +83,7 @@ func TestDiffLinesDungLuon(t *testing.T) {
 	}
 }
 
-func TestDiffLinesCacDauRaDauBang(t *testing.T) {
+func TestDiffLinesAllStartWithPrefix(t *testing.T) {
 	a := []string{"a", "b", "c", "d", "e"}
 	b := []string{"a", "X", "c", "d", "E"}
 	changes := diff.DiffLines(a, b)
@@ -119,7 +119,7 @@ func TestHunksWithContext(t *testing.T) {
 	}
 }
 
-func TestHunksGopKhiKhoangCachNho(t *testing.T) {
+func TestHunksMergeWhenGapIsSmall(t *testing.T) {
 	a := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
 	// Hai thay đổi cách nhau 2 dòng, ngữ cảnh 1 dòng nên gộp làm một hunk.
 	b := []string{"1", "X", "3", "4", "Y", "6", "7", "8", "9", "10"}
@@ -133,7 +133,7 @@ func TestHunksGopKhiKhoangCachNho(t *testing.T) {
 	}
 }
 
-func TestHunksKhongCoThayDoi(t *testing.T) {
+func TestHunksWithoutChanges(t *testing.T) {
 	a := []string{"a", "b"}
 	if hunks := diff.HunksWithContext(a, a, 3); len(hunks) != 0 {
 		t.Fatalf("không có thay đổi thì không được có hunk, nhận %d", len(hunks))

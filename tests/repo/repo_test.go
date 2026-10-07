@@ -95,7 +95,7 @@ func StageAllWorktree(r *repo.Repo) error {
 	return r.SaveIndex()
 }
 
-func TestInitVaMoRepo(t *testing.T) {
+func TestInitAndOpenRepo(t *testing.T) {
 	r := newTestRepo(t)
 	// Mở lại từ thư mục con vẫn phải tìm thấy repo.
 	child := r.WorkPath("sub/dir")
@@ -114,14 +114,14 @@ func TestInitVaMoRepo(t *testing.T) {
 	}
 }
 
-func TestMoRepoONoiKhongPhaiRepo(t *testing.T) {
+func TestOpenOutsideRepoErrors(t *testing.T) {
 	dir := t.TempDir()
 	if _, err := repo.Open(dir); err == nil {
 		t.Fatalf("phải báo lỗi khi thư mục không phải repo")
 	}
 }
 
-func TestCommitVaStatus(t *testing.T) {
+func TestCommitAndStatus(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, "a.txt", "nội dung A\n")
 	writeFile(t, r, "src/main.go", "package main\n")
@@ -153,7 +153,7 @@ func TestCommitVaStatus(t *testing.T) {
 	}
 }
 
-func TestThayDoiChuaStageKhongLoiVaoCommit(t *testing.T) {
+func TestUnstagedChangeExcludedFromCommit(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, "a.txt", "v1\n")
 	c1 := commitAll(t, r, "c1")
@@ -199,7 +199,7 @@ func mustCommitTree(t *testing.T, r *repo.Repo, h object.Hash) object.Hash {
 	return tree
 }
 
-func TestIndexVaCayDungPhanCay(t *testing.T) {
+func TestIndexAndTreeShareSubtrees(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, "docs/huong-dan.md", "# hướng dẫn\n")
 	writeFile(t, r, "src/deep/nested/file.go", "package deep\n")
@@ -246,7 +246,7 @@ func mustTreeHash(t *testing.T, r *repo.Repo, tree object.Hash, name string) obj
 	return e.Hash
 }
 
-func TestMergeBaseVaIsAncestor(t *testing.T) {
+func TestMergeBaseAndIsAncestor(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, "a.txt", "1\n")
 	c1 := commitAll(t, r, "c1")
@@ -298,7 +298,7 @@ func TestResolveRev(t *testing.T) {
 	}
 }
 
-func TestBranchesVaTags(t *testing.T) {
+func TestBranchesAndTags(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, "a.txt", "1\n")
 	c1 := commitAll(t, r, "c1")
@@ -355,7 +355,7 @@ func TestIgnoreRules(t *testing.T) {
 	}
 }
 
-func TestIgnoredFilesKhongVaIndex(t *testing.T) {
+func TestIgnoredFilesStayOutOfIndex(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, ".tdxignore", "*.log\n")
 	r2, err := repo.Open(r.Root)

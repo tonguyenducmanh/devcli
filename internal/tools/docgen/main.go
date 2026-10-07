@@ -51,14 +51,14 @@ func main() {
 			Section: "1",
 			// Nơi phát hành đi vào trường Source của dòng .TH. Khuôn trang man
 			// của cobra không có chỗ cho tên tác giả nên phần AUTHORS được
-			// thêm vào sau, xem hàm themPhanTacGia.
+			// thêm vào sau, xem hàm appendAuthorsSection.
 			Source: cmd.RepoURL,
 			Manual: cmd.AppName,
 		}
 		if err := doc.GenManTree(root, hdr, *out); err != nil {
 			log.Fatalf("sinh tài liệu man thất bại: %v", err)
 		}
-		themPhanTacGia(*out, root.Name())
+		appendAuthorsSection(*out, root.Name())
 
 	default:
 		log.Fatalf("định dạng không hợp lệ: %s (chọn markdown hoặc man)", *format)
@@ -67,33 +67,33 @@ func main() {
 	fmt.Printf("Đã sinh tài liệu định dạng %s vào %s\n", *format, *out)
 }
 
-// themPhanTacGia chèn mục AUTHORS vào trang man của lệnh gốc.
+// appendAuthorsSection chèn mục AUTHORS vào trang man của lệnh gốc.
 //
 // Khuôn trang man của cobra không có chỗ cho tên tác giả, nên phải tự thêm
 // vào. Chỉ trang của lệnh gốc được thêm, vì đó là trang người đọc tìm về tác
 // giả trước tiên.
-func themPhanTacGia(thuMuc, tenLenh string) {
+func appendAuthorsSection(dir, cmdName string) {
 	if cmd.Author == "" {
 		return
 	}
 
-	tenTep := filepath.Join(thuMuc, tenLenh+".1")
-	noiDung, err := os.ReadFile(tenTep)
+	fileName := filepath.Join(dir, cmdName+".1")
+	content, err := os.ReadFile(fileName)
 	if err != nil {
-		log.Fatalf("không đọc được trang man %s: %v", tenTep, err)
+		log.Fatalf("không đọc được trang man %s: %v", fileName, err)
 	}
 
-	phan := "# AUTHORS\n" + cmd.Author + "\n"
+	section := "# AUTHORS\n" + cmd.Author + "\n"
 	if cmd.RepoURL != "" {
-		phan += "\n# NƠI PHÁT HÀNH\n" + cmd.RepoURL + "\n"
+		section += "\n# NƠI PHÁT HÀNH\n" + cmd.RepoURL + "\n"
 	}
 
-	noiDungMoi := strings.Replace(string(noiDung), "# SEE ALSO", phan+"\n# SEE ALSO", 1)
-	if noiDungMoi == string(noiDung) {
+	newContent := strings.Replace(string(content), "# SEE ALSO", section+"\n# SEE ALSO", 1)
+	if newContent == string(content) {
 		// Trang không có mục SEE ALSO thì ghi nối vào cuối.
-		noiDungMoi = string(noiDung) + "\n" + phan
+		newContent = string(content) + "\n" + section
 	}
-	if err := os.WriteFile(tenTep, []byte(noiDungMoi), 0o644); err != nil {
-		log.Fatalf("không ghi được trang man %s: %v", tenTep, err)
+	if err := os.WriteFile(fileName, []byte(newContent), 0o644); err != nil {
+		log.Fatalf("không ghi được trang man %s: %v", fileName, err)
 	}
 }

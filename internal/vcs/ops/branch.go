@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/tonguyenducmanh/devcli/internal/vcs/object"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
@@ -11,12 +12,16 @@ import (
 
 // Branch là thông tin một nhánh để hiển thị.
 type Branch struct {
-	Name     string
-	Hash     object.Hash
-	Current  bool
-	Upstream string
-	Ahead    int
-	Behind   int
+	Name string
+	Hash object.Hash
+	// Subject là dòng đầu tiên của thông điệp commit, dùng cho cờ -v.
+	Subject string
+	// CommittedAt là thời điểm người commit tạo ra commit, dùng cho --sort.
+	CommittedAt time.Time
+	Current     bool
+	Upstream    string
+	Ahead       int
+	Behind      int
 }
 
 // ListBranches liệt kê các nhánh cục bộ kèm thông tin nhánh hiện tại.
@@ -34,6 +39,10 @@ func ListBranches(r *repo.Repo) ([]Branch, error) {
 			continue
 		}
 		b := Branch{Name: n, Hash: h, Current: n == current}
+		if c, err := r.Objects.ReadCommit(h); err == nil {
+			b.Subject = firstLine(c.Message)
+			b.CommittedAt = c.Committer.When
+		}
 		if merge := r.Config.GetString("branch."+n+".merge", ""); merge != "" {
 			b.Upstream = shortRefName(merge)
 			if uh, err := r.Refs.Resolve(merge); err == nil {
@@ -87,8 +96,10 @@ func CreateBranch(r *repo.Repo, opts CreateBranchOptions) error {
 	if err := r.CreateBranch(opts.Name, start, h); err != nil {
 		return err
 	}
-	// Tự động ghi cấu hình theo dõi khi nhánh mới được tạo từ một nhánh khác.
-	if opts.Track || opts.Switch {
+	// Chỉ ghi cấu hình theo dõi khi được yêu cầu bằng cờ --track. Trước đây
+	// việc chuyển sang nhánh vừa tạo cũng làm upstream trỏ chính nhánh đó, khiến
+	// `branch -vv` in ra thông tin vô nghĩa.
+	if opts.Track {
 		_ = r.SetUpstream(opts.Name, "refs/heads/"+opts.Name, "local")
 	}
 	if opts.Switch {

@@ -66,7 +66,7 @@ func checkout(t *testing.T, r *repo.Repo, branch string) {
 	}
 }
 
-func TestAddVaCommitCoBan(t *testing.T) {
+func TestAddAndCommitBasic(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "dòng 1\n")
 	write(t, r, "src/main.go", "package main\n")
@@ -89,7 +89,7 @@ func TestAddVaCommitCoBan(t *testing.T) {
 	}
 }
 
-func TestCommitKhongCoGithiBaoLoi(t *testing.T) {
+func TestCommitWithoutMessageErrors(t *testing.T) {
 	r := newRepo(t)
 	if _, err := ops.Commit(r, ops.CommitOptions{Message: "không có gì"}); err == nil {
 		t.Fatalf("phải báo lỗi khi chưa có gì để commit")
@@ -125,7 +125,7 @@ func TestCommitAmend(t *testing.T) {
 	}
 }
 
-func TestBranchVaCheckout(t *testing.T) {
+func TestBranchAndCheckout(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -154,7 +154,7 @@ func TestBranchVaCheckout(t *testing.T) {
 	}
 }
 
-func TestXoaNhanh(t *testing.T) {
+func TestDeleteBranch(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -183,7 +183,7 @@ func TestXoaNhanh(t *testing.T) {
 	}
 }
 
-func TestMergeNhanhKhongTonTai(t *testing.T) {
+func TestMergeMissingFastForwardErrors(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "a\n")
 	commitAll(t, r, "c1")
@@ -193,7 +193,7 @@ func TestMergeNhanhKhongTonTai(t *testing.T) {
 	}
 }
 
-func TestMergeCacDinhHuongKhacNhau(t *testing.T) {
+func TestMergeBothDirections(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "a\nb\nc\nd\ne\n")
 	commitAll(t, r, "c1")
@@ -222,7 +222,7 @@ func TestMergeCacDinhHuongKhacNhau(t *testing.T) {
 	}
 }
 
-func TestMergeGayXungDotVaGiaiQuyet(t *testing.T) {
+func TestMergeConflictAndResolution(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "a\nb\nc\n")
 	commitAll(t, r, "c1")
@@ -333,7 +333,7 @@ func TestRevert(t *testing.T) {
 	}
 }
 
-func TestStashVaPop(t *testing.T) {
+func TestStashAndPop(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -361,7 +361,7 @@ func TestStashVaPop(t *testing.T) {
 	}
 }
 
-func TestStashFileChuaTheoDoi(t *testing.T) {
+func TestStashUntrackedFile(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -381,7 +381,7 @@ func TestStashFileChuaTheoDoi(t *testing.T) {
 	}
 }
 
-func TestStashKhongCoThayDoi(t *testing.T) {
+func TestStashWithNoChanges(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -390,7 +390,7 @@ func TestStashKhongCoThayDoi(t *testing.T) {
 	}
 }
 
-func TestRebaseLenNhachKhac(t *testing.T) {
+func TestRebaseOntoOtherBranch(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "base.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -427,27 +427,27 @@ func TestRebaseLenNhachKhac(t *testing.T) {
 	}
 
 	// Nội dung riêng của nhánh phụ vẫn phải nằm trong lịch sử nhánh đó.
-	phuTip, err := r.BranchHash("phu")
+	otherTip, err := r.BranchHash("phu")
 	if err != nil {
 		t.Fatal(err)
 	}
-	phuTree, err := r.CommitTree(phuTip)
+	otherTree, err := r.CommitTree(otherTip)
 	if err != nil {
 		t.Fatal(err)
 	}
-	phuNodes, err := r.Flatten(phuTree)
+	otherNodes, err := r.Flatten(otherTree)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := phuNodes["phu.txt"]; !ok {
+	if _, ok := otherNodes["phu.txt"]; !ok {
 		t.Fatalf("sau rebase nhánh phụ phải giữ tệp riêng của nó")
 	}
-	if _, ok := phuNodes["main.txt"]; !ok {
+	if _, ok := otherNodes["main.txt"]; !ok {
 		t.Fatalf("sau rebase nhánh phụ phải chứa cả nội dung của main")
 	}
 }
 
-func TestRebaseKhongDoiNhanh(t *testing.T) {
+func TestRebaseKeepsBranchName(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -468,7 +468,7 @@ func TestRebaseKhongDoiNhanh(t *testing.T) {
 	}
 }
 
-func TestRebaseVaHuy(t *testing.T) {
+func TestRebaseAndAbort(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "gia.txt", "1\n2\n3\n")
 	commitAll(t, r, "c1")
@@ -514,7 +514,7 @@ func TestRebaseVaHuy(t *testing.T) {
 	}
 }
 
-func TestResetCacCheDo(t *testing.T) {
+func TestResetModes(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
@@ -568,7 +568,7 @@ func TestTag(t *testing.T) {
 	}
 }
 
-func TestLogVaLocTheoDinhDanh(t *testing.T) {
+func TestLogAndRefFilter(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "sửa a")
@@ -596,7 +596,7 @@ func TestLogVaLocTheoDinhDanh(t *testing.T) {
 	}
 }
 
-func TestDiffBaVung(t *testing.T) {
+func TestDiffThreeWay(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n2\n")
 	commitAll(t, r, "c1")
@@ -631,7 +631,7 @@ func TestDiffBaVung(t *testing.T) {
 	}
 }
 
-func TestRemoveVaMove(t *testing.T) {
+func TestRemoveAndMove(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "cu.txt", "1\n")
 	write(t, r, "di.txt", "2\n")
@@ -652,7 +652,7 @@ func TestRemoveVaMove(t *testing.T) {
 	}
 }
 
-func TestRestoreTuCommit(t *testing.T) {
+func TestRestoreFromCommit(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "ban dau\n")
 	commitAll(t, r, "c1")
@@ -667,7 +667,7 @@ func TestRestoreTuCommit(t *testing.T) {
 	}
 }
 
-func TestFsckKhoSach(t *testing.T) {
+func TestFsckCleanRepo(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")

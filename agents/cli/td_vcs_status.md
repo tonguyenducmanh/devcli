@@ -30,15 +30,14 @@ td vcs status [flags]
 ### Options
 
 ```
-  -h, --help   hiển thị phần trợ giúp của lệnh này
+  -h, --help      hiển thị phần trợ giúp của lệnh này
+  -v, --verbose   liệt kê cả các tệp chưa được theo dõi
 ```
 
 ### Options inherited from parent commands
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

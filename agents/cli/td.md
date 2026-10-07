@@ -32,10 +32,9 @@ td [flags]
 ### Options
 
 ```
-  -h, --help       hiển thị phần trợ giúp của lệnh này
-      --no-color   tắt màu trong output
-  -v, --verbose    in thêm thông tin chi tiết
-      --version    hiển thị phiên bản rồi thoát
+  -h, --help      hiển thị phần trợ giúp của lệnh này
+  -v, --verbose   in thêm thông tin môi trường
+      --version   hiển thị phiên bản rồi thoát
 ```
 
 ### SEE ALSO

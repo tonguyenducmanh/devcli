@@ -29,17 +29,16 @@ td vcs add [tệp...] [flags]
 ### Options
 
 ```
-  -A, --all      đưa mọi thay đổi vào stage
-  -h, --help     hiển thị phần trợ giúp của lệnh này
-  -u, --update   chỉ cập nhật tệp đã được theo dõi
+  -A, --all       đưa mọi thay đổi vào stage
+  -h, --help      hiển thị phần trợ giúp của lệnh này
+  -u, --update    chỉ cập nhật tệp đã được theo dõi
+  -v, --verbose   in ra từng tệp đã đưa vào vùng chuẩn bị
 ```
 
 ### Options inherited from parent commands
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-      --no-color     tắt màu trong output
-  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

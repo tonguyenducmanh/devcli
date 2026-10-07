@@ -143,7 +143,7 @@ tệp td chưa quản lý, thêm vào .tdxignore nếu muốn bỏ qua vĩnh vi�
 		if err := ops.Add(r, opts); err != nil {
 			return err
 		}
-		if verboseEnabled(cmd) {
+		if verboseOn(cmd) {
 			st, err := r.Status()
 			if err != nil {
 				return err
@@ -447,6 +447,12 @@ Thư mục đích không cần tồn tại trước, được tạo tự động
 }
 
 func init() {
+	// Mỗi lệnh tự có -v riêng. Cờ toàn cục đã bị bỏ có chủ đích, xem cmd/flags.go.
+	addVerboseFlag(vcsStatusCmd, "liệt kê cả các tệp chưa được theo dõi")
+	addVerboseFlag(vcsAddCmd, "in ra từng tệp đã đưa vào vùng chuẩn bị")
+	addVerboseFlag(vcsLogCmd, "in cả nội dung thay đổi của từng commit")
+	addVerboseFlag(vcsRestoreCmd, "in ra từng tệp đã khôi phục")
+
 	// Cờ riêng cho add.
 	vcsAddCmd.Flags().BoolP("all", "A", false, "đưa mọi thay đổi vào stage")
 	vcsAddCmd.Flags().BoolP("update", "u", false, "chỉ cập nhật tệp đã được theo dõi")

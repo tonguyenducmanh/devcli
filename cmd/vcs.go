@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"path/filepath"
+
 	"github.com/spf13/cobra"
+
+	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
 )
 
 // newVCSCmd tạo nhóm lệnh quản lý phiên bản.
@@ -33,17 +37,22 @@ tại. Dùng -C để chỉ định thư mục khác.`,
   td vcs switch main
   td vcs merge tinh-nang`,
 		// Gọi nhóm lệnh mà không kèm lệnh con thì in danh sách lệnh con,
-		// thay vì in cả trang trợ giúp dài.
+		// thay vì in cả trang trợ giúp dài. Cờ -v của nhóm này in thêm tình
+		// trạng kho mã nguồn hiện tại.
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				return exitError("không có lệnh nào tên %q, xem danh sách: %s vcs --help", args[0], AppName)
+			}
+			if verboseOn(cmd) {
+				printRepoSummary(cmd)
 			}
 			printCommandList(cmd)
 			return nil
 		},
 	}
-	// Cờ -C dùng chung cho mọi lệnh trong nhóm.
+	// Cờ của nhóm. Không phải cờ toàn cục, chỉ áp dụng từ vcs trở xuống.
 	cmd.PersistentFlags().StringP("dir", "C", "", "chạy lệnh tại thư mục khác")
+	cmd.Flags().BoolP("verbose", "v", false, "in thêm tình trạng kho mã nguồn hiện tại")
 
 	cmd.AddCommand(
 		vcsInitCmd,
@@ -72,4 +81,33 @@ tại. Dùng -C để chỉ định thư mục khác.`,
 		vcsFsckCmd,
 	)
 	return cmd
+}
+
+// printRepoSummary in tình trạng kho mã nguồn tìm thấy quanh thư mục hiện tại.
+//
+// Chạy được cả khi chưa có kho: khi đó chỉ in một dòng gợi ý, vì việc chưa có
+// kho không phải lỗi khi người dùng chỉ muốn xem danh sách lệnh.
+func printRepoSummary(cmd *cobra.Command) {
+	dir, err := cmd.Flags().GetString("dir")
+	if err != nil || dir == "" {
+		dir = "."
+	}
+
+	r, err := repo.Open(dir)
+	if err != nil {
+		printLine("Chưa có kho mã nguồn ở đây, hãy chạy `%s vcs init` để khởi tạo.", AppName)
+		return
+	}
+
+	branch, _ := r.CurrentBranch()
+	if branch == "" {
+		branch = "(chưa có nhánh)"
+	}
+	branches, _ := r.Branches()
+	tags, _ := r.Tags()
+
+	printLine("Kho: %s", r.Root)
+	printLine("Dữ liệu: %s", filepath.Join(r.Root, repo.DirName))
+	printLine("Nhánh hiện tại: %s", branch)
+	printLine("Số nhánh: %d, số tag: %d", len(branches), len(tags))
 }

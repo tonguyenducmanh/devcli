@@ -27,13 +27,7 @@ td config [flags]
   -h, --help         hiển thị phần trợ giúp của lệnh này
   -l, --list         liệt kê toàn bộ cấu hình
       --unset        xóa một khóa cấu hình
-```
-
-### Options inherited from parent commands
-
-```
-      --no-color   tắt màu trong output
-  -v, --verbose    in thêm thông tin chi tiết
+  -v, --verbose      in ra tệp cấu hình đã dùng
 ```
 
 ### SEE ALSO
