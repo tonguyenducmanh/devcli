@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
 	"github.com/tonguyenducmanh/devcli/cmd"
@@ -41,7 +42,7 @@ func main() {
 
 	switch *format {
 	case "markdown":
-		if err := doc.GenMarkdownTree(root, *out); err != nil {
+		if err := genMarkdownTree(root, *out); err != nil {
 			log.Fatalf("sinh tài liệu markdown thất bại: %v", err)
 		}
 
@@ -96,4 +97,66 @@ func appendAuthorsSection(dir, cmdName string) {
 	if err := os.WriteFile(fileName, []byte(newContent), 0o644); err != nil {
 		log.Fatalf("không ghi được trang man %s: %v", fileName, err)
 	}
+}
+
+// genMarkdownTree sinh tài liệu markdown theo thư mục con dựa trên nhóm lệnh.
+func genMarkdownTree(cmd *cobra.Command, baseDir string) error {
+	groupDir := baseDir
+	parts := strings.Split(cmd.CommandPath(), " ")
+	if len(parts) >= 2 {
+		groupDir = filepath.Join(baseDir, parts[1])
+	}
+
+	if err := os.MkdirAll(groupDir, 0o755); err != nil {
+		return err
+	}
+
+	basename := strings.ReplaceAll(cmd.CommandPath(), " ", "_") + ".md"
+	filename := filepath.Join(groupDir, basename)
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	linkHandler := func(name string) string {
+		nameParts := strings.SplitN(name, "_", 3)
+		var targetGroup string
+		if len(nameParts) >= 2 && name != "td.md" {
+			targetGroup = strings.TrimSuffix(nameParts[1], ".md")
+		}
+
+		var currentGroup string
+		if len(parts) >= 2 {
+			currentGroup = parts[1]
+		}
+
+		if targetGroup == currentGroup {
+			return name
+		}
+
+		if currentGroup == "" {
+			return targetGroup + "/" + name
+		}
+
+		if targetGroup == "" {
+			return "../" + name
+		}
+
+		return "../" + targetGroup + "/" + name
+	}
+
+	if err := doc.GenMarkdownCustom(cmd, f, linkHandler); err != nil {
+		return err
+	}
+
+	for _, sub := range cmd.Commands() {
+		if !sub.IsAvailableCommand() || sub.IsAdditionalHelpTopicCommand() {
+			continue
+		}
+		if err := genMarkdownTree(sub, baseDir); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -27,5 +27,5 @@ td version [flags]
 
 ### SEE ALSO
 
-* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
+* [td](../td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 

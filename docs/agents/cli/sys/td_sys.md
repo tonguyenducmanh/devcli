@@ -22,7 +22,7 @@ Nhóm lệnh chứa các tiện ích thao tác với tệp tin và hệ thống,
 
 ### SEE ALSO
 
-* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
+* [td](../td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 * [td sys cat](td_sys_cat.md)	 - In toàn bộ nội dung của tệp
 * [td sys cp](td_sys_cp.md)	 - Sao chép tệp hoặc thư mục
 * [td sys grep](td_sys_grep.md)	 - Tìm kiếm văn bản trong tệp

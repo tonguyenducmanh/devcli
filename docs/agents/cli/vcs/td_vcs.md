@@ -73,7 +73,7 @@ td vcs [flags]
 
 ### SEE ALSO
 
-* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
+* [td](../td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 * [td vcs add](td_vcs_add.md)	 - Đưa thay đổi vào vùng chuẩn bị commit
 * [td vcs branch](td_vcs_branch.md)	 - Liệt kê, tạo, sao chép, đổi tên hoặc xoá các nhánh cục bộ
 * [td vcs cat-file](td_vcs_cat-file.md)	 - In nội dung của một object (blob, tree, commit, tag)
