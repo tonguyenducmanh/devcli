@@ -42,7 +42,8 @@ Markdown với cấu trúc cố định:
 Nhờ cấu trúc ổn định như vậy, tài liệu dễ được đọc theo từng đoạn hoặc đưa
 vào vector index.
 
-Tệp `cli/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
+Tài liệu được sinh và chia vào từng thư mục con theo tên nhóm (ví dụ: `cli/vcs/`, `cli/sys/`).
+Tệp `cli/vcs/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
 
 ## Không sửa tay `cli/`
 
@@ -66,7 +67,7 @@ Quên chạy sẽ khiến tài liệu lệch với thực tế. `./scripts/check
 | Trợ lý | Tệp được đọc tự động |
 | --- | --- |
 | opencode, cursor, claude code, và nhiều công cụ khác | `AGENTS.md` ở thư mục gốc, đi theo đường dẫn tới tệp thật |
-| Bất kỳ trợ lý nào cần chi tiết về lệnh | `cli/td_vcs_<tên lệnh>.md` |
+| Bất kỳ trợ lý nào cần chi tiết về lệnh | `cli/<nhóm>/td_<nhóm>_<tên lệnh>.md` |
 
 Không có tệp tóm tắt riêng kiểu `llms.txt`. `AGENTS.md` đã nằm ngay ở
 thư mục gốc nên mọi trợ lý đọc được ngay, thêm tệp tóm tắt chỉ tạo thêm một
@@ -79,6 +80,6 @@ cùng tên ở gốc. Tệp đó chỉ dẫn tới tệp thật trong thư mục
 
 1. Cho trợ lý đọc `AGENTS.md` trước khi sửa bất cứ tệp nào.
 2. Cần biết chính xác một lệnh nhận gì và làm gì thì đọc
-   `cli/td_vcs_<tên lệnh>.md`, đừng đoán từ mã nguồn.
+   `cli/<nhóm>/td_<nhóm>_<tên lệnh>.md`, đừng đoán từ mã nguồn.
 3. Sau khi sửa cây lệnh, chạy `./scripts/build_agent_docs.sh`.
 4. Trước khi đóng góp, chạy `./scripts/check.sh`.

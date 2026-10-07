@@ -20,8 +20,10 @@ nó trong thư mục riêng.
 thực thi. `td` là tên lệnh gọi trên terminal, ngắn để gõ nhanh. Muốn đổi thì
 sửa một dòng trong [`scripts/build_binaries.sh`](scripts/build_binaries.sh).
 
-Hiện tại có nhóm `td vcs` — quản lý phiên bản mã nguồn cục bộ. Các nhóm khác
-sẽ bổ sung theo cùng khuôn mẫu.
+Hiện tại có 2 nhóm chính:
+- `td vcs`: quản lý phiên bản mã nguồn cục bộ.
+- `td sys`: các tiện ích hệ thống (ls, mkdir, rm, cp, mv, grep, wc...).
+Các nhóm khác sẽ được bổ sung theo cùng khuôn mẫu.
 
 ## Yêu cầu
 
@@ -31,8 +33,4 @@ sẽ bổ sung theo cùng khuôn mẫu.
 
 ## Tài liệu chi tiết
 
-Mọi hướng dẫn cụ thể đã được chia nhỏ và nằm trong thư mục `docs/`:
-- [Hướng dẫn cài đặt](docs/install.md) (cho macOS, Linux, Windows)
-- [Quản lý phiên bản mã nguồn (td vcs)](docs/vcs.md) (cách dùng lệnh `td vcs`, giải quyết xung đột, bỏ qua tệp)
-- [Cấu trúc dự án và cách lưu dữ liệu](docs/architecture.md)
-- [Hướng dẫn đóng góp và phát triển](docs/development.md) (cách build, test, viết docs)
+Mọi hướng dẫn cụ thể đã được chia nhỏ. Vui lòng tìm và đọc các tài liệu tương ứng bên trong thư mục `docs/`.

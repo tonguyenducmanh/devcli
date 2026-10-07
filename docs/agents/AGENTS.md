@@ -182,7 +182,7 @@ Khi sửa một lỗi, thêm kiểm thử tái hiện lỗi đó trước khi s�
 bằng `internal/tools/docgen`. Khi cần biết chính xác một lệnh nhận những gì và
 làm gì, đọc tệp tương ứng thay vì đọc mã nguồn.
 
-Tệp `docs/agents/cli/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
+Tệp `docs/agents/cli/vcs/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
 
 Thư mục này không sửa tay được. Sau khi thay đổi cây lệnh, chạy:
 
