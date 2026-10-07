@@ -18,9 +18,14 @@ func (r *Repo) ResolveRev(name string) (object.Hash, error) {
 	// Tham chiếu dạng "<rev>~<n>" nghĩa là lùi n đời trên đồ thị phụ huynh.
 	if i := strings.IndexByte(name, '~'); i > 0 {
 		base := name[:i]
-		n, err := strconv.Atoi(name[i+1:])
-		if err != nil {
-			return object.ZeroHash, fmt.Errorf("số lần lùi không hợp lệ trong %q", name)
+		suffix := name[i+1:]
+		n := 1
+		var err error
+		if suffix != "" {
+			n, err = strconv.Atoi(suffix)
+			if err != nil {
+				return object.ZeroHash, fmt.Errorf("số lần lùi không hợp lệ trong %q", name)
+			}
 		}
 		h, err := r.ResolveRev(base)
 		if err != nil {
