@@ -18,9 +18,9 @@
 # tệp thực thi mà không sinh tài liệu thì gọi scripts/build_binaries.sh trực tiếp.
 #
 # Kết quả trong out/ có chứa số phiên bản, ví dụ:
-#   out/td-mac-arm-0.1.0
-#   out/td-linux-0.1.0
-#   out/td-windows-0.1.0.exe
+#   out/devcli-mac-arm-0.1.0
+#   out/devcli-linux-0.1.0
+#   out/devcli-windows-0.1.0.exe
 set -e
 
 # Script đang ở gốc kho nên thư mục chứa nó chính là thư mục gốc.

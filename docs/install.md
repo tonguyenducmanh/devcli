@@ -8,7 +8,7 @@ nằm trong `PATH`. Từ đó gõ `td` là chạy.
 Bản dựng cho Apple Silicon, kiểm tra bằng `uname -m` cho ra `arm64`.
 
 ```bash
-install -m 755 out/td-mac-arm-0.1.0 ~/bin/td
+install -m 755 out/devcli-mac-arm-0.1.0 ~/bin/td
 
 echo 'export PATH="$PATH:$HOME/bin"' >> ~/.zshrc
 source ~/.zshrc
@@ -18,7 +18,7 @@ td version
 Muốn cài cho toàn hệ thống thay vì chỉ tài khoản của bạn:
 
 ```bash
-sudo install -m 755 out/td-mac-arm-0.1.0 /usr/local/bin/td
+sudo install -m 755 out/devcli-mac-arm-0.1.0 /usr/local/bin/td
 ```
 
 Nếu sao chép tệp bằng trình duyệt, macOS có thể chặn vì không có chữ ký:
@@ -32,7 +32,7 @@ xattr -d com.apple.quarantine ~/bin/td
 Bản dựng cho máy 64 bit thông thường, kiểm tra bằng `uname -m` cho ra `x86_64`.
 
 ```bash
-install -m 755 out/td-linux-0.1.0 ~/.local/bin/td
+install -m 755 out/devcli-linux-0.1.0 ~/.local/bin/td
 
 echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
 source ~/.bashrc
@@ -41,7 +41,7 @@ source ~/.bashrc
 Hoặc cài cho toàn hệ thống:
 
 ```bash
-sudo install -m 755 out/td-linux-0.1.0 /usr/local/bin/td
+sudo install -m 755 out/devcli-linux-0.1.0 /usr/local/bin/td
 ```
 
 Kiểm tra tệp đã quyền chạy chưa:
@@ -57,7 +57,7 @@ Mở PowerShell ở thư mục chứa thư mục `out/`:
 
 ```powershell
 New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\td"
-Copy-Item out\td-windows-0.1.0.exe "$env:LOCALAPPDATA\td\td.exe"
+Copy-Item out\devcli-windows-0.1.0.exe "$env:LOCALAPPDATA\td\td.exe"
 
 # thêm vào Path của người dùng, có hiệu lực vĩnh viễn
 [Environment]::SetEnvironmentVariable(
@@ -81,7 +81,7 @@ việc chạy tệp, xem [Execution Policy](https://learn.microsoft.com/powershe
 Không cần chép vào `PATH` cũng chạy được, gọi thẳng tệp thôi:
 
 ```bash
-./out/td-mac-arm-0.1.0 vcs status
+./out/devcli-mac-arm-0.1.0 vcs status
 ```
 
 ## Thay bằng bản mới
@@ -91,11 +91,11 @@ Cấu hình nằm ở `~/.config/td/config` và dữ liệu mỗi dự án nằm
 `.tdx`, cả hai đều không bị ảnh hưởng.
 
 ```bash
-install -m 755 out/td-linux-1.2.0 ~/.local/bin/td
+install -m 755 out/devcli-linux-1.2.0 ~/.local/bin/td
 ```
 
 ```powershell
-Copy-Item -Force out\td-windows-1.2.0.exe "$env:LOCALAPPDATA\td\td.exe"
+Copy-Item -Force out\devcli-windows-1.2.0.exe "$env:LOCALAPPDATA\td\td.exe"
 ```
 
 ## Gỡ bỏ

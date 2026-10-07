@@ -11,9 +11,9 @@ tảng khai báo trong `scripts/build_binaries.sh`. Kết quả nằm ở thư m
 tên file chứa kèm số phiên bản:
 
 ```
-out/td-mac-arm-0.1.0          macOS trên chip Apple Silicon
-out/td-linux-0.1.0            Linux 64 bit
-out/td-windows-0.1.0.exe      Windows 64 bit
+out/devcli-mac-arm-0.1.0          macOS trên chip Apple Silicon
+out/devcli-linux-0.1.0            Linux 64 bit
+out/devcli-windows-0.1.0.exe      Windows 64 bit
 ```
 
 Chỉ cần một nền tảng thì nêu tên:

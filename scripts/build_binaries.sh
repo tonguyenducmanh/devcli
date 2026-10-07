@@ -36,7 +36,7 @@ AUTHOR="Tô Nguyễn Đức Mạnh"
 VERSION=0.1.0
 
 # Tên tệp thực thi, dùng làm tiền tố cho tên file trong out/.
-APP_NAME=td
+APP_NAME=devcli
 
 # Thư mục chứa kết quả build, tính từ thư mục gốc project.
 OUT_DIR=out
