@@ -78,8 +78,8 @@ go install .        # cài vào $GOPATH/bin
 
 ## Dùng tệp thực thi trên từng hệ điều hành
 
-Chọn đúng tệp trong `out/` theo hệ điều hành và kiến trúc máy, rồi chép vào một
-thư mục nằm trong `PATH`.
+Chọn đúng tệp trong `out/` theo hệ điều hành của bạn, rồi chép vào một thư mục
+nằm trong `PATH`. Từ đó gõ `td` là chạy.
 
 ### macOS
 
@@ -165,7 +165,7 @@ Không cần chép vào `PATH` cũng chạy được, gọi thẳng tệp thôi:
 
 ### Thay bằng bản mới
 
-td không lưu gì cạnh tệp thực thi, nên chép tệp mới đè lên tệp cũ là xong.
+devcli không lưu gì cạnh tệp thực thi, nên chép tệp mới đè lên tệp cũ là xong.
 Cấu hình nằm ở `~/.config/td/config` và dữ liệu mỗi dự án nằm trong thư mục
 `.tdx`, cả hai đều không bị ảnh hưởng.
 
@@ -223,7 +223,7 @@ td vcs stash --help
 ```
 main.go                      điểm khởi động
 cmd/                         cây lệnh
-  root.go                    lệnh gốc `td`, đăng ký các nhóm công cụ
+  root.go                    lệnh gốc `td`, đăng ký các nhóm công cụ và các biến toàn cục
   context.go                 tiện ích mở kho cho các lệnh con
   vcs.go                     nhóm lệnh `td vcs`
   vcs_*.go                   mỗi tệp một nhóm lệnh nhỏ của `td vcs`
