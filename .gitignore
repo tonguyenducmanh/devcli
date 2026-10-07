@@ -1,0 +1,10 @@
+# File nhị phân đã biên dịch
+/td
+td.exe
+
+# Bản dự án cục bộ
+/dist/
+*.test
+
+# Dữ liệu td sinh ra khi thử nghiệm
+.tdx/
