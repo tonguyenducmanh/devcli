@@ -329,18 +329,37 @@ stage 2 là phía của mình, stage 3 là phía đối tác.
 
 ## Bỏ qua tệp
 
-Đặt mẫu vào `.tdxignore` ở gốc dự án hoặc `.tdx/info/exclude`:
+td không tự đoán tệp nào là tạm, tệp nào là dữ liệu do trình biên dịch sinh ra.
+Muốn bỏ qua thì tạo tệp **`.tdxignore`** ở gốc dự án, mỗi dòng một mẫu:
 
 ```
-build/
-*.log
-!giữ-lại.log
-docs/*.tmp
-**/cache/
+*.log           bỏ qua mọi tệp kết thúc bằng .log, ở mọi cấp thư mục
+build           bỏ qua thư mục build, ở mọi cấp
+/build          chỉ bỏ qua thư mục build nằm ở gốc dự án
+docs/*.tmp      bỏ qua tệp .tmp nằm trong thư mục docs
+**/cache/       bỏ qua thư mục cache, ở mọi cấp
+!giữ-lại.log    phủ định lại quy tắc trước, tệp này lại được theo dõi
+# ghi chú       dòng bắt đầu bằng dấu # là chú thích
 ```
 
-Dấu `#` cho chú thích, dấu `!` để phủ định lại quy tắc trước, dấu `/` cuối mẫu
-để chỉ áp dụng cho thư mục, `*` không vượt qua `/`, `**` vượt nhiều cấp.
+Dấu `/` ở cuối mẫu nói mẫu đó chỉ áp dụng cho thư mục. Dấu `*` không vượt qua
+dấu `/`, dấu `**` vượt được nhiều cấp. Quy tắc ở dưới thắng quy tắc ở trên.
+
+Hai tệp được td đọc tự động, không cần khai báo ở đâu:
+
+| Tệp | Phạm vi | Có commit không |
+| --- | --- | --- |
+| `.tdxignore` | Cả nhóm cùng dùng, nằm ở gốc dự án | Nên commit |
+| `.tdx/info/exclude` | Riêng máy này, nằm trong `.tdx` | Không, tự sinh khi `init` |
+
+Tệp bị bỏ qua sẽ không xuất hiện trong `td vcs status` và không được
+`td vcs add` đưa vào vùng chuẩn bị.
+
+Xem thêm trong phần trợ giúp:
+
+```bash
+td vcs --help
+```
 
 ## Kiểm thử
 

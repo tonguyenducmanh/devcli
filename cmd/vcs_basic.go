@@ -24,7 +24,10 @@ var vcsStatusCmd = &cobra.Command{
 Ký hiệu đầu mỗi dòng cho biết thao tác: thêm, sửa, xoá hoặc mới.
 
 Dòng đầu tiên cho biết đang ở nhánh nào, HEAD có đang tách rời không, và nhánh
-đó đi trước hay đi sau nhánh theo dõi bao nhiêu commit.`,
+đó đi trước hay đi sau nhánh theo dõi bao nhiêu commit.
+
+Tệp nào không xuất hiện ở đây thì đã bị bỏ qua theo .tdxignore hoặc
+.tdx/info/exclude, xem "td vcs --help" để biết cách viết mẫu.`,
 	Example: `  td vcs status
   td vcs status -C thư-mục-khác
   td vcs st`,

@@ -21,7 +21,30 @@ Toàn bộ dữ liệu của nhóm này nằm trong thư mục .tdx cạnh dự 
 sử commit, các nhánh, các tag và vùng chuẩn bị.
 
 Mỗi lệnh dưới đây chạy trên kho tìm thấy bằng cách đi lên từ thư mục hiện
-tại. Dùng -C để chỉ định thư mục khác.`,
+tại. Dùng -C để chỉ định thư mục khác.
+
+BỎ QUA TỆP KHÔNG MUỐN THEO DÕI
+
+td không tự đoán tệp nào là tạm, tệp nào là dữ liệu do trình biên dịch sinh
+ra. Muốn bỏ qua thì ghi mẫu vào tệp .tdxignore ở gốc dự án, mỗi dòng một mẫu:
+
+  *.log           bỏ qua mọi tệp kết thúc bằng .log, ở mọi cấp thư mục
+  build           bỏ qua thư mục build, ở mọi cấp
+  /build          chỉ bỏ qua thư mục build nằm ở gốc dự án
+  docs/*.tmp      bỏ qua tệp .tmp nằm trong thư mục docs
+  **/cache/       bỏ qua thư mục cache, ở mọi cấp
+  !giữ-lại.log    phủ định lại quy tắc trước, tệp này lại được theo dõi
+  # ghi chú       dòng bắt đầu bằng dấu # là chú thích
+
+Dấu / ở cuối mẫu nói mẫu đó chỉ áp dụng cho thư mục. Dấu * không vượt qua dấu
+/, dấu ** vượt được nhiều cấp. Quy tắc ở dưới thắng quy tắc ở trên.
+
+Muốn quy tắc chỉ áp dụng cho riêng máy này thì ghi vào .tdx/info/exclude, tệp
+đó nằm trong .tdx nên không được commit. Còn .tdxignore nằm ở gốc dự án nên
+có thể commit để cả nhóm cùng dùng.
+
+Hai tệp này được td đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
+không xuất hiện trong status và không được add vào vùng chuẩn bị.`,
 		Example: `  # Khởi tạo kho rồi ghi lại thay đổi đầu tiên
   td vcs init
   td vcs add .
