@@ -42,15 +42,15 @@ func Add(r *repo.Repo, opts AddOptions) error {
 		if !matchesAnyPath(e.Path, opts.Paths) {
 			continue
 		}
-		// File đã bị xoá khỏi đĩa thì chỉ cần gỡ khỏi index.
-		if e.WorkStatus == 'D' && e.IndexStatus != ' ' {
-			if err := r.UnstagePath(e.Path); err != nil {
-				return err
-			}
+		// Tệp đã bị xoá khỏi đĩa thì gỡ khỏi index, để commit ghi nhận việc
+		// xoá.
+		//
+		// Không dùng UnstagePath ở đây: hàm đó khôi phục lại nội dung của tệp
+		// từ HEAD, tức là giữ tệp trong index, nên việc xoá không bao giờ được
+		// ghi nhận. Cách gỡ khỏi index giống hệt addAll và addUpdate.
+		if e.WorkStatus == 'D' {
+			r.Index.Remove(e.Path)
 			matched = true
-			continue
-		}
-		if _, err := osStat(r, e.Path); err != nil {
 			continue
 		}
 		if err := r.StageFile(e.Path); err != nil {

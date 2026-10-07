@@ -48,6 +48,14 @@ func read(t *testing.T, r *repo.Repo, rel string) string {
 	return string(data)
 }
 
+// removeFile xoá một tệp khỏi cây làm việc, giống người dùng gõ rm.
+func removeFile(t *testing.T, r *repo.Repo, rel string) {
+	t.Helper()
+	if err := os.Remove(r.WorkPath(rel)); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // commitAll stage mọi thay đổi rồi commit với message cho trước.
 func commitAll(t *testing.T, r *repo.Repo, msg string) object.Hash {
 	t.Helper()
@@ -86,6 +94,99 @@ func TestAddAndCommitBasic(t *testing.T) {
 	}
 	if h.IsZero() {
 		t.Fatalf("phải tạo được commit")
+	}
+}
+
+// TestAddStagesDeletedFile bảo đảm `add <đường-dẫn>` ghi nhận được tệp đã xoá.
+//
+// Trước đây nhánh xử lý đường dẫn cụ thể gọi UnstagePath, mà hàm đó khôi phục
+// lại nội dung từ HEAD nên tệp vẫn còn trong index. Kết quả là `td vcs add .`
+// im lặng không làm gì, `status` vẫn hiện "xoá", và `commit` báo không có gì để
+// commit. Ba bước đó nghe hợp lý với nhau, nên rất dễ tưởng là người dùng sai.
+func TestAddStagesDeletedFile(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "README.md", "tài liệu\n")
+	write(t, r, "main.go", "package main\n")
+
+	if err := ops.Add(r, ops.AddOptions{All: true}); err != nil {
+		t.Fatal(err)
+	}
+	commitAll(t, r, "commit đầu tiên")
+
+	removeFile(t, r, "README.md")
+
+	// Đường dẫn cụ thể: mẫu "." phải bắt được tệp đã xoá.
+	if err := ops.Add(r, ops.AddOptions{Paths: []string{"."}}); err != nil {
+		t.Fatal(err)
+	}
+	assertDeletedStaged(t, r, "README.md")
+
+	commitAll(t, r, "xoá README")
+
+	// Tệp đã xoá phải thật sự biến mất khỏi cây trong commit.
+	assertNotInCommitTree(t, r, "README.md")
+
+	// Tệp còn lại thì phải còn nguyên.
+	removeFile(t, r, "main.go")
+	if err := ops.Add(r, ops.AddOptions{Paths: []string{"main.go"}}); err != nil {
+		t.Fatal(err)
+	}
+	assertDeletedStaged(t, r, "main.go")
+}
+
+// TestAddNoArgsStagesDeletedFile bảo đảm `add` không tham số cũng ghi nhận xoá.
+func TestAddNoArgsStagesDeletedFile(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "a.txt", "a\n")
+	if err := ops.Add(r, ops.AddOptions{All: true}); err != nil {
+		t.Fatal(err)
+	}
+	commitAll(t, r, "commit đầu tiên")
+
+	removeFile(t, r, "a.txt")
+
+	if err := ops.Add(r, ops.AddOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	assertDeletedStaged(t, r, "a.txt")
+}
+
+// assertDeletedStaged kiểm tra tệp đã được đưa vào vùng chuẩn bị dưới dạng xoá.
+func assertDeletedStaged(t *testing.T, r *repo.Repo, rel string) {
+	t.Helper()
+	st, err := r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	e, ok := st.Entry(rel)
+	if !ok {
+		t.Fatalf("tệp %s không còn trong trạng thái, không thể đã stage xoá", rel)
+	}
+	if e.IndexStatus != 'D' {
+		t.Errorf("tệp %s phải được stage dưới dạng xoá, IndexStatus = %q", rel, e.IndexStatus)
+	}
+	if len(st.Staged()) == 0 {
+		t.Errorf("phải có ít nhất một thay đổi đã stage")
+	}
+}
+
+// assertNotInCommitTree kiểm tra tệp không còn trong cây của commit HEAD.
+func assertNotInCommitTree(t *testing.T, r *repo.Repo, rel string) {
+	t.Helper()
+	head, err := r.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tree, err := r.CommitTree(head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodes, err := r.Flatten(tree)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, found := nodes[rel]; found {
+		t.Errorf("tệp %s vẫn còn trong cây của commit", rel)
 	}
 }
 

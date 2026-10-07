@@ -87,11 +87,6 @@ func matchOneSegment(pat, seg string) bool {
 	return p == len(pat)
 }
 
-// osStat kiểm tra một file trong worktree có tồn tại không.
-func osStat(r *repo.Repo, rel string) (os.FileInfo, error) {
-	return os.Lstat(r.WorkPath(rel))
-}
-
 // existsInWorktree báo xem đường dẫn có tồn tại trong worktree không.
 func existsInWorktree(r *repo.Repo, rel string) bool {
 	_, err := os.Lstat(r.WorkPath(rel))
