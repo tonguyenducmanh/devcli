@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/tonguyenducmanh/devcli/internal/env"
 )
 
 var useCmd = &cobra.Command{
@@ -26,7 +28,7 @@ không kèm theo đối số nào.`,
   td use           gỡ bỏ nhóm mặc định, mọi lệnh phải ghi rõ nhóm`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		p, err := globalConfigPath()
+		p, err := defaultGroupPath()
 		if err != nil {
 			return err
 		}
@@ -70,16 +72,17 @@ func hasAlias(cmd *cobra.Command, name string) bool {
 	return false
 }
 
-func globalConfigPath() (string, error) {
-	home, err := os.UserHomeDir()
+// defaultGroupPath trả về đường dẫn tới tệp lưu nhóm mặc định.
+func defaultGroupPath() (string, error) {
+	dir, err := env.GlobalDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".td", "default_group"), nil
+	return filepath.Join(dir, "default_group"), nil
 }
 
 func getDefaultGroup() string {
-	p, err := globalConfigPath()
+	p, err := defaultGroupPath()
 	if err != nil {
 		return ""
 	}
