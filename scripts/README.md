@@ -40,7 +40,8 @@ biến khai báo thuần:
 | Biến | Ý nghĩa |
 | --- | --- |
 | `CMD_NAME` | Tên gọi lệnh trên terminal, ví dụ `td vcs status` |
-| `REPO_URL` | Nơi phát hành, dùng để in gợi ý khi báo lỗi |
+| `REPO_URL` | Nơi phát hành, in ở cuối phần trợ giúp |
+| `AUTHOR` | Tên tác giả, in ở lệnh version và cuối phần trợ giúp |
 | `VERSION` | Số phiên bản của ứng dụng |
 | `APP_NAME` | Tiền tố cho tên tệp trong `out/` |
 | `OUT_DIR` | Thư mục chứa kết quả build |
@@ -48,6 +49,11 @@ biến khai báo thuần:
 | `CGO_ENABLED` | Đặt `0` để tệp thực thi tĩnh thật sự |
 
 Cùng phần còn có `TARGETS`, danh sách nền tảng cần build.
+
+`CMD_NAME`, `REPO_URL` và `AUTHOR` còn được khai lại làm giá trị mặc định trong
+`cmd/root.go`, để chạy `go build` thẳng cũng ra kết quả đúng. Hai nơi phải khớp
+nhau, có kiểm thử chặn. `AUTHOR` có dấu cách nên `build_binaries.sh` bọc nó
+trong nháy đơn khi tạo ldflags.
 
 ### Đổi phiên bản
 
@@ -119,6 +125,17 @@ khai báo bằng `var` thì `ldflags` mới ghi được. Đừng đổi thành 
 2. `go vet ./...` — phân tích tĩnh.
 3. `go test ./...` — kiểm thử trong `tests/`.
 4. Đối chiếu `agents/cli/` với cây lệnh.
+
+## Sinh trang man
+
+Chỉ cần khi phát hành, không commit trang man vào kho mã:
+
+```bash
+go run ./internal/tools/docgen -out out/man -format man
+```
+
+Tên tác giả và nơi phát hành lấy từ `AUTHOR` và `REPO_URL` qua biến toàn cục,
+nên không phải nhập lại.
 
 Muốn phân tích sâu hơn thì dùng `golangci-lint`, nhưng tự cài vì dự án không
 kèm cấu hình:

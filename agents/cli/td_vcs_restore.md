@@ -25,7 +25,7 @@ td vcs restore <tệp>... [flags]
 ### Options
 
 ```
-  -h, --help            help for restore
+  -h, --help            hiển thị phần trợ giúp của lệnh này
   -s, --source string   lấy nội dung từ một commit thay vì index
   -S, --staged          chỉ thay đổi vùng stage, giữ nguyên cây làm việc
   -W, --worktree        chỉ thay đổi cây làm việc

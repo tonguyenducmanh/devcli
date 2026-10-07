@@ -25,7 +25,7 @@ td vcs fsck [flags]
 ### Options
 
 ```
-  -h, --help   help for fsck
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

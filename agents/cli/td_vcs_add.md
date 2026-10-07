@@ -30,7 +30,7 @@ td vcs add [tệp...] [flags]
 
 ```
   -A, --all      đưa mọi thay đổi vào stage
-  -h, --help     help for add
+  -h, --help     hiển thị phần trợ giúp của lệnh này
   -u, --update   chỉ cập nhật tệp đã được theo dõi
 ```
 

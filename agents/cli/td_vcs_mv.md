@@ -23,7 +23,7 @@ td vcs mv <nguồn> <đích> [flags]
 ### Options
 
 ```
-  -h, --help   help for mv
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

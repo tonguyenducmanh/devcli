@@ -199,7 +199,8 @@ find . -type d -name .tdx -prune -exec rm -rf {} +
 ## Bắt đầu nhanh
 
 ```bash
-td --help                            # xem toàn bộ lệnh
+td                                  # xem phiên bản và danh sách lệnh
+td -v                               # xem thêm thông tin môi trường
 
 td config --global user.name "Tên của bạn"
 td config --global user.email "ten@example.com"
@@ -210,13 +211,26 @@ td vcs commit -m "tin nhắn đầu tiên"
 td vcs log --oneline
 ```
 
-Thử một công cụ chưa biết:
+Chưa biết một lệnh làm gì thì xem trợ giúp, có thắt `--help` vào bất kỳ lệnh
+nào, kể cả lệnh con:
 
 ```bash
 td --help
 td vcs --help
 td vcs stash --help
+td help vcs stash        # cách viết khác
 ```
+
+Mỗi lệnh đều làm được việc của riêng nó. Gõ `td` cho danh sách lệnh, gõ
+`td vcs` cho danh sách lệnh con, chứ không phải cả trang trợ giúp dài.
+
+## Quy ước đặt tên lệnh
+
+- **Cờ toàn cục**, viết sau tên lệnh ở bất kỳ đâu: `--no-color`, `-v`.
+- **Cờ riêng** của lệnh, chỉ lệnh đó có: `td vcs branch --hash`.
+- Một lệnh không bao giờ khai báo lại cờ toàn cục. Nếu làm vậy, cờ toàn cục sẽ
+  bị che trong lệnh đó và chết lặng lẽ, còn cùng một chữ viết tắt thì mang hai
+  nghĩa tuỳ lệnh. Có kiểm thử chặn việc này trong `tests/architecture/`.
 
 ## Cấu trúc dự án
 

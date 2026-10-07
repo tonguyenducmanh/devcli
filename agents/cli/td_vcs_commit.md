@@ -32,7 +32,7 @@ td vcs commit [flags]
   -a, --all                   đưa mọi thay đổi vào stage trước khi commit
       --allow-empty           cho phép tạo commit dù không có thay đổi
       --amend                 sửa lại commit vừa tạo
-  -h, --help                  help for commit
+  -h, --help                  hiển thị phần trợ giúp của lệnh này
   -m, --message stringArray   nội dung commit, lặp lại để thêm đoạn mô tả
 ```
 

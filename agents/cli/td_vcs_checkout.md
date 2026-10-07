@@ -29,7 +29,7 @@ td vcs checkout [flags]
   -b, --branch string   tạo nhánh mới rồi chuyển sang đó
       --detach          chuyển tới một commit, không gắn với nhánh
       --force           ghi đè các thay đổi chưa lưu trong cây làm việc
-  -h, --help            help for checkout
+  -h, --help            hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

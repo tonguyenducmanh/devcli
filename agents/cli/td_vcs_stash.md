@@ -34,7 +34,7 @@ td vcs stash [flags]
       --apply               áp dụng mà không xóa khỏi danh sách
       --clear               xóa toàn bộ bản lưu tạm
       --drop                xóa một bản lưu tạm
-  -h, --help                help for stash
+  -h, --help                hiển thị phần trợ giúp của lệnh này
   -u, --include-untracked   kèm cả file chưa được theo dõi
   -l, --list                liệt kê các bản đã lưu
   -m, --message string      mô tả ngắn cho bản lưu tạm

@@ -23,7 +23,7 @@ td vcs hash-object <tệp>... [flags]
 ### Options
 
 ```
-  -h, --help   help for hash-object
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

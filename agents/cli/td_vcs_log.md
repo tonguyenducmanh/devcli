@@ -30,7 +30,7 @@ td vcs log [flags]
 
 ```
   -a, --all             duyệt lịch sử của mọi nhánh và tag
-  -h, --help            help for log
+  -h, --help            hiển thị phần trợ giúp của lệnh này
   -n, --max-count int   giới hạn số commit hiển thị
   -l, --oneline         mỗi commit trên một dòng
   -p, --patch           kèm nội dung diff của từng commit

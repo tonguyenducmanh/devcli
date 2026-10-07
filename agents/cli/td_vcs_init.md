@@ -26,7 +26,7 @@ td vcs init [thư mục] [flags]
 ### Options
 
 ```
-  -h, --help                    help for init
+  -h, --help                    hiển thị phần trợ giúp của lệnh này
       --initial-branch string   tên nhánh khởi tạo (default "main")
 ```
 

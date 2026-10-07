@@ -23,7 +23,7 @@ td vcs switch <nhánh> [flags]
 ```
   -c, --create string     tạo nhánh mới rồi chuyển sang đó
       --discard-changes   bỏ qua các thay đổi chưa lưu
-  -h, --help              help for switch
+  -h, --help              hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

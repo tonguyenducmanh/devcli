@@ -28,7 +28,7 @@ td vcs cat-file <loại> <mã-băm> [flags]
 ### Options
 
 ```
-  -h, --help   help for cat-file
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

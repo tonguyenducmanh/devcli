@@ -31,7 +31,7 @@ td vcs reset [commit] [tệp...] [flags]
 
 ```
       --hard    di chuyển HEAD, index và cây làm việc
-  -h, --help    help for reset
+  -h, --help    hiển thị phần trợ giúp của lệnh này
       --mixed   di chuyển HEAD và nạp lại index
       --soft    chỉ di chuyển HEAD
 ```

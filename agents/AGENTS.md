@@ -34,7 +34,8 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | Đường dẫn | Vai trò |
 | --- | --- |
 | `main.go` | Điểm khởi động, chỉ gọi `cmd.Execute()` |
-| `cmd/root.go` | Lệnh gốc, cờ toàn cục, đăng ký nhóm công cụ |
+| `cmd/root.go` | Lệnh gốc, cờ toàn cục, biến toàn cục, đăng ký nhóm công cụ |
+| `cmd/help.go` | Khuôn trợ giúp tiếng Việt, lệnh `help`, danh sách lệnh |
 | `cmd/output.go` | In ấn, màu ANSI, bộ kiểm tra số đối số tiếng Việt |
 | `cmd/context.go` | `openRepo`: mở kho cho các lệnh con |
 | `cmd/vcs*.go` | Khai báo lệnh của nhóm `vcs`, mỗi tệp một nhóm nhỏ |
@@ -97,6 +98,37 @@ theo `repo.WriteTree`.
 - Trả về lỗi kèm ngữ cảnh bằng tiếng Việt, ví dụ
   `fmt.Errorf("không tìm thấy nhánh %s", name)`.
 
+## Hai nguyên tắc riêng của phần trợ giúp
+
+Hai điều dưới đây đã có kiểm thử trong `tests/architecture/help_test.go`.
+
+### Mỗi lệnh phải chạy được
+
+Gõ lệnh mà không kèm tham số thì lệnh đó vẫn phải làm được việc gì đó hữu
+ích, chứ không in cả trang trợ giúp dài:
+
+- Lệnh gốc in phiên bản và danh sách lệnh, xem `runRoot`.
+- Nhóm lệnh in danh sách lệnh con, xem `printCommandList`.
+- Trợ giúp đầy đủ chỉ hiện khi có `-h` hoặc `--help`.
+
+Cờ `-v` vì vậy phải in thông tin môi trường. Một cờ mà in ra trợ giúp thì
+vô dụng.
+
+Nhãn tiếng Anh do cobra sinh ra đã được ghi đè hết trong `setupHelp`. Khuôn
+trợ giúp nằm trong `cmd/help.go`; đừng gọi `InitDefaultHelpFlag` hay
+`InitDefaultVersionFlag` của cobra, vì hai hàm đó ép nối cờ toàn cục của lệnh
+cha vào lệnh con và làm hỏng lệnh con khai báo cờ trùng tên.
+
+### Lệnh con không được khai báo lại cờ toàn cục
+
+Cờ toàn cục áp dụng cho mọi lệnh. Nếu một lệnh con khai báo cờ trùng *tên*
+hoặc trùng *chữ viết tắt*, thì cờ của lệnh con được ưu tiên và cờ toàn cục bị
+bỏ qua trong lệnh đó. Việc này xảy ra **âm thầm, không có thông báo nào**, và
+cùng một chữ viết tắt sẽ mang hai nghĩa khác nhau tuỳ lệnh.
+
+Nên đặt tên cờ theo đúng việc nó làm: `td vcs branch --hash` chứ không phải
+`--verbose`, vì `-v` đã là cờ toàn cục in thêm thông tin chi tiết.
+
 ## Lệnh thường dùng
 
 ```bash
@@ -124,8 +156,12 @@ Phát hành bản mới thì sửa đúng một dòng đó rồi chạy:
 ./scripts/build_all.sh
 ```
 
-Biến `AppName`, `Version` và `RepoURL` trong `cmd/root.go` phải khai báo bằng
-`var` thì ldflags mới ghi được, đừng đổi thành `const`.
+Biến `AppName`, `Version`, `Author` và `RepoURL` trong `cmd/root.go` phải khai
+báo bằng `var` thì ldflags mới ghi được, đừng đổi thành `const`.
+
+Khi chạy thẳng bằng `go build` mà không qua script, lệnh dùng giá trị mặc định
+khai trong `cmd/root.go`. Ba giá trị `AppName`, `Author` và `RepoURL` phải
+khớp với `build_binaries.sh`, có kiểm thử chặn.
 
 ## Về kiểm thử
 

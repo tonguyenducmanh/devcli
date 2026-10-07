@@ -32,7 +32,7 @@ td vcs merge <nhánh> [flags]
       --abort            huỷ lần merge đang dở dang
       --continue         hoàn tất merge sau khi giải quyết xung đột
       --ff-only          chỉ cho phép fast-forward
-  -h, --help             help for merge
+  -h, --help             hiển thị phần trợ giúp của lệnh này
   -m, --message string   nội dung cho commit merge
       --no-ff            luôn tạo commit merge dù có thể fast-forward
       --squash           gộp thay đổi vào vùng stage mà không tạo commit merge

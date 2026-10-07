@@ -33,7 +33,7 @@ td vcs diff [phạm vi] [-- tệp...] [flags]
 
 ```
       --color string   màu output: auto, always, never (default "auto")
-  -h, --help           help for diff
+  -h, --help           hiển thị phần trợ giúp của lệnh này
       --name-only      chỉ hiển thị tên tệp thay đổi
   -c, --staged         so sánh HEAD với vùng đã stage
       --stat           chỉ hiển thị thống kê thay đổi

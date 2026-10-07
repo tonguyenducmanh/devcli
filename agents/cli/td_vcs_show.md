@@ -24,7 +24,7 @@ td vcs show [commit] [flags]
 ### Options
 
 ```
-  -h, --help    help for show
+  -h, --help    hiển thị phần trợ giúp của lệnh này
   -p, --patch   kèm nội dung diff (default true)
 ```
 

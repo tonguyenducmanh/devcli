@@ -32,7 +32,7 @@ td vcs rebase [đích] [flags]
       --abort           huỷ rebase và trở về trạng thái trước đó
       --branch string   rebase cho nhánh này thay vì nhánh hiện tại
       --continue        tiếp tục rebase sau khi giải quyết xung đột
-  -h, --help            help for rebase
+  -h, --help            hiển thị phần trợ giúp của lệnh này
       --onto string     commit đích thay cho điểm gốc
       --skip            bỏ qua commit hiện tại
 ```

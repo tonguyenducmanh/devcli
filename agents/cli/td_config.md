@@ -24,7 +24,7 @@ td config [flags]
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
   -g, --global       áp dụng cho toàn bộ máy thay vì repo hiện tại
-  -h, --help         help for config
+  -h, --help         hiển thị phần trợ giúp của lệnh này
   -l, --list         liệt kê toàn bộ cấu hình
       --unset        xóa một khóa cấu hình
 ```
@@ -38,5 +38,5 @@ td config [flags]
 
 ### SEE ALSO
 
-* [td](td.md)	 - td - bộ công cụ dòng lệnh cá nhân
+* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 

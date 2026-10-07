@@ -26,6 +26,7 @@ Xoá nhánh chỉ thành công nếu nhánh đó đã được hợp nhất vào
 Không có tham số thì in danh sách. Một tham số là tạo nhánh mới tại HEAD, hai
 tham số là tạo nhánh mới từ một điểm xuất phát cho trước.`,
 	Example: `  td vcs branch                  liệt kê các nhánh
+  td vcs branch --hash           liệt kê kèm mã băm của từng nhánh
   td vcs branch -d ten           xóa nhánh đã hợp nhất
   td vcs branch -D ten           xóa nhánh bất kể trạng thái
   td vcs branch ten              tạo nhánh tại HEAD
@@ -41,7 +42,7 @@ tham số là tạo nhánh mới từ một điểm xuất phát cho trước.`,
 		deleteFlag, _ := cmd.Flags().GetBool("delete")
 		forceDel, _ := cmd.Flags().GetBool("force")
 		rename, _ := cmd.Flags().GetBool("move")
-		withHash, _ := cmd.Flags().GetBool("verbose")
+		withHash, _ := cmd.Flags().GetBool("hash")
 
 		switch {
 		case deleteFlag || forceDel:
@@ -432,7 +433,10 @@ func init() {
 	vcsBranchCmd.Flags().BoolP("list", "l", false, "liệt kê các nhánh")
 	vcsBranchCmd.Flags().BoolP("delete", "d", false, "xóa nhánh")
 	vcsBranchCmd.Flags().BoolP("force", "D", false, "xóa nhánh bất kể đã hợp nhất hay chưa")
-	vcsBranchCmd.Flags().BoolP("verbose", "v", false, "kèm hash của từng nhánh")
+	// Tên cờ là hash chứ không phải verbose, vì -v đã là cờ toàn cục in thêm
+	// thông tin chi tiết. Trùng cả tên lẫn chữ viết tắt sẽ khiến người dùng
+	// không đoán được -v đang nói tới việc gì.
+	vcsBranchCmd.Flags().Bool("hash", false, "kèm mã băm của từng nhánh")
 	vcsBranchCmd.Flags().BoolP("move", "m", false, "đổi tên nhánh")
 	vcsBranchCmd.Flags().BoolP("switch", "s", false, "chuyển sang nhánh mới sau khi đổi tên")
 	vcsBranchCmd.Flags().BoolP("track", "t", false, "ghi nhớ nhánh theo dõi cho nhánh mới")

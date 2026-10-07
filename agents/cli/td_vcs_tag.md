@@ -29,7 +29,7 @@ td vcs tag [flags]
 ```
   -a, --annotate         tạo tag có chú thích
   -d, --delete           xóa tag
-  -h, --help             help for tag
+  -h, --help             hiển thị phần trợ giúp của lệnh này
   -l, --list             liệt kê các tag
   -m, --message string   nội dung chú thích cho tag
 ```

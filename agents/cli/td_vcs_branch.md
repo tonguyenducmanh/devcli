@@ -23,6 +23,7 @@ td vcs branch [flags]
 
 ```
   td vcs branch                  liệt kê các nhánh
+  td vcs branch --hash           liệt kê kèm mã băm của từng nhánh
   td vcs branch -d ten           xóa nhánh đã hợp nhất
   td vcs branch -D ten           xóa nhánh bất kể trạng thái
   td vcs branch ten              tạo nhánh tại HEAD
@@ -33,14 +34,14 @@ td vcs branch [flags]
 ### Options
 
 ```
-  -d, --delete    xóa nhánh
-  -D, --force     xóa nhánh bất kể đã hợp nhất hay chưa
-  -h, --help      help for branch
-  -l, --list      liệt kê các nhánh
-  -m, --move      đổi tên nhánh
-  -s, --switch    chuyển sang nhánh mới sau khi đổi tên
-  -t, --track     ghi nhớ nhánh theo dõi cho nhánh mới
-  -v, --verbose   kèm hash của từng nhánh
+  -d, --delete   xóa nhánh
+  -D, --force    xóa nhánh bất kể đã hợp nhất hay chưa
+      --hash     kèm mã băm của từng nhánh
+  -h, --help     hiển thị phần trợ giúp của lệnh này
+  -l, --list     liệt kê các nhánh
+  -m, --move     đổi tên nhánh
+  -s, --switch   chuyển sang nhánh mới sau khi đổi tên
+  -t, --track    ghi nhớ nhánh theo dõi cho nhánh mới
 ```
 
 ### Options inherited from parent commands
@@ -48,6 +49,7 @@ td vcs branch [flags]
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
       --no-color     tắt màu trong output
+  -v, --verbose      in thêm thông tin chi tiết
 ```
 
 ### SEE ALSO

@@ -11,8 +11,9 @@ import (
 // newConfigCmd tạo nhóm lệnh cấu hình.
 func newConfigCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Xem và chỉnh sửa cấu hình của td",
+		Use:     "config",
+		GroupID: groupGeneral,
+		Short:   "Xem và chỉnh sửa cấu hình của td",
 		Long: `Cấu hình được lưu ở hai nơi: file toàn cục và file trong từng repo.
 Cấu hình toàn cục được đọc trước, nên nên đặt user.name và user.email ở đó.`,
 		Example: `  td config --global user.name "Tên của tôi"

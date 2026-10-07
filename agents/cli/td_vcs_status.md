@@ -30,7 +30,7 @@ td vcs status [flags]
 ### Options
 
 ```
-  -h, --help   help for status
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

@@ -25,7 +25,7 @@ td vcs reflog [ref] [flags]
 ### Options
 
 ```
-  -h, --help   help for reflog
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

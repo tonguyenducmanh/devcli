@@ -26,7 +26,7 @@ td vcs revert <commit>... [flags]
 ```
       --abort       huỷ thao tác đang dở dang
       --continue    tiếp tục sau khi giải quyết xung đột
-  -h, --help        help for revert
+  -h, --help        hiển thị phần trợ giúp của lệnh này
   -n, --no-commit   chỉ áp dụng thay đổi vào vùng stage
       --skip        bỏ qua commit hiện tại
 ```

@@ -23,8 +23,11 @@ ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 # "devtool vcs status". Tên này cũng quyết định dòng Use trong phần trợ giúp.
 CMD_NAME=td
 
-# Nơi phát hành, dùng để in gợi ý khi báo lỗi. Để rỗng thì không in gợi ý.
+# Nơi phát hành, in ở cuối phần trợ giúp và dùng cho tiêu đề trang man.
 REPO_URL=github.com/tonguyenducmanh/devcli
+
+# Tên tác giả, in ở lệnh version và cuối phần trợ giúp.
+AUTHOR="Tô Nguyễn Đức Mạnh"
 
 # ─── Thông tin build ───────────────────────────────────────────────
 
@@ -73,11 +76,14 @@ CGO_ENABLED=0
 # make_ldflags tạo chuỗi ldflags gắn các biến toàn cục vào tệp thực thi.
 #
 # Lưu ý: phía Go phải khai báo bằng `var` thì -X mới ghi được.
+# Giá trị có dấu cách phải bọc nháy đơn, nếu không linker sẽ tách nhầm thành
+# nhiều đối số khác nhau.
 make_ldflags() {
     pkg="github.com/tonguyenducmanh/devcli/cmd"
     echo "$BUILD_FLAGS"
     echo "-X ${pkg}.AppName=$CMD_NAME"
     echo "-X ${pkg}.Version=$VERSION"
+    echo "-X '${pkg}.Author=$AUTHOR'"
     echo "-X ${pkg}.RepoURL=$REPO_URL"
 }
 

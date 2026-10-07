@@ -21,7 +21,7 @@ import (
 // bằng cờ -ldflags "-X ...cmd.<Tên>=<giá trị>". Giá trị dưới đây là giá trị
 // mặc định khi chạy thẳng bằng `go build` mà không qua script.
 //
-// Nguồn cấu hình nằm trong scripts/build.conf.
+// Nguồn cấu hình nằm trong phần cấu hình của scripts/build_binaries.sh.
 var (
 	// AppName là tên gọi lệnh trên terminal, ví dụ "td" trong "td vcs status".
 	AppName = "td"
@@ -29,9 +29,11 @@ var (
 	// Version là phiên bản hiển thị qua lệnh `td version`.
 	Version = "0.0.0-dev"
 
-	// RepoURL là nơi phát hành, dùng để in gợi ý khi báo lỗi.
-	// Để rỗng nghĩa là không in gợi ý.
-	RepoURL = ""
+	// Author là tên tác giả, in ở lệnh version và cuối phần trợ giúp.
+	Author = "Tô Nguyễn Đức Mạnh"
+
+	// RepoURL là nơi phát hành, in ở cuối phần trợ giúp.
+	RepoURL = "github.com/tonguyenducmanh/devcli"
 )
 
 // Tên nhóm lệnh, dùng để gom lệnh trong phần trợ giúp.
@@ -43,29 +45,37 @@ const (
 // rootCmd là lệnh gốc của ứng dụng.
 var rootCmd = &cobra.Command{
 	Use:   AppName,
-	Short: AppName + " - bộ công cụ dòng lệnh cá nhân",
-	Long: fmt.Sprintf(`%s là bộ công cụ dòng lệnh cá nhân, tự quản lý toàn bộ dữ liệu của nó.
+	Short: "Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất",
+	Long: fmt.Sprintf(`%s gom mọi công cụ dòng lệnh bạn dùng hằng ngày dưới một lệnh duy nhất.
 
 Mỗi nhóm công cụ là một lệnh con của %s, ví dụ:
   %s vcs ...     quản lý phiên bản mã nguồn cục bộ
 
-Dữ liệu của %s được lưu trong thư mục .tdx cạnh dự án.`,
+Mỗi nhóm tự quản lý toàn bộ dữ liệu của nó trong thư mục riêng cạnh dự án, nên
+%s không cần cài thêm hay cấu hình gì cả.`,
 		AppName, AppName, AppName, AppName),
 	Example: strings.Join([]string{
 		"  " + AppName + " vcs init                   khởi tạo kho tại thư mục hiện tại",
 		"  " + AppName + " vcs status                 xem các thay đổi chưa commit",
 		"  " + AppName + " vcs commit -m \"tin nhắn\"   ghi lại thay đổi",
 		"  " + AppName + " config --list              xem cấu hình đang dùng",
-		"  " + AppName + " --help                     xem toàn bộ lệnh",
+		"",
+		"  " + AppName + "                            xem phiên bản và danh sách lệnh",
+		"  " + AppName + " -v                         xem thêm thông tin môi trường",
+		"  " + AppName + " --help                     xem trợ giúp đầy đủ",
 	}, "\n"),
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	// Khi không có lệnh con nào được gọi thì in phần trợ giúp.
+	// Nhận mọi đối số rồi tự báo lỗi. Không khai báo Args thì cobra dùng
+	// bộ kiểm tra riêng và in thông báo "unknown command" bằng tiếng Anh.
+	Args: arbitraryArgs,
+	// Gọi lệnh gốc mà không kèm lệnh con thì in tên, phiên bản và danh sách
+	// lệnh, thay vì in cả trang trợ giúp dài.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) > 0 {
-			return exitError("lệnh không tồn tại: %q", args[0])
+			return exitError("không có lệnh nào tên %q, xem danh sách: %s --help", args[0], AppName)
 		}
-		return cmd.Help()
+		return runRoot(cmd)
 	},
 	// Chạy trước mọi lệnh con để quyết định có tô màu output hay không.
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -109,8 +119,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "in thêm thông tin chi tiết")
 	rootCmd.PersistentFlags().Bool("no-color", false, "tắt màu trong output")
 
-	// Ẩn lệnh sinh tự động của cobra vì không dùng đến.
-	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+	// Tắt lệnh completion sinh tự động của cobra. Mô tả cờ của lệnh đó viết
+	// bằng tiếng Anh, mà dự án này không bán tài liệu hoàn chỉnh nào khác nữa.
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	// Đăng ký các nhóm công cụ.
 	registerToolGroup(newVCSCmd())
@@ -119,9 +130,12 @@ func init() {
 
 	// Gắn nhóm cho các lệnh để phần trợ giúp gọn gàng hơn.
 	rootCmd.AddGroup(
-		&cobra.Group{ID: groupGeneral, Title: "Lệnh chung"},
-		&cobra.Group{ID: groupVersionControl, Title: "Quản lý phiên bản"},
+		&cobra.Group{ID: groupGeneral, Title: "Lệnh chung:"},
+		&cobra.Group{ID: groupVersionControl, Title: "Quản lý phiên bản:"},
 	)
+
+	// Dịch phần trợ giúp sang tiếng Việt, phải làm sau khi cây lệnh đã đủ.
+	setupHelp()
 }
 
 // toolGroups lưu các nhóm công cụ đã đăng ký, dùng cho kiểm thử.

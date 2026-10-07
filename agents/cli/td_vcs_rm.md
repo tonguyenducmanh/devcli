@@ -27,7 +27,7 @@ td vcs rm <tệp>... [flags]
 
 ```
       --cached   chỉ gỡ khỏi theo dõi, giữ file trên đĩa
-  -h, --help     help for rm
+  -h, --help     hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands

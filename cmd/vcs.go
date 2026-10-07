@@ -32,8 +32,14 @@ tại. Dùng -C để chỉ định thư mục khác.`,
   td vcs commit -am "bổ sung tính năng"
   td vcs switch main
   td vcs merge tinh-nang`,
+		// Gọi nhóm lệnh mà không kèm lệnh con thì in danh sách lệnh con,
+		// thay vì in cả trang trợ giúp dài.
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.Help()
+			if len(args) > 0 {
+				return exitError("không có lệnh nào tên %q, xem danh sách: %s vcs --help", args[0], AppName)
+			}
+			printCommandList(cmd)
+			return nil
 		},
 	}
 	// Cờ -C dùng chung cho mọi lệnh trong nhóm.

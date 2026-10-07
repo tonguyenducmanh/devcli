@@ -39,7 +39,7 @@ td vcs [flags]
 
 ```
   -C, --dir string   chạy lệnh tại thư mục khác
-  -h, --help         help for vcs
+  -h, --help         hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands
@@ -51,7 +51,7 @@ td vcs [flags]
 
 ### SEE ALSO
 
-* [td](td.md)	 - td - bộ công cụ dòng lệnh cá nhân
+* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 * [td vcs add](td_vcs_add.md)	 - Đưa thay đổi vào vùng chuẩn bị commit
 * [td vcs branch](td_vcs_branch.md)	 - Liệt kê, tạo hoặc xóa nhánh
 * [td vcs cat-file](td_vcs_cat-file.md)	 - In nội dung của một object (blob, tree, commit, tag)

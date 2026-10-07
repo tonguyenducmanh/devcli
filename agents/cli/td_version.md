@@ -1,10 +1,10 @@
 ## td version
 
-Hiển thị phiên bản của td
+Hiển thị phiên bản và thông tin môi trường
 
 ### Synopsis
 
-In số phiên bản, hệ điều hành và kiến trúc máy đang chạy.
+In số phiên bản, tên tác giả, hệ điều hành và kiến trúc máy đang chạy.
 
 Thông tin này hữu ích khi báo lỗi, giúp biết bản dựng được biên dịch từ
 phiên bản nào.
@@ -22,7 +22,7 @@ td version [flags]
 ### Options
 
 ```
-  -h, --help   help for version
+  -h, --help   hiển thị phần trợ giúp của lệnh này
 ```
 
 ### Options inherited from parent commands
@@ -34,5 +34,5 @@ td version [flags]
 
 ### SEE ALSO
 
-* [td](td.md)	 - td - bộ công cụ dòng lệnh cá nhân
+* [td](td.md)	 - Bộ công cụ dòng lệnh cá nhân, tất cả gói dưới một lệnh duy nhất
 
