@@ -8,6 +8,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -88,6 +89,25 @@ func Root() *cobra.Command { return rootCmd }
 
 // Execute chạy lệnh gốc, trả về lỗi nếu có.
 func Execute() error {
+	args := os.Args[1:]
+	if len(args) > 0 {
+		first := args[0]
+		if !strings.HasPrefix(first, "-") {
+			known := false
+			for _, c := range rootCmd.Commands() {
+				if c.Name() == first || hasAlias(c, first) {
+					known = true
+					break
+				}
+			}
+			if !known {
+				if def := getDefaultGroup(); def != "" {
+					newArgs := append([]string{def}, args...)
+					rootCmd.SetArgs(newArgs)
+				}
+			}
+		}
+	}
 	return rootCmd.Execute()
 }
 
