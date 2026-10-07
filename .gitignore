@@ -9,3 +9,5 @@ coverage.out
 
 # Dữ liệu td sinh ra khi thử nghiệm
 .tdx/
+
+.DS_Store
