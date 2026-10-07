@@ -1,20 +1,21 @@
-package object
+package object_test
 
 import (
+	"github.com/tonguyenducmanh/devcli/internal/vcs/object"
 	"testing"
 )
 
 func TestComputeHashKhopChuanGit(t *testing.T) {
 	// Giá trị này là mã băm ổn định của blob chứa "hello\n",
 	// dùng để chắc chắn thuật toán băm không bị thay đổi ngoài ý muốn.
-	got := ComputeHash(TypeBlob, []byte("hello\n"))
+	got := object.ComputeHash(object.TypeBlob, []byte("hello\n"))
 	const want = "ce013625030ba8dba906f756967f9e9ca394464a"
 	if got.String() != want {
 		t.Fatalf("mã băm blob không đúng:\nnhận  %s\nmong đợi %s", got, want)
 	}
 
 	// Tree rỗng có hash 4b825dc642cb6eb9a060e54bf8d69288fbee4904.
-	empty := ComputeHash(TypeTree, (&Tree{}).Encode())
+	empty := object.ComputeHash(object.TypeTree, (&object.Tree{}).Encode())
 	const wantEmpty = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 	if empty.String() != wantEmpty {
 		t.Fatalf("mã băm tree rỗng không đúng:\nnhận  %s\nmong đợi %s", empty, wantEmpty)
@@ -22,8 +23,8 @@ func TestComputeHashKhopChuanGit(t *testing.T) {
 }
 
 func TestParseHashVaHienThi(t *testing.T) {
-	h := ComputeHash(TypeBlob, []byte("hello\n"))
-	parsed, err := ParseHash(h.String())
+	h := object.ComputeHash(object.TypeBlob, []byte("hello\n"))
+	parsed, err := object.ParseHash(h.String())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,10 +34,10 @@ func TestParseHashVaHienThi(t *testing.T) {
 	if h.Short(7) != h.String()[:7] {
 		t.Fatalf("hiển thị ngắn sai")
 	}
-	if _, err := ParseHash("abc"); err == nil {
+	if _, err := object.ParseHash("abc"); err == nil {
 		t.Fatalf("phải báo lỗi với hash quá ngắn")
 	}
-	if !ZeroHash.IsZero() {
+	if !object.ZeroHash.IsZero() {
 		t.Fatalf("hash rỗng phải báo IsZero")
 	}
 }
@@ -44,11 +45,11 @@ func TestParseHashVaHienThi(t *testing.T) {
 func TestTreeSapXepVaMaHoa(t *testing.T) {
 	// Entry thư mục "src" phải được so sánh như "src/" nên
 	// "src.txt" phải đứng trước "src" theo quy tắc so sánh có dấu "/" hậu tố.
-	tree := &Tree{Entries: []TreeEntry{
-		{Mode: ModeBlob, Name: "src.txt"},
-		{Mode: ModeBlob, Name: "README.md"},
-		{Mode: ModeTree, Name: "src"},
-		{Mode: ModeBlob, Name: "a.go"},
+	tree := &object.Tree{Entries: []object.TreeEntry{
+		{Mode: object.ModeBlob, Name: "src.txt"},
+		{Mode: object.ModeBlob, Name: "README.md"},
+		{Mode: object.ModeTree, Name: "src"},
+		{Mode: object.ModeBlob, Name: "a.go"},
 	}}
 	tree.Sort()
 	want := []string{"README.md", "a.go", "src.txt", "src"}
@@ -59,7 +60,7 @@ func TestTreeSapXepVaMaHoa(t *testing.T) {
 	}
 
 	// Giải mã lại phải cho cùng kết quả.
-	decoded, err := DecodeTree(tree.Encode())
+	decoded, err := object.DecodeTree(tree.Encode())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,18 +68,15 @@ func TestTreeSapXepVaMaHoa(t *testing.T) {
 		t.Fatalf("giải mã tree sai: %+v", decoded.Entries)
 	}
 	// Hash của tree phải không đổi sau vòng mã hóa rồi giải mã.
-	if tree.HashOf() != decoded.HashOf() {
+	if object.ComputeHash(object.TypeTree, tree.Encode()) != object.ComputeHash(object.TypeTree, decoded.Encode()) {
 		t.Fatalf("hash tree phải giữ nguyên qua vòng mã hóa")
 	}
 }
 
-// HashOf tính hash của tree từ nội dung đã mã hóa.
-func (t *Tree) HashOf() Hash { return ComputeHash(TypeTree, t.Encode()) }
-
 func TestTreeUpsertVaRemove(t *testing.T) {
-	tree := &Tree{}
-	tree.Upsert(TreeEntry{Mode: ModeBlob, Name: "b.txt", Hash: ComputeHash(TypeBlob, []byte("b"))})
-	tree.Upsert(TreeEntry{Mode: ModeBlob, Name: "a.txt", Hash: ComputeHash(TypeBlob, []byte("a"))})
+	tree := &object.Tree{}
+	tree.Upsert(object.TreeEntry{Mode: object.ModeBlob, Name: "b.txt", Hash: object.ComputeHash(object.TypeBlob, []byte("b"))})
+	tree.Upsert(object.TreeEntry{Mode: object.ModeBlob, Name: "a.txt", Hash: object.ComputeHash(object.TypeBlob, []byte("a"))})
 	if len(tree.Entries) != 2 || tree.Entries[0].Name != "a.txt" {
 		t.Fatalf("upsert phải giữ thứ tự: %+v", tree.Entries)
 	}
@@ -92,13 +90,13 @@ func TestTreeUpsertVaRemove(t *testing.T) {
 }
 
 func TestCommitEncodeDecode(t *testing.T) {
-	id := Identity{Name: "Nguyễn Văn A", Email: "a@example.com"}
-	treeHash := ComputeHash(TypeTree, (&Tree{}).Encode())
-	parent := ComputeHash(TypeBlob, []byte("p"))
+	id := object.Identity{Name: "Nguyễn Văn A", Email: "a@example.com"}
+	treeHash := object.ComputeHash(object.TypeTree, (&object.Tree{}).Encode())
+	parent := object.ComputeHash(object.TypeBlob, []byte("p"))
 
-	c := &Commit{
+	c := &object.Commit{
 		Tree:      treeHash,
-		Parents:   []Hash{parent},
+		Parents:   []object.Hash{parent},
 		Author:    id,
 		Committer: id,
 		Message:   "tiêu đề\n\nnội dung chi tiết\ndòng hai\n",
@@ -111,7 +109,7 @@ func TestCommitEncodeDecode(t *testing.T) {
 		t.Fatalf("header commit sai: %q", string(data[:40]))
 	}
 
-	got, err := DecodeCommit(data)
+	got, err := object.DecodeCommit(data)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,13 +132,13 @@ func TestCommitEncodeDecode(t *testing.T) {
 }
 
 func TestCommitThieuTreeBaoLoi(t *testing.T) {
-	if _, err := DecodeCommit([]byte("author A <a@b> 1 +0700\n\nmsg\n")); err == nil {
+	if _, err := object.DecodeCommit([]byte("author A <a@b> 1 +0700\n\nmsg\n")); err == nil {
 		t.Fatalf("phải báo lỗi khi commit không có tree")
 	}
 }
 
 func TestParseIdentity(t *testing.T) {
-	id, err := ParseIdentity("Tên Nguyễn <ten@example.com> 1700000000 +0700")
+	id, err := object.ParseIdentity("Tên Nguyễn <ten@example.com> 1700000000 +0700")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,19 +148,19 @@ func TestParseIdentity(t *testing.T) {
 	if id.When.Unix() != 1700000000 {
 		t.Fatalf("thời điểm sai: %d", id.When.Unix())
 	}
-	if _, err := ParseIdentity("không có dấu ngoặc"); err == nil {
+	if _, err := object.ParseIdentity("không có dấu ngoặc"); err == nil {
 		t.Fatalf("phải báo lỗi với chuỗi không hợp lệ")
 	}
 }
 
 func TestFileMode(t *testing.T) {
-	if !ModeTree.IsTree() {
+	if !object.ModeTree.IsTree() {
 		t.Fatalf("ModeTree phải là thư mục")
 	}
-	if !ModeExec.IsExec() {
+	if !object.ModeExec.IsExec() {
 		t.Fatalf("ModeExec phải là file thực thi")
 	}
-	if ModeBlob.IsTree() {
+	if object.ModeBlob.IsTree() {
 		t.Fatalf("ModeBlob không phải thư mục")
 	}
 }

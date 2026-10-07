@@ -7,14 +7,149 @@ gói dưới một lệnh gốc `td`, mỗi công cụ là một nhóm lệnh co
 Hiện tại có nhóm `td vcs` — quản lý phiên bản mã nguồn cục bộ. Các nhóm khác
 sẽ bổ sung theo cùng khuôn mẫu.
 
-## Cài đặt
+## Yêu cầu
+
+- Go 1.23 trở lên (kiểm tra bằng `go version`).
+- Không cần thư viện nào khác lúc chạy, td là một binary tĩnh duy nhất.
+
+## Build
 
 ```bash
-go build -o td .        # tạo bản nhị phân trong thư mục hiện tại
+./scripts/build_all.sh               # build Mac, Linux, Windows vào out/
+./scripts/check.sh              # định dạng + phân tích tĩnh + kiểm thử + đối chiếu tài liệu
+go test ./...                # chạy kiểm thử
+```
+
+Kết quả nằm trong `out/`, tên file chứa kèm phiên bản:
+
+```
+out/td-mac-arm-0.1.0
+out/td-mac-intel-0.1.0
+out/td-linux-0.1.0
+out/td-windows-0.1.0.exe
+```
+
+### Phiên bản
+
+Phiên bản lấy từ file `scripts/VERSION`, là nguồn duy nhất cho toàn bộ dự án. Ghi đè tạm khi build mà không cần sửa file:
+
+```bash
+VERSION=1.2.3 ./scripts/build_all.sh
+```
+
+Phiên bản được gắn vào binary lúc biên dịch nên `td version` luôn cho biết đúng
+bản đang chạy. Muốn phát hành bản mới thì sửa `scripts/VERSION`, chạy `./scripts/build_all.sh`,
+rồi đẩy lên trang phát hành.
+
+### Build bằng lệnh go thuần
+
+```bash
+go build -o td .
 go install .            # cài vào $GOPATH/bin
 ```
 
-Yêu cầu Go 1.21 trở lên.
+## Cài đặt
+
+td là một binary độc lập, nên "cài đặt" chỉ là chép file executable vào một
+thư mục nằm trong `PATH`.
+
+```bash
+# cài cho bản dùng thử
+install -m 755 out/td-mac-arm-0.1.0 ~/bin/td
+
+# hoặc chỉ cần dùng trong dự án mà không cài
+./out/td-mac-arm-0.1.0 vcs status
+```
+
+### macOS
+
+```bash
+install -m 755 out/td-mac-arm-0.1.0 ~/bin/td
+echo 'export PATH="$PATH:$HOME/bin"' >> ~/.zshrc
+source ~/.zshrc
+td version
+```
+
+Nếu tải binary bằng trình duyệt, macOS có thể chặn vì không có chữ ký:
+
+```bash
+xattr -d com.apple.quarantine ~/bin/td
+```
+
+### Linux
+
+```bash
+# không cần sudo
+install -m 755 out/td-linux-0.1.0 ~/.local/bin/td
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
+
+# hoặc cài cho toàn hệ thống
+sudo install -m 755 out/td-linux-0.1.0 /usr/local/bin/td
+```
+
+### Windows
+
+```powershell
+New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\td"
+Copy-Item out\td-windows-0.1.0.exe "$env:LOCALAPPDATA\td\td.exe"
+
+# thêm vào Path của người dùng, vĩnh viễn
+[Environment]::SetEnvironmentVariable(
+  "Path",
+  [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\td",
+  "User"
+)
+```
+
+Mở cửa sổ PowerShell mới rồi kiểm tra bằng `td version`.
+
+### Cài bằng trình quản lý gói
+
+Khi phát hành trên trang Releases, có thể đưa td vào các trình quản lý gói phổ
+biến, người dùng cập nhật và gỡ cài đặt bằng một lệnh:
+
+| Hệ điều hành | Trình quản lý | Lệnh cài | Lệnh cập nhật | Lệnh gỡ |
+| --- | --- | --- | --- | --- |
+| macOS | Homebrew | `brew install td` | `brew upgrade td` | `brew uninstall td` |
+| Windows | Scoop | `scoop install td` | `scoop update td` | `scoop uninstall td` |
+| Windows | winget | `winget install td` | `winget upgrade td` | `winget uninstall td` |
+| Linux | Go | `go install ...@latest` | chạy lại lệnh | xoá trong `$GOPATH/bin` |
+
+## Cập nhật
+
+Vì cấu hình nằm ở `~/.config/td/config` và dữ liệu mỗi dự án nằm trong thư mục
+`.tdx`, **cài đè binary là đủ để cập nhật**, không mất dữ liệu:
+
+```bash
+# tải bản mới, chép đè lên binary cũ
+install -m 755 out/td-linux-1.2.0 /usr/local/bin/td
+td version        # xác nhận đã lên phiên bản mới
+```
+
+Trên Windows:
+
+```powershell
+Copy-Item -Force out\td-windows-1.2.0.exe "$env:LOCALAPPDATA\td\td.exe"
+```
+
+Dùng trình quản lý gói thì không cần làm gì, chỉ cần lệnh `upgrade`.
+
+## Gỡ cài đặt
+
+```bash
+# xoá binary
+rm ~/bin/td            # hoặc: sudo rm /usr/local/bin/td
+
+# xoá thêm cấu hình toàn cục
+rm -rf ~/.config/td
+
+# xoá thêm kho td trong các dự án (nếu muốn)
+find . -type d -name .tdx -prune -exec rm -rf {} +
+```
+
+Chạy `td` sau khi gỡ không còn ý nghĩa, nhưng thư mục `.tdx` trong dự án vẫn là
+dữ liệu thô. Xoá hay giữ là tuỳ bạn, nên lệnh xoá được tách riêng khỏi bước gỡ
+binary.
 
 ## Bắt đầu nhanh
 
@@ -152,6 +287,27 @@ Bao gồm:
 - Kiểm thử vòng đọc-ghi cho mã băm, cây, vùng chuẩn bị và các tham chiếu.
 - Kiểm thử bảo đảm công cụ tự trị: mã nguồn không gọi chương trình ngoài nào,
   và bản nhị phân vẫn chạy được khi `PATH` bị đặt rỗng.
+
+## Tài liệu cho trợ lý lập trình
+
+| Tệp | Dành cho |
+| --- | --- |
+| `agents/README.md` | Mô tả thư mục tài liệu cho trợ lý lập trình |
+| `agents/AGENTS.md` | Kiến trúc, bất biến, quy trình và quy ước viết mã |
+| `agents/llms.txt` | Tóm tắt ngắn cho trợ lý AI |
+| `agents/cli/` | Tham chiếu từng lệnh, sinh tự động |
+| `CONTRIBUTING.md` | Quy trình đóng góp |
+| `tests/README.md` | Vì sao kiểm thử nằm ở thư mục riêng |
+
+`agents/cli/` được sinh từ cây lệnh bằng `internal/tools/docgen`, không sửa tay:
+
+```bash
+./scripts/build_agent_docs.sh
+```
+
+Mỗi tệp Markdown có cấu trúc ổn định: mô tả, cú pháp, các ví dụ, các cờ.
+Nhờ vậy người đọc và trợ lý AI nắm được chính xác từng lệnh làm gì mà không
+cần chạy thử. `./scripts/check.sh` sẽ báo nếu tài liệu lệch với câu lệnh.
 
 ## Thêm nhóm công cụ mới
 

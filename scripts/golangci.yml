@@ -1,0 +1,32 @@
+# Cấu hình golangci-lint cho td.
+# Chạy: golangci-lint run
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - errcheck      # bỏ sót kiểm tra lỗi
+    - govet         # phân tích tĩnh mặc định của Go
+    - ineffassign   # gán giá trị thừa
+    - staticcheck   # kiểm tra lỗi logic tĩnh
+    - unused        # khai báo không dùng
+    - gocritic      # gợi ý cải thiện mã
+    - revive        # quy ước đặt tên và chú thích
+    - misspell      # sai chính tả
+    - gofmt         # định dạng
+    - goimports     # nhóm import
+
+  # Tắt những luật gây nhiễu với dự án này.
+  disable:
+    - lll           # giới hạn độ dài dòng, xung đột với nội dung tiếng Việt
+
+issues:
+  exclude-rules:
+    # Tệp kiểm thử thường dùng biến tạm và bỏ qua lỗi có chủ đích.
+    - path: _test\.go
+      linters:
+        - errcheck
+  max-issues-per-linter: 0
+  max-same-issues: 0

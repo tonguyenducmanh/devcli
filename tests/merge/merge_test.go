@@ -1,6 +1,7 @@
-package merge
+package merge_test
 
 import (
+	"github.com/tonguyenducmanh/devcli/internal/vcs/merge"
 	"strings"
 	"testing"
 )
@@ -58,7 +59,7 @@ func TestMerge3CacTruongHopCoBan(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := Merge3(lines(tc.base), lines(tc.ours), lines(tc.theirs), "ours", "theirs")
+			got := merge.Merge3(lines(tc.base), lines(tc.ours), lines(tc.theirs), "ours", "theirs")
 			if got.Conflict {
 				t.Fatalf("không mong đợi xung đột, nhận được:\n%s", text(got.Lines))
 			}
@@ -74,7 +75,7 @@ func TestMerge3BaoCaoXungDot(t *testing.T) {
 	ours := lines("a\nB-cua-ta\nc\nd\ne\n")
 	theirs := lines("a\nB-cua-han\nc\nd\ne\n")
 
-	got := Merge3(base, ours, theirs, "nhanh", "tinh_nay")
+	got := merge.Merge3(base, ours, theirs, "nhanh", "tinh_nay")
 	if !got.Conflict {
 		t.Fatalf("phải báo xung đột, nhận được:\n%s", text(got.Lines))
 	}
@@ -86,10 +87,10 @@ func TestMerge3BaoCaoXungDot(t *testing.T) {
 		}
 	}
 	// Hàm phát hiện phải trả về false khi nội dung còn dấu xung đột.
-	if CleanConflictMarkers(got.Lines) {
+	if merge.CleanConflictMarkers(got.Lines) {
 		t.Fatalf("hàm phát hiện dấu xung đột hoạt động sai")
 	}
-	if !CleanConflictMarkers(lines("a\nb\n")) {
+	if !merge.CleanConflictMarkers(lines("a\nb\n")) {
 		t.Fatalf("nội dung sạch phải được coi là không có xung đột")
 	}
 }
@@ -98,7 +99,7 @@ func TestMerge3ChinhTacCungPhia(t *testing.T) {
 	base := lines("a\nb\nc\n")
 	ours := lines("a\nb\nc\nd\n")
 	theirs := lines("a\nb\nc\nd\n")
-	got := Merge3(base, ours, theirs, "o", "t")
+	got := merge.Merge3(base, ours, theirs, "o", "t")
 	if got.Conflict {
 		t.Fatalf("hai phía giống nhau thì không có xung đột")
 	}
@@ -109,7 +110,7 @@ func TestMerge3ChinhTacCungPhia(t *testing.T) {
 
 func TestMerge3FileRong(t *testing.T) {
 	// File bên phía chúng ta rỗng, bên kia có nội dung.
-	got := Merge3(nil, nil, lines("x\ny\n"), "o", "t")
+	got := merge.Merge3(nil, nil, lines("x\ny\n"), "o", "t")
 	if got.Conflict || text(got.Lines) != "x\ny\n" {
 		t.Fatalf("sai kết quả: conflict=%v, lines=%q", got.Conflict, text(got.Lines))
 	}

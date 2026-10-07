@@ -1,10 +1,14 @@
-# File nhị phân đã biên dịch
-/td
+# Binary đã biên dịch
+/out/
+td
 td.exe
 
-# Bản dự án cục bộ
-/dist/
+# Báo cáo độ phủ
+coverage.out
 *.test
 
 # Dữ liệu td sinh ra khi thử nghiệm
 .tdx/
+
+# Tài liệu sinh tự động được commit, nhưng bản nháp cục bộ thì không
+/agents/cli/*.tmp

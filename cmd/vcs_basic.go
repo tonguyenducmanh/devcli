@@ -15,11 +15,20 @@ var vcsStatusCmd = &cobra.Command{
 	Use:     "status",
 	Aliases: []string{"st"},
 	Short:   "Hiển thị trạng thái thay đổi của cây làm việc",
-	Long: `Hiển thị ba vùng chính:
-  thay đổi đã stage   sẽ được ghi vào commit tới
-  thay đổi chưa stage  đã sửa trên đĩa nhưng chưa đưa vào stage
-  file chưa theo dõi  file mới xuất hiện, chưa được td quản lý`,
-	Args: cobra.NoArgs,
+	Long: `In trạng thái hiện tại của cây làm việc theo ba nhóm:
+
+  đã stage       nội dung sẽ được ghi vào commit kế tiếp
+  chưa stage     đã sửa trên đĩa nhưng chưa đưa vào vùng chuẩn bị
+  chưa theo dõi  tệp mới xuất hiện, td chưa quản lý
+
+Ký hiệu đầu mỗi dòng cho biết thao tác: thêm, sửa, xoá hoặc mới.
+
+Dòng đầu tiên cho biết đang ở nhánh nào, HEAD có đang tách rời không, và nhánh
+đó đi trước hay đi sau nhánh theo dõi bao nhiêu commit.`,
+	Example: `  td vcs status
+  td vcs status -C thư-mục-khác
+  td vcs st`,
+	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -109,13 +118,19 @@ func statusChar(s byte) string {
 var vcsAddCmd = &cobra.Command{
 	Use:   "add [tệp...]",
 	Short: "Đưa thay đổi vào vùng chuẩn bị commit",
-	Long: `Đưa nội dung mới của tệp vào staging area.
+	Long: `Đưa nội dung hiện tại của tệp vào vùng chuẩn bị, nơi nội dung được
+chốt lại cho commit kế tiếp.
 
-  td vcs add .              thêm mọi thay đổi
+Không có đối số thì chỉ cập nhật các tệp đã được theo dõi. Có thể truyền
+đường dẫn cụ thể, một thư mục, hoặc mẫu có dấu * và ?.
+
+Tệp bị xoá khỏi đĩa cũng được gỡ khỏi vùng chuẩn bị. Tệp chưa theo dõi là
+tệp td chưa quản lý, thêm vào .tdxignore nếu muốn bỏ qua vĩnh viễn.`,
+	Example: `  td vcs add .              thêm mọi thay đổi
   td vcs add main.go        thêm một tệp
   td vcs add --update .     chỉ cập nhật tệp đã được theo dõi
   td vcs add "docs/*.md"    thêm theo mẫu đường dẫn`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -145,13 +160,19 @@ var vcsAddCmd = &cobra.Command{
 var vcsCommitCmd = &cobra.Command{
 	Use:   "commit",
 	Short: "Ghi lại các thay đổi đã stage thành một commit",
-	Long: `Tạo commit từ nội dung staging area.
+	Long: `Ghi lại nội dung vùng chuẩn bị thành một mốc có tên trong lịch sử.
 
-  td vcs commit -m "tin nhắn ngắn"
+Mỗi commit lưu cây nội dung đầy đủ, tác giả và thời điểm, đồng thời trỏ tới
+commit cha nên tạo thành một chuỗi lịch sử. Dùng --amend để viết lại commit
+vừa tạo thay vì tạo mốc mới.
+
+Thông điệp phải truyền bằng cờ -m, lặp lại -m để tách tiêu đề và phần mô tả
+chi tiết thành hai đoạn.`,
+	Example: `  td vcs commit -m "tin nhắn ngắn"
   td vcs commit -m "tiêu đề" -m "mô tả chi tiết"
   td vcs commit --amend -m "sửa lại commit vừa tạo"
   td vcs commit -a          stage mọi thay đổi rồi commit luôn`,
-	Args: cobra.NoArgs,
+	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -204,14 +225,19 @@ var vcsLogCmd = &cobra.Command{
 	Use:     "log",
 	Aliases: []string{"lg"},
 	Short:   "Xem lịch sử commit",
-	Long: `Xem lịch sử commit từ HEAD đi ngược lại.
+	Long: `Duyệt lịch sử commit từ một điểm bắt đầu đi ngược về các commit cha.
 
-  td vcs log
+Mặc định bắt đầu từ HEAD. Sau dấu hai gạch ngang là danh sách tệp, khi đó chỉ
+những commit có thay đổi tệp đó mới được hiển thị.
+
+Cột đầu là mã băm ngắn, kèm các tham chiếu đang trỏ tới commit đó; HEAD được
+đánh dấu bằng HEAD -> để phân biệt với các nhánh khác.`,
+	Example: `  td vcs log
   td vcs log --oneline
   td vcs log -n 5 --patch
   td vcs log --all
   td vcs log -- cmd/            chỉ xem các commit có sửa thư mục cmd/`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -306,7 +332,14 @@ func indent(s, prefix string) string {
 var vcsShowCmd = &cobra.Command{
 	Use:   "show [commit]",
 	Short: "Hiển thị chi tiết của một commit",
-	Args:  cobra.MaximumNArgs(1),
+	Long: `In thông tin đầy đủ của một commit: mã băm, các tham chiếu trỏ tới nó,
+tác giả, thời điểm, nội dung thông điệp và danh sách tệp bị thay đổi.
+
+Mặc định lấy HEAD. Kèm -p để in luôn nội dung khác biệt của từng tệp.`,
+	Example: `  td vcs show
+  td vcs show HEAD~2
+  td vcs show abc1234`,
+	Args: maximumArgs(1, "[commit]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -329,8 +362,16 @@ var vcsShowCmd = &cobra.Command{
 // vcsReflogCmd xem nhật ký thay đổi của ref.
 var vcsReflogCmd = &cobra.Command{
 	Use:   "reflog [ref]",
-	Short: "Xem nhật ký di chuyển của HEAD hoặc một ref",
-	Args:  cobra.MaximumNArgs(1),
+	Short: "Xem nhật ký di chuyển của HEAD hoặc một tham chiếu",
+	Long: `Mỗi lần một tham chiếu dịch chuyển sẽ được ghi lại kèm mã băm cũ,
+mã băm mới và lý do. Lệnh in danh sách từ mục mới nhất trở về.
+
+Mục cũ vẫn nằm trong kho nên có thể quay lại bằng cách trỏ một tham chiếu
+tới mã băm tương ứng, ví dụ: td vcs switch abc1234`,
+	Example: `  td vcs reflog
+  td vcs reflog main
+  td vcs reflog refs/tags/v1.0.0`,
+	Args: maximumArgs(1, "[ref]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -365,7 +406,16 @@ var vcsReflogCmd = &cobra.Command{
 var vcsRmCmd = &cobra.Command{
 	Use:   "rm <tệp>...",
 	Short: "Gỡ tệp khỏi theo dõi và khỏi cây làm việc",
-	Args:  cobra.MinimumNArgs(1),
+	Long: `Xoá tệp khỏi vùng chuẩn bị và khỏi cây làm việc.
+
+Thay đổi được ghi ở lần commit kế tiếp, tệp vẫn còn trong lịch sử. Kèm
+--cached để chỉ gỡ khỏi vùng chuẩn bị mà giữ nguyên tệp trên đĩa.
+
+Tệp đã xoá có thể đưa lại bằng lệnh restore trước khi commit.`,
+	Example: `  td vcs rm tệp-cũ.txt
+  td vcs rm thư-mục/tệp.txt
+  td vcs rm --cached tệp-vẫn-giữ.txt`,
+	Args: minimumArgs(1, "<tệp>..."),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -379,8 +429,14 @@ var vcsRmCmd = &cobra.Command{
 // vcsMvCmd đổi tên hoặc di chuyển file.
 var vcsMvCmd = &cobra.Command{
 	Use:   "mv <nguồn> <đích>",
-	Short: "Đổi tên hoặc di chuyển một file đã được theo dõi",
-	Args:  cobra.ExactArgs(2),
+	Short: "Đổi tên hoặc di chuyển một tệp đã được theo dõi",
+	Long: `Di chuyển hoặc đổi tên một tệp trong cây làm việc và cập nhật vùng chuẩn
+bị theo đường dẫn mới.
+
+Thư mục đích không cần tồn tại trước, được tạo tự động.`,
+	Example: `  td vcs mv tên-cũ.txt tên-mới.txt
+  td vcs mv tệp.txt thư-mục/tệp.txt`,
+	Args: exactArgs(2, "<nguồn> <đích>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {

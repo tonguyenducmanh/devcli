@@ -1,15 +1,16 @@
-package config
+package config_test
 
 import (
+	"github.com/tonguyenducmanh/devcli/internal/vcs/config"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-func newConfig(t *testing.T) (*Config, string) {
+func newConfig(t *testing.T) (*config.Config, string) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config")
-	return New(path), path
+	return config.New(path), path
 }
 
 func TestDocGhiVaDocLai(t *testing.T) {
@@ -26,7 +27,7 @@ func TestDocGhiVaDocLai(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	loaded, err := Load(path)
+	loaded, err := config.Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +48,7 @@ func TestKhongPhanBietHoaThuong(t *testing.T) {
 	if err := c.Save(); err != nil {
 		t.Fatal(err)
 	}
-	loaded, _ := Load(path)
+	loaded, _ := config.Load(path)
 	// Tên section và khoá không phân biệt hoa thường.
 	if v, ok := loaded.Get("user.name"); !ok || v != "Tên" {
 		t.Fatalf("phải tìm thấy khoá bất kể hoa thường: %q %v", v, ok)
@@ -106,7 +107,7 @@ func TestGiaTriMacDinh(t *testing.T) {
 
 func TestDocFileKhongTonTai(t *testing.T) {
 	// Đọc file không tồn tại phải cho cấu hình rỗng chứ không phải lỗi.
-	c, err := Load(filepath.Join(t.TempDir(), "khong-co.txt"))
+	c, err := config.Load(filepath.Join(t.TempDir(), "khong-co.txt"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +133,7 @@ func TestBoQuaChuThichVaDongTrong(t *testing.T) {
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	c, err := Load(path)
+	c, err := config.Load(path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +155,7 @@ func TestBoQuaChuThichVaDongTrong(t *testing.T) {
 func TestGlobalPathTheoBienTruong(t *testing.T) {
 	// Đường dẫn cấu hình toàn cục phải tôn trọng biến môi trường TD_CONFIG.
 	t.Setenv("TD_CONFIG", "/tmp/khung-kiem-thu/config")
-	got, err := GlobalPath()
+	got, err := config.GlobalPath()
 	if err != nil {
 		t.Fatal(err)
 	}

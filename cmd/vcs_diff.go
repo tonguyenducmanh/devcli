@@ -15,17 +15,22 @@ var vcsDiffCmd = &cobra.Command{
 	Use:     "diff [phạm vi] [-- tệp...]",
 	Aliases: []string{"df"},
 	Short:   "Hiển thị khác biệt giữa các phiên bản",
-	Long: `So sánh nội dung giữa các vùng khác nhau.
+	Long: `Hiển thị khác biệt giữa hai vùng bất kỳ.
 
-Mặc định so sánh vùng đã stage với cây làm việc.
+Mặc định so sánh vùng đã stage với cây làm việc, tức là những sửa đổi chưa
+được stage. Dùng --staged để so sánh HEAD với vùng đã stage.
 
-  td vcs diff                       đã stage so với cây làm việc
+Tham số phạm vi nhận một tên nhánh, một mã băm, hoặc hai mã băm nối bằng hai
+dấu chấm để so sánh trực tiếp, ba dấu chấm để so sánh từ điểm chung gần nhất.
+
+Sau dấu hai gạch ngang là danh sách tệp cần lọc.`,
+	Example: `  td vcs diff                       đã stage so với cây làm việc
   td vcs diff --staged              HEAD so với vùng đã stage
   td vcs diff main                  commit hiện tại so với main
   td vcs diff main..feature         so sánh hai nhánh
   td vcs diff main...feature        so sánh từ điểm chung gần nhất
   td vcs diff --stat HEAD~1         chỉ xem thống kê thay đổi`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -71,7 +76,13 @@ Mặc định so sánh vùng đã stage với cây làm việc.
 
 // printDiffs in kết quả diff ra stdout theo định dạng yêu cầu.
 func printDiffs(diffs []ops.FileDiff, opts ops.DiffOptions, colorMode string) {
-	useColor := colorMode == "always" || (colorMode == "auto" && isTerminal())
+	// Cờ --color của lệnh ghi đè quyết định tô màu ở mức toàn cục.
+	switch colorMode {
+	case "always":
+		colorEnabled = true
+	case "never":
+		colorEnabled = false
+	}
 
 	for _, d := range diffs {
 		if opts.NameOnly {
@@ -94,7 +105,7 @@ func printDiffs(diffs []ops.FileDiff, opts ops.DiffOptions, colorMode string) {
 			continue
 		}
 		for _, line := range d.Lines {
-			fmt.Fprint(os.Stdout, colorizeDiffLine(line, useColor))
+			fmt.Fprint(os.Stdout, colorizeDiffLine(line))
 			fmt.Fprintln(os.Stdout)
 		}
 		printLine("")
@@ -125,28 +136,16 @@ func diffStatusLabel(s byte) string {
 	}
 }
 
-// isTerminal báo chuẩn ra có hỗ trợ màu hay không.
-func isTerminal() bool {
-	fi, err := os.Stdout.Stat()
-	if err != nil {
-		return false
-	}
-	return fi.Mode()&os.ModeCharDevice != 0
-}
-
-// colorizeDiffLine thêm màu cho một dòng diff: xanh cho thêm, đỏ cho xoá,
-// xám cho ngữ cảnh.
-func colorizeDiffLine(line string, useColor bool) string {
-	if !useColor || line == "" {
-		return line
-	}
+// colorizeDiffLine thêm màu cho một dòng diff: xanh cho dòng thêm,
+// đỏ cho dòng xoá, xanh dương cho dòng tiêu đề hunk, giữ nguyên dòng ngữ cảnh.
+func colorizeDiffLine(line string) string {
 	switch {
 	case strings.HasPrefix(line, "+"):
-		return "\x1b[32m" + line + "\x1b[0m"
+		return colorize(colorGreen, line)
 	case strings.HasPrefix(line, "-"):
-		return "\x1b[31m" + line + "\x1b[0m"
+		return colorize(colorRed, line)
 	case strings.HasPrefix(line, "@@"):
-		return "\x1b[36m" + line + "\x1b[0m"
+		return colorize(colorCyan, line)
 	default:
 		return line
 	}

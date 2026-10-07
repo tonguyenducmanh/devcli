@@ -1,6 +1,7 @@
-package repo
+package repo_test
 
 import (
+	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,11 +10,11 @@ import (
 )
 
 // newTestRepo tạo một repo tạm cho mỗi phép kiểm tra.
-func newTestRepo(t *testing.T) *Repo {
+func newTestRepo(t *testing.T) *repo.Repo {
 	t.Helper()
 	dir := t.TempDir()
 	// Ghi danh tính cố định để kết quả không phụ thuộc máy đang chạy.
-	r, err := Init(dir, "main")
+	r, err := repo.Init(dir, "main")
 	if err != nil {
 		t.Fatalf("không tạo được repo: %v", err)
 	}
@@ -26,7 +27,7 @@ func newTestRepo(t *testing.T) *Repo {
 }
 
 // writeFile tạo một file trong thư mục làm việc.
-func writeFile(t *testing.T, r *Repo, rel, content string) {
+func writeFile(t *testing.T, r *repo.Repo, rel, content string) {
 	t.Helper()
 	abs := r.WorkPath(rel)
 	if err := os.MkdirAll(filepath.Dir(abs), 0o755); err != nil {
@@ -38,7 +39,7 @@ func writeFile(t *testing.T, r *Repo, rel, content string) {
 }
 
 // readFile đọc nội dung file trong thư mục làm việc.
-func readFile(t *testing.T, r *Repo, rel string) string {
+func readFile(t *testing.T, r *repo.Repo, rel string) string {
 	t.Helper()
 	data, err := os.ReadFile(r.WorkPath(rel))
 	if err != nil {
@@ -48,7 +49,7 @@ func readFile(t *testing.T, r *Repo, rel string) string {
 }
 
 // commitAll stage mọi thay đổi rồi tạo commit với message cho trước.
-func commitAll(t *testing.T, r *Repo, msg string) object.Hash {
+func commitAll(t *testing.T, r *repo.Repo, msg string) object.Hash {
 	t.Helper()
 	if err := StageAllWorktree(r); err != nil {
 		t.Fatalf("không stage được: %v", err)
@@ -81,7 +82,7 @@ func commitAll(t *testing.T, r *Repo, msg string) object.Hash {
 }
 
 // StageAllWorktree đưa toàn bộ nội dung đĩa vào index.
-func StageAllWorktree(r *Repo) error {
+func StageAllWorktree(r *repo.Repo) error {
 	nodes, err := r.ScanWorktree()
 	if err != nil {
 		return err
@@ -101,7 +102,7 @@ func TestInitVaMoRepo(t *testing.T) {
 	if err := os.MkdirAll(child, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	got, err := Open(child)
+	got, err := repo.Open(child)
 	if err != nil {
 		t.Fatalf("không mở được repo từ thư mục con: %v", err)
 	}
@@ -115,7 +116,7 @@ func TestInitVaMoRepo(t *testing.T) {
 
 func TestMoRepoONoiKhongPhaiRepo(t *testing.T) {
 	dir := t.TempDir()
-	if _, err := Open(dir); err == nil {
+	if _, err := repo.Open(dir); err == nil {
 		t.Fatalf("phải báo lỗi khi thư mục không phải repo")
 	}
 }
@@ -189,7 +190,7 @@ func TestThayDoiChuaStageKhongLoiVaoCommit(t *testing.T) {
 }
 
 // mustCommitTree trả về tree của một commit.
-func mustCommitTree(t *testing.T, r *Repo, h object.Hash) object.Hash {
+func mustCommitTree(t *testing.T, r *repo.Repo, h object.Hash) object.Hash {
 	t.Helper()
 	tree, err := r.CommitTree(h)
 	if err != nil {
@@ -232,7 +233,7 @@ func TestIndexVaCayDungPhanCay(t *testing.T) {
 }
 
 // mustTreeHash trả về hash tree của một đường dẫn con trong cây.
-func mustTreeHash(t *testing.T, r *Repo, tree object.Hash, name string) object.Hash {
+func mustTreeHash(t *testing.T, r *repo.Repo, tree object.Hash, name string) object.Hash {
 	t.Helper()
 	top, err := r.Objects.ReadTree(tree)
 	if err != nil {
@@ -337,7 +338,7 @@ func TestIgnoreRules(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, ".tdxignore", "build/\n*.log\n")
 	// Nạp lại quy tắc vì repo đang mở từ trước khi có file ignore.
-	r2, err := Open(r.Root)
+	r2, err := repo.Open(r.Root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -357,7 +358,7 @@ func TestIgnoreRules(t *testing.T) {
 func TestIgnoredFilesKhongVaIndex(t *testing.T) {
 	r := newTestRepo(t)
 	writeFile(t, r, ".tdxignore", "*.log\n")
-	r2, err := Open(r.Root)
+	r2, err := repo.Open(r.Root)
 	if err != nil {
 		t.Fatal(err)
 	}

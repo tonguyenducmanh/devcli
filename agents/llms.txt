@@ -1,0 +1,41 @@
+# td
+
+> Ứng dụng dòng lệnh cá nhân viết bằng Go, dựng cây lệnh bằng spf13/cobra.
+
+`td` gom nhiều công cụ dưới một lệnh gốc. Mỗi công cụ là một nhóm lệnh con và
+tự quản lý toàn bộ dữ liệu của nó.
+
+## Nhóm công cụ
+
+- `td vcs` — quản lý phiên bản mã nguồn cục bộ: nhánh, commit, hợp nhất,
+  hợp nhất lại, hoàn tác, lưu tạm, tag.
+- `td config` — đọc và ghi cấu hình.
+- `td version` — hiện phiên bản.
+
+## Tài liệu
+
+- [README.md](../README.md) — mô tả tổng quan, cách build, cài đặt và dùng.
+- [AGENTS.md](AGENTS.md) — bối cảnh cho trợ lý lập trình: kiến trúc, quy ước.
+- [cli/](cli) — tham chiếu từng lệnh, sinh tự động từ cây lệnh. Bắt đầu ở
+  [cli/td_vcs.md](cli/td_vcs.md).
+
+## Dùng nhanh
+
+```bash
+td vcs init
+td vcs add .
+td vcs commit -m "tin nhắn đầu tiên"
+td vcs log --oneline
+```
+
+## Làm việc với mã nguồn
+
+```bash
+./scripts/build_all.sh                  # build Mac, Linux, Windows vào out/
+go test ./...                   # kiểm thử nằm trong tests/
+./scripts/check.sh              # kiểm tra trọn vẹn trước khi đóng góp
+./scripts/build_agent_docs.sh   # sinh lại cli/ khi cây lệnh thay đổi
+```
+
+Mã nguồn chia theo tầng, phụ thuộc đi một chiều:
+`object` → `storage`/`index` → `repo` → `ops` → `cmd`.

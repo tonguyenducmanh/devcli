@@ -15,15 +15,23 @@ var vcsBranchCmd = &cobra.Command{
 	Use:     "branch",
 	Aliases: []string{"br"},
 	Short:   "Liệt kê, tạo hoặc xóa nhánh",
-	Long: `Quản lý các nhánh cục bộ.
+	Long: `Liệt kê, tạo, đổi tên và xoá các nhánh cục bộ.
 
-  td vcs branch                  liệt kê các nhánh
+Nhánh chỉ là một con trỏ trỏ tới một commit nên tạo nhánh không tốn chi phí sao
+chép. Dấu * đánh dấu nhánh đang đứng.
+
+Xoá nhánh chỉ thành công nếu nhánh đó đã được hợp nhất vào nhánh hiện tại; dùng
+-D để bỏ qua kiểm tra này. Không thể xoá nhánh đang đứng.
+
+Không có tham số thì in danh sách. Một tham số là tạo nhánh mới tại HEAD, hai
+tham số là tạo nhánh mới từ một điểm xuất phát cho trước.`,
+	Example: `  td vcs branch                  liệt kê các nhánh
   td vcs branch -d ten           xóa nhánh đã hợp nhất
   td vcs branch -D ten           xóa nhánh bất kể trạng thái
   td vcs branch ten              tạo nhánh tại HEAD
   td vcs branch ten main         tạo nhánh từ nhánh main
   td vcs branch -m cũ mới        đổi tên nhánh`,
-	Args: cobra.ArbitraryArgs,
+	Args: rangeArgs(0, 2, "[tên] [điểm-xuất-phát]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -138,13 +146,16 @@ var vcsCheckoutCmd = &cobra.Command{
 	Use:     "checkout",
 	Aliases: []string{"co"},
 	Short:   "Chuyển sang nhánh hoặc commit khác",
-	Long: `Chuyển HEAD sang nhánh, tag hoặc commit khác và cập nhật cây làm việc.
+	Long: `Di chuyển con trỏ HEAD sang nhánh, tag hoặc commit khác, đồng thời đưa vùng
+chuẩn bị và cây làm việc về đúng nội dung của đích.
 
-  td vcs checkout main           chuyển sang nhánh main
+Khi chuyển sang một commit cụ thể, HEAD trở nên tách rời khỏi nhánh. Các thay
+đổi chưa lưu sẽ không bị ghi đè, lệnh báo lỗi để bạn xử lý trước.`,
+	Example: `  td vcs checkout main           chuyển sang nhánh main
   td vcs checkout -b moi         tạo nhánh moi rồi chuyển sang đó
   td vcs checkout abc1234        chuyển tới một commit cụ thể (HEAD tách rời)
   td vcs checkout --detach main  chuyển tới commit của main`,
-	Args: cobra.MaximumNArgs(1),
+	Args: maximumArgs(1, "[nhánh|commit]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -187,11 +198,11 @@ var vcsSwitchCmd = &cobra.Command{
 	Use:     "switch <nhánh>",
 	Aliases: []string{"sw"},
 	Short:   "Chuyển sang nhánh khác",
-	Long: `Chuyển nhánh đang làm việc. Tương đương ` + "`td vcs checkout <nhánh>`" + `.
-
-  td vcs switch main
+	Long: `Chuyển nhánh đang làm việc. Lệnh rút gọn của checkout dành cho trường hợp
+chỉ cần đổi nhánh, không cần thêm tuỳ chọn nào khác.`,
+	Example: `  td vcs switch main
   td vcs switch -c moi        tạo nhánh moi rồi chuyển sang đó`,
-	Args: cobra.MaximumNArgs(1),
+	Args: maximumArgs(1, "<nhánh>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -229,12 +240,15 @@ var vcsRestoreCmd = &cobra.Command{
 	Use:     "restore <tệp>...",
 	Aliases: []string{"rst"},
 	Short:   "Khôi phục lại nội dung tệp",
-	Long: `Khôi phục tệp về trạng thái trước đó.
+	Long: `Đưa lại nội dung tệp từ một nguồn khác về cây làm việc hoặc vùng chuẩn bị.
 
-  td vcs restore main.go         lấy lại nội dung đang stage
+Mặc định lấy nội dung đang có trong vùng chuẩn bị, tức là huỷ các sửa đổi chưa
+stage. Dùng --staged để chỉ gỡ khỏi vùng chuẩn bị mà giữ nguyên cây làm việc,
+và --source để lấy từ một commit bất kỳ.`,
+	Example: `  td vcs restore main.go         lấy lại nội dung đang stage
   td vcs restore --staged main.go  gỡ thay đổi đã stage
   td vcs restore --source=HEAD~1 main.go  lấy từ một commit khác`,
-	Args: cobra.MinimumNArgs(1),
+	Args: minimumArgs(1, "<tệp>..."),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -266,15 +280,20 @@ var vcsResetCmd = &cobra.Command{
 	Use:     "reset [commit] [tệp...]",
 	Aliases: []string{"rs"},
 	Short:   "Di chuyển con trỏ HEAD về commit khác",
-	Long: `Đặt lại HEAD theo ba chế độ:
+	Long: `Di chuyển con trỏ HEAD về một commit khác, kèm mức độ áp dụng cho vùng chuẩn bị
+và cây làm việc.
 
-  --soft   chỉ di chuyển HEAD, giữ nguyên index và cây làm việc
-  --mixed  di chuyển HEAD và nạp lại index (mặc định)
-  --hard   di chuyển HEAD, index và cây làm việc
+  --soft   chỉ di chuyển HEAD, giữ nguyên vùng chuẩn bị và cây làm việc
+  --mixed  di chuyển HEAD và nạp lại vùng chuẩn bị (mặc định)
+  --hard   di chuyển HEAD, vùng chuẩn bị và cây làm việc
 
-  td vcs reset --soft HEAD~1
+Chế độ --hard ghi đè mọi thay đổi chưa lưu, dùng cẩn thận.
+
+Nếu có danh sách tệp sau dấu hai gạch ngang, lệnh chỉ gỡ những tệp đó khỏi vùng
+chuẩn bị, không động tới con trỏ HEAD.`,
+	Example: `  td vcs reset --soft HEAD~1
   td vcs reset HEAD~1 -- main.go   chỉ gỡ main.go khỏi vùng stage`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -329,13 +348,17 @@ var vcsResetCmd = &cobra.Command{
 var vcsTagCmd = &cobra.Command{
 	Use:   "tag",
 	Short: "Liệt kê, tạo hoặc xóa tag",
-	Long: `Đánh dấu một điểm trong lịch sử bằng tag.
+	Long: `Đánh dấu một điểm trong lịch sử bằng tên dễ nhớ, ví dụ theo phiên bản.
 
-  td vcs tag                        liệt kê các tag
+Tag nhẹ chỉ là một con trỏ trỏ tới commit. Tag có chú thích (-a kèm -m) tạo
+thêm một object riêng nên lưu được lời giải thích, ai đó và thời điểm tạo.
+
+Một tham số là tạo tag tại HEAD, không có tham số thì in danh sách.`,
+	Example: `  td vcs tag                        liệt kê các tag
   td vcs tag v1.0.0                 tạo tag nhẹ
   td vcs tag -a v1.0.0 -m "ghi chú"  tạo tag có chú thích
   td vcs tag -d v1.0.0              xóa tag`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {

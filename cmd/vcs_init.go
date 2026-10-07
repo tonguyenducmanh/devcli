@@ -10,13 +10,17 @@ import (
 // vcsInitCmd khởi tạo kho mã nguồn mới.
 var vcsInitCmd = &cobra.Command{
 	Use:   "init [thư mục]",
-	Short: "Khởi tạo kho mã nguồn td trong thư mục hiện tại",
+	Short: "Khởi tạo kho mã nguồn td trong thư mục cho trước",
 	Long: `Tạo thư mục .tdx trong thư mục cho trước để bắt đầu theo dõi phiên bản.
 
-Ví dụ:
+Tham số thư mục không bắt buộc, mặc định là thư mục hiện tại. Lệnh sẽ báo lỗi
+nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.`,
+	Example: `  # Tạo kho trong thư mục hiện tại với nhánh main
   td vcs init
-  td vcs init --initial-branch=develop`,
-	Args: cobra.MaximumNArgs(1),
+
+  # Tạo kho trong một thư mục khác với tên nhánh khác
+  td vcs init du-an-cua-toi --initial-branch=develop`,
+	Args: maximumArgs(1, "[thư mục]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir := "."
 		if len(args) == 1 {
@@ -26,15 +30,17 @@ Ví dụ:
 		if err != nil {
 			return err
 		}
+		if branch == "" {
+			return exitError("tên nhánh khởi tạo không được để trống")
+		}
 
-		// Khởi tạo với nhánh mặc định là "main" nếu người dùng không chỉ định.
 		r, err := repo.Init(dir, branch)
 		if err != nil {
 			return err
 		}
-		printLine("Đã khởi tạo kho mã nguồn td tại %s", r.Root)
-		printLine("Nhánh mặc định: %s", branch)
-		printLine("Bắt đầu bằng: td vcs add . && td vcs commit -m \"tin nhắn\"")
+		printLine("Đã khởi tạo kho td tại %s", r.Root)
+		printLine("Nhánh khởi tạo: %s", branch)
+		printLine("Bước tiếp theo: td vcs add . && td vcs commit -m \"tin nhắn\"")
 		return nil
 	},
 }
@@ -43,11 +49,17 @@ func init() {
 	vcsInitCmd.Flags().String("initial-branch", "main", "tên nhánh khởi tạo")
 }
 
-// vcsHashObjectCmd in ra hash của một tệp, hữu ích để kiểm tra nội dung object.
+// vcsHashObjectCmd in ra mã băm của một tệp.
 var vcsHashObjectCmd = &cobra.Command{
 	Use:   "hash-object <tệp>...",
-	Short: "Tính và in hash của nội dung tệp",
-	Args:  cobra.MinimumNArgs(1),
+	Short: "Tính và in mã băm của nội dung tệp",
+	Long: `Đọc nội dung tệp trên đĩa rồi in mã băm tương ứng.
+
+Lệnh không ghi gì vào kho, chỉ cho biết mã băm mà td sẽ dùng nếu tệp đó được
+đưa vào kho. Hai tệp có cùng nội dung sẽ cho cùng một mã băm.`,
+	Example: `  td vcs hash-object main.go
+  td vcs hash-object tệp-một tệp-hai`,
+	Args: minimumArgs(1, "<tệp>..."),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -70,9 +82,20 @@ var vcsHashObjectCmd = &cobra.Command{
 
 // vcsCatFileCmd in nội dung của một object trong kho.
 var vcsCatFileCmd = &cobra.Command{
-	Use:   "cat-file <loại> <hash>",
-	Short: "In nội dung của một object (blob, tree, commit)",
-	Args:  cobra.ExactArgs(2),
+	Use:   "cat-file <loại> <mã-băm>",
+	Short: "In nội dung của một object (blob, tree, commit, tag)",
+	Long: `Đọc một object trong kho và kiểm tra loại của nó rồi in nội dung.
+
+Loại hợp lệ: blob, tree, commit, tag. Nếu loại truyền vào không khớp với loại
+thật của object thì lệnh báo lỗi. Kèm cờ -v để in chi tiết: với blob là nội
+dung đầy đủ, với tree là từng entry kèm chế độ và mã băm, với commit và tag là
+toàn bộ phần thô.`,
+	Example: `  # Xác minh loại và in nội dung
+  td vcs cat-file blob a1b2c3d4
+
+  # In toàn bộ nội dung thô của commit HEAD
+  td vcs cat-file commit HEAD -v`,
+	Args: exactArgs(2, "<loại> <mã-băm>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -85,8 +108,16 @@ var vcsCatFileCmd = &cobra.Command{
 // vcsFsckCmd kiểm tra tính toàn vẹn của kho dữ liệu.
 var vcsFsckCmd = &cobra.Command{
 	Use:   "fsck",
-	Short: "Kiểm tra tính toàn vẹn của kho object và ref",
-	Args:  cobra.NoArgs,
+	Short: "Kiểm tra tính toàn vẹn của kho và các tham chiếu",
+	Long: `Duyệt toàn bộ kho kiểm tra hai điều:
+
+  - Mọi object trong kho có đọc được không (nén zlib không hỏng, header hợp lệ).
+  - Mọi tham chiếu và HEAD có trỏ tới một object tồn tại không.
+
+Lệnh trả về mã thoát khác 0 nếu phát hiện vấn đề.`,
+	Example: `  td vcs fsck
+  td vcs -C du-an-khac fsck`,
+	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -97,11 +128,12 @@ var vcsFsckCmd = &cobra.Command{
 			return err
 		}
 		if len(report.Problems) == 0 {
-			printLine("Không phát hiện vấn đề nào (%d object, %d ref)", report.ObjectCount, report.RefCount)
+			printLine("Không phát hiện vấn đề nào (%d object, %d tham chiếu)",
+				report.ObjectCount, report.RefCount)
 			return nil
 		}
 		for _, p := range report.Problems {
-			printLine("vấn đề: %s", p)
+			printErr("vấn đề: %s", p)
 		}
 		return exitError("phát hiện %d vấn đề", len(report.Problems))
 	},

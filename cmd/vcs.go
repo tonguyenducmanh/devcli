@@ -5,20 +5,33 @@ import (
 )
 
 // newVCSCmd tạo nhóm lệnh quản lý phiên bản.
-// Các lệnh con nằm trong thư mục cmd/vcs nên dễ bổ sung lệnh mới.
+// Các lệnh con được khai báo trong các tệp cmd/vcs_*.go nên dễ bổ sung lệnh mới.
 func newVCSCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "vcs",
-		Short: "Quản lý phiên bản mã nguồn cục bộ",
+		Use:     "vcs",
+		GroupID: groupVersionControl,
+		Short:   "Quản lý phiên bản mã nguồn cục bộ",
 		Long: `Nhóm lệnh quản lý phiên bản mã nguồn cục bộ.
-Toàn bộ dữ liệu của nhóm này nằm trong thư mục .tdx cạnh dự án.
 
-Các lệnh thường dùng:
-  td vcs init                    khởi tạo kho mã nguồn
-  td vcs status                  xem trạng thái thay đổi
-  td vcs add .                   đưa thay đổi vào vùng stage
-  td vcs commit -m "..."         tạo commit
-  td vcs log                     xem lịch sử`,
+Toàn bộ dữ liệu của nhóm này nằm trong thư mục .tdx cạnh dự án, gồm lịch
+sử commit, các nhánh, các tag và vùng chuẩn bị.
+
+Mỗi lệnh dưới đây chạy trên kho tìm thấy bằng cách đi lên từ thư mục hiện
+tại. Dùng -C để chỉ định thư mục khác.`,
+		Example: `  # Khởi tạo kho rồi ghi lại thay đổi đầu tiên
+  td vcs init
+  td vcs add .
+  td vcs commit -m "tin nhắn đầu tiên"
+
+  # Xem nhánh hiện tại và lịch sử gọn
+  td vcs status
+  td vcs log --oneline -n 10
+
+  # Tạo nhánh, làm việc rồi hợp nhất về nhánh chính
+  td vcs switch -c tinh-nang
+  td vcs commit -am "bổ sung tính năng"
+  td vcs switch main
+  td vcs merge tinh-nang`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},

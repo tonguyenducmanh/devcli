@@ -16,13 +16,19 @@ var vcsMergeCmd = &cobra.Command{
 	Use:     "merge <nhánh>",
 	Aliases: []string{"mg"},
 	Short:   "Hợp nhất một nhánh vào nhánh hiện tại",
-	Long: `Hợp nhất lịch sử của một nhánh vào nhánh đang đứng.
+	Long: `Kết hợp lịch sử của một nhánh khác vào nhánh đang đứng.
 
-  td vcs merge main            hợp nhất nhánh main
+Khi nhánh đích nằm ngay sau nhánh hiện tại, con trỏ chỉ dịch thẳng sang đó mà
+không tạo mốc mới. Trong trường hợp lệch nhánh, td so từng tệp và hợp nhất nội
+dung ba phía; tệp không thể tự động hợp nhất sẽ được đánh dấu xung đột.
+
+Gặp xung đột thì lệnh dừng lại và ghi lại trạng thái, dùng --continue để hoàn
+tất hoặc --abort để huỷ.`,
+	Example: `  td vcs merge main            hợp nhất nhánh main
   td vcs merge --no-ff main    luôn tạo commit merge
   td vcs merge --abort         huỷ lần merge đang dở dang
   td vcs merge --continue      hoàn tất sau khi giải quyết xung đột`,
-	Args: cobra.MaximumNArgs(1),
+	Args: maximumArgs(1, "<nhánh|commit>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -84,15 +90,19 @@ var vcsRebaseCmd = &cobra.Command{
 	Use:     "rebase [đích]",
 	Aliases: []string{"rb"},
 	Short:   "Di chuyển các commit hiện tại lên trên một điểm khác",
-	Long: `Áp dụng lại các commit của nhánh hiện tại lên trên một điểm khác,
-nhờ đó lịch sử trở nên gọn và dễ theo dõi.
+	Long: `Áp dụng lại các commit của một nhánh lên trên một điểm khác.
 
-  td vcs rebase main            đưa commit hiện tại lên trên main
+Mỗi commit được áp dụng lại bằng cách hợp nhất nội dung với trạng thái hiện
+tại, nên lịch sử trở nên gọn và tuyến tính thay vì nhiều nhánh song song.
+
+Có thể rebase một nhánh khác bằng cách truyền cả hai tham số: điểm đích trước,
+tên nhánh sau. Dùng --onto khi muốn điểm đích khác điểm gốc.`,
+	Example: `  td vcs rebase main            đưa commit hiện tại lên trên main
   td vcs rebase <đích> <nhánh>   rebase một nhánh khác lên trên đích
   td vcs rebase --onto <đích>   chỉ định điểm đích khác
   td vcs rebase --continue      tiếp tục sau khi giải quyết xung đột
   td vcs rebase --abort         quay lại trạng thái trước rebase`,
-	Args: cobra.MaximumNArgs(2),
+	Args: maximumArgs(2, "[điểm-đích] [nhánh]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -158,13 +168,16 @@ var vcsCherryPickCmd = &cobra.Command{
 	Use:     "cherry-pick <commit>...",
 	Aliases: []string{"cp"},
 	Short:   "Áp dụng thay đổi của một commit cụ thể",
-	Long: `Lấy thay đổi của một hoặc nhiều commit rồi áp dụng lên nhánh hiện tại.
+	Long: `Chép thay đổi của một hoặc nhiều commit từ nhánh khác vào nhánh đang đứng.
 
-  td vcs cherry-pick abc1234
+Mỗi commit được áp dụng như một lần hợp nhất ba phía, nên thay đổi được giữ
+nguyên dù nhánh nguồn đã tiến xa. Truyền nhiều mã băm để áp dụng theo đúng
+thứ tự đã cho.`,
+	Example: `  td vcs cherry-pick abc1234
   td vcs cherry-pick abc1234 def5678
   td vcs cherry-pick --no-commit abc1234   chỉ áp dụng vào vùng stage
   td vcs cherry-pick --abort                huỷ khi đang giải quyết xung đột`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -226,12 +239,14 @@ var vcsRevertCmd = &cobra.Command{
 	Use:     "revert <commit>...",
 	Aliases: []string{"rv"},
 	Short:   "Hoàn tác thay đổi của một commit",
-	Long: `Tạo commit mới để hoàn tác lại thay đổi của một commit đã có.
+	Long: `Hoàn tác thay đổi của một commit bằng cách tạo một commit mới.
 
-  td vcs revert abc1234
+Lịch sử không bị viết lại nên lệnh này an toàn với nhánh đã chia sẻ. Khi hoàn
+tác nhiều commit, chúng được xử lý theo thứ tự ngược: commit mới nhất trước.`,
+	Example: `  td vcs revert abc1234
   td vcs revert --no-commit abc1234
   td vcs revert --abort`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {
@@ -340,17 +355,21 @@ var vcsStashCmd = &cobra.Command{
 	Use:     "stash",
 	Aliases: []string{"st"},
 	Short:   "Lưu tạm và khôi phục các thay đổi chưa commit",
-	Long: `Giữ các thay đổi chưa commit vào một kho tạm rồi đưa cây làm việc
+	Long: `Cất các thay đổi chưa commit vào một kho tạm rồi đưa cây làm việc
 về trạng thái sạch.
 
-  td vcs stash                 lưu thay đổi hiện tại
+Mỗi lần lưu tạo thêm một mục trong danh sách. Dùng -u để cất kèm cả tệp chưa
+theo dõi; những tệp này sẽ bị gỡ khỏi đĩa và trở lại khi áp dụng lại.
+
+Số ở đối số chỉ vị trí trong danh sách, tính từ 0 cho mục mới nhất.`,
+	Example: `  td vcs stash                 lưu thay đổi hiện tại
   td vcs stash -u              kèm cả file chưa được theo dõi
   td vcs stash list            xem các bản đã lưu
   td vcs stash apply           áp dụng bản mới nhất, giữ lại trong danh sách
   td vcs stash pop             áp dụng rồi xóa bản đó
   td vcs stash drop            xóa một bản
   td vcs stash clear           xóa toàn bộ`,
-	Args: cobra.ArbitraryArgs,
+	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
 		if err != nil {

@@ -1,11 +1,13 @@
-package worktree
+package worktree_test
 
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tonguyenducmanh/devcli/internal/vcs/object"
+	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
 )
 
 func TestFileModeTuStat(t *testing.T) {
@@ -20,8 +22,8 @@ func TestFileModeTuStat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if FileModeFromInfo(fi) != object.ModeBlob {
-		t.Fatalf("file 644 phải là ModeBlob: %s", FileModeFromInfo(fi))
+	if worktree.FileModeFromInfo(fi) != object.ModeBlob {
+		t.Fatalf("file 644 phải là ModeBlob: %s", worktree.FileModeFromInfo(fi))
 	}
 
 	// File thực thi.
@@ -30,8 +32,8 @@ func TestFileModeTuStat(t *testing.T) {
 		t.Fatal(err)
 	}
 	fi, _ = os.Lstat(exec)
-	if FileModeFromInfo(fi) != object.ModeExec {
-		t.Fatalf("file 755 phải là ModeExec: %s", FileModeFromInfo(fi))
+	if worktree.FileModeFromInfo(fi) != object.ModeExec {
+		t.Fatalf("file 755 phải là ModeExec: %s", worktree.FileModeFromInfo(fi))
 	}
 
 	// Liên kết tượng trưng.
@@ -40,8 +42,8 @@ func TestFileModeTuStat(t *testing.T) {
 		t.Fatal(err)
 	}
 	fi, _ = os.Lstat(link)
-	if FileModeFromInfo(fi) != object.ModeSymlink {
-		t.Fatalf("symlink phải là ModeSymlink: %s", FileModeFromInfo(fi))
+	if worktree.FileModeFromInfo(fi) != object.ModeSymlink {
+		t.Fatalf("symlink phải là ModeSymlink: %s", worktree.FileModeFromInfo(fi))
 	}
 }
 
@@ -50,10 +52,10 @@ func TestGhiVaDocFileTrenDia(t *testing.T) {
 	path := filepath.Join(dir, "thu-muc", "tệp.txt")
 
 	content := []byte("nội dung tiếng Việt\n")
-	if err := WriteFileSymlinkAware(path, object.ModeBlob, content); err != nil {
+	if err := worktree.WriteFileSymlinkAware(path, object.ModeBlob, content); err != nil {
 		t.Fatal(err)
 	}
-	got, err := ReadFileSymlinkAware(path, object.ModeBlob)
+	got, err := worktree.ReadFileSymlinkAware(path, object.ModeBlob)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,10 +65,10 @@ func TestGhiVaDocFileTrenDia(t *testing.T) {
 
 	// Ghi đè lại phải cho đúng nội dung mới.
 	updated := []byte("nội dung mới\n")
-	if err := WriteFileSymlinkAware(path, object.ModeBlob, updated); err != nil {
+	if err := worktree.WriteFileSymlinkAware(path, object.ModeBlob, updated); err != nil {
 		t.Fatal(err)
 	}
-	got, _ = ReadFileSymlinkAware(path, object.ModeBlob)
+	got, _ = worktree.ReadFileSymlinkAware(path, object.ModeBlob)
 	if string(got) != string(updated) {
 		t.Fatalf("ghi đè không thành công: %q", got)
 	}
@@ -79,7 +81,7 @@ func TestGhiSymlink(t *testing.T) {
 		t.Fatal(err)
 	}
 	link := filepath.Join(dir, "lien-ket")
-	if err := WriteFileSymlinkAware(link, object.ModeSymlink, []byte(target)); err != nil {
+	if err := worktree.WriteFileSymlinkAware(link, object.ModeSymlink, []byte(target)); err != nil {
 		t.Fatal(err)
 	}
 	fi, err := os.Lstat(link)
@@ -89,7 +91,7 @@ func TestGhiSymlink(t *testing.T) {
 	if fi.Mode()&os.ModeSymlink == 0 {
 		t.Fatalf("phải tạo ra liên kết tượng trưng")
 	}
-	got, err := ReadFileSymlinkAware(link, object.ModeSymlink)
+	got, err := worktree.ReadFileSymlinkAware(link, object.ModeSymlink)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,10 +103,10 @@ func TestGhiSymlink(t *testing.T) {
 func TestXoaFileVaDonThuMuc(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "a", "b", "tệp.txt")
-	if err := WriteFileSymlinkAware(path, object.ModeBlob, []byte("x")); err != nil {
+	if err := worktree.WriteFileSymlinkAware(path, object.ModeBlob, []byte("x")); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveFile(path, dir); err != nil {
+	if err := worktree.RemoveFile(path, dir); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -125,17 +127,17 @@ func TestSameContents(t *testing.T) {
 	if err := os.WriteFile(path, []byte("nội dung"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if !SameContents(path, object.ModeBlob, []byte("nội dung")) {
+	if !worktree.SameContents(path, object.ModeBlob, []byte("nội dung")) {
 		t.Fatalf("nội dung giống phải trả về true")
 	}
-	if SameContents(path, object.ModeBlob, []byte("khác")) {
+	if worktree.SameContents(path, object.ModeBlob, []byte("khác")) {
 		t.Fatalf("nội dung khác phải trả về false")
 	}
 }
 
 func TestIgnoreKhacNhau(t *testing.T) {
 	root := t.TempDir()
-	ig := NewIgnore(root)
+	ig := worktree.NewIgnore(root)
 
 	// Nạp quy tắc từ chuỗi.
 	rules := `
@@ -186,7 +188,10 @@ docs/*.tmp
 	}
 }
 
-func TestGlobMatch(t *testing.T) {
+// TestKhopMauDuongDan kiểm tra việc khớp mẫu thông qua giao diện công khai
+// của bộ quy tắc bỏ qua, vì đó mới là hành vi người dùng thấy.
+func TestKhopMauDuongDan(t *testing.T) {
+	root := t.TempDir()
 	cases := []struct {
 		pattern, path string
 		want          bool
@@ -199,8 +204,13 @@ func TestGlobMatch(t *testing.T) {
 		{"a?c.txt", "ac.txt", false},
 	}
 	for _, tc := range cases {
-		if got := globMatch(tc.pattern, tc.path); got != tc.want {
-			t.Fatalf("mẫu %q với đường dẫn %q: mong đợi %v, nhận %v", tc.pattern, tc.path, tc.want, got)
+		ig := worktree.NewIgnore(root)
+		if err := ig.AddReader(strings.NewReader(tc.pattern+"\n"), root); err != nil {
+			t.Fatal(err)
+		}
+		if got := ig.Matches(root, tc.path); got != tc.want {
+			t.Fatalf("mẫu %q với đường dẫn %q: mong đợi %v, nhận %v",
+				tc.pattern, tc.path, tc.want, got)
 		}
 	}
 }
@@ -212,7 +222,7 @@ func TestCopyFile(t *testing.T) {
 	if err := os.WriteFile(src, []byte("dữ liệu"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := CopyFile(src, dst); err != nil {
+	if err := worktree.CopyFile(src, dst); err != nil {
 		t.Fatal(err)
 	}
 	data, err := os.ReadFile(dst)
@@ -225,7 +235,7 @@ func TestCopyFile(t *testing.T) {
 }
 
 func TestErrOutsideRepo(t *testing.T) {
-	err := ErrOutsideRepo{Path: "/etc/passwd"}
+	err := worktree.ErrOutsideRepo{Path: "/etc/passwd"}
 	if err.Error() == "" {
 		t.Fatalf("thông báo lỗi không được rỗng")
 	}

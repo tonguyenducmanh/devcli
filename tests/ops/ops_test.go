@@ -1,6 +1,7 @@
-package ops
+package ops_test
 
 import (
+	"github.com/tonguyenducmanh/devcli/internal/vcs/ops"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,7 +51,7 @@ func read(t *testing.T, r *repo.Repo, rel string) string {
 // commitAll stage mọi thay đổi rồi commit với message cho trước.
 func commitAll(t *testing.T, r *repo.Repo, msg string) object.Hash {
 	t.Helper()
-	h, err := Commit(r, CommitOptions{Message: msg, All: true})
+	h, err := ops.Commit(r, ops.CommitOptions{Message: msg, All: true})
 	if err != nil {
 		t.Fatalf("commit thất bại: %v", err)
 	}
@@ -60,7 +61,7 @@ func commitAll(t *testing.T, r *repo.Repo, msg string) object.Hash {
 // checkout chuyển nhánh và báo lỗi nếu không thành công.
 func checkout(t *testing.T, r *repo.Repo, branch string) {
 	t.Helper()
-	if err := Checkout(r, CheckoutOptions{Target: branch}); err != nil {
+	if err := ops.Checkout(r, ops.CheckoutOptions{Target: branch}); err != nil {
 		t.Fatalf("không chuyển được nhánh %s: %v", branch, err)
 	}
 }
@@ -70,7 +71,7 @@ func TestAddVaCommitCoBan(t *testing.T) {
 	write(t, r, "a.txt", "dòng 1\n")
 	write(t, r, "src/main.go", "package main\n")
 
-	if err := Add(r, AddOptions{All: true}); err != nil {
+	if err := ops.Add(r, ops.AddOptions{All: true}); err != nil {
 		t.Fatal(err)
 	}
 	h := commitAll(t, r, "commit đầu tiên")
@@ -90,11 +91,11 @@ func TestAddVaCommitCoBan(t *testing.T) {
 
 func TestCommitKhongCoGithiBaoLoi(t *testing.T) {
 	r := newRepo(t)
-	if _, err := Commit(r, CommitOptions{Message: "không có gì"}); err == nil {
+	if _, err := ops.Commit(r, ops.CommitOptions{Message: "không có gì"}); err == nil {
 		t.Fatalf("phải báo lỗi khi chưa có gì để commit")
 	}
 	write(t, r, "a.txt", "x\n")
-	if _, err := Commit(r, CommitOptions{Message: "không stage"}); err == nil {
+	if _, err := ops.Commit(r, ops.CommitOptions{Message: "không stage"}); err == nil {
 		t.Fatalf("phải báo lỗi khi có thay đổi chưa stage")
 	}
 }
@@ -104,14 +105,14 @@ func TestCommitAmend(t *testing.T) {
 	write(t, r, "a.txt", "nội dung\n")
 	c1 := commitAll(t, r, "tin nhắn cũ")
 
-	if _, err := Commit(r, CommitOptions{Message: "tin nhắn mới", Amend: true, AllowEmpty: true}); err != nil {
+	if _, err := ops.Commit(r, ops.CommitOptions{Message: "tin nhắn mới", Amend: true, AllowEmpty: true}); err != nil {
 		t.Fatal(err)
 	}
 	head, _ := r.Head()
 	if head == c1 {
 		t.Fatalf("amend phải tạo commit mới")
 	}
-	entries, err := Log(r, LogOptions{Max: 5})
+	entries, err := ops.Log(r, ops.LogOptions{Max: 5})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +130,7 @@ func TestBranchVaCheckout(t *testing.T) {
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "tinh-nang", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "tinh-nang", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "tinh-nang")
@@ -141,7 +142,7 @@ func TestBranchVaCheckout(t *testing.T) {
 		t.Fatalf("file của nhánh khác không được xuất hiện ở main")
 	}
 
-	res, err := Merge(r, MergeOptions{Branch: "tinh-nang"})
+	res, err := ops.Merge(r, ops.MergeOptions{Branch: "tinh-nang"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,12 +158,12 @@ func TestXoaNhanh(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "a.txt", "1\n")
 	commitAll(t, r, "c1")
-	if err := CreateBranch(r, CreateBranchOptions{Name: "cu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "cu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 
 	// Không được xóa nhánh đang đứng.
-	results, err := DeleteBranches(r, []string{"main"}, true)
+	results, err := ops.DeleteBranches(r, []string{"main"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +171,7 @@ func TestXoaNhanh(t *testing.T) {
 		t.Fatalf("không được xóa nhánh hiện tại")
 	}
 
-	results, err = DeleteBranches(r, []string{"cu"}, true)
+	results, err = ops.DeleteBranches(r, []string{"cu"}, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +188,7 @@ func TestMergeNhanhKhongTonTai(t *testing.T) {
 	write(t, r, "f.txt", "a\n")
 	commitAll(t, r, "c1")
 
-	if _, err := Merge(r, MergeOptions{Branch: "khong-co-that"}); err == nil {
+	if _, err := ops.Merge(r, ops.MergeOptions{Branch: "khong-co-that"}); err == nil {
 		t.Fatalf("phải báo lỗi khi nhánh không tồn tại")
 	}
 }
@@ -197,7 +198,7 @@ func TestMergeCacDinhHuongKhacNhau(t *testing.T) {
 	write(t, r, "f.txt", "a\nb\nc\nd\ne\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -208,7 +209,7 @@ func TestMergeCacDinhHuongKhacNhau(t *testing.T) {
 	write(t, r, "f.txt", "a\nb\nc\nd\nE-cua-main\n")
 	commitAll(t, r, "sửa trên main")
 
-	res, err := Merge(r, MergeOptions{Branch: "phu"})
+	res, err := ops.Merge(r, ops.MergeOptions{Branch: "phu"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,7 +227,7 @@ func TestMergeGayXungDotVaGiaiQuyet(t *testing.T) {
 	write(t, r, "f.txt", "a\nb\nc\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -237,7 +238,7 @@ func TestMergeGayXungDotVaGiaiQuyet(t *testing.T) {
 	write(t, r, "f.txt", "a\nB-cua-main\nc\n")
 	commitAll(t, r, "sửa trên main")
 
-	res, err := Merge(r, MergeOptions{Branch: "phu"})
+	res, err := ops.Merge(r, ops.MergeOptions{Branch: "phu"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -253,13 +254,13 @@ func TestMergeGayXungDotVaGiaiQuyet(t *testing.T) {
 
 	// Giải quyết thủ công rồi commit để hoàn tất.
 	write(t, r, "f.txt", "a\nB-da_lua_chon\nc\n")
-	if err := Add(r, AddOptions{All: true}); err != nil {
+	if err := ops.Add(r, ops.AddOptions{All: true}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Commit(r, CommitOptions{Message: "giải quyết xung đột"}); err != nil {
+	if _, err := ops.Commit(r, ops.CommitOptions{Message: "giải quyết xung đột"}); err != nil {
 		t.Fatal(err)
 	}
-	if MergeInProgress(r) {
+	if ops.MergeInProgress(r) {
 		t.Fatalf("sau khi commit phải không còn trạng thái merge")
 	}
 }
@@ -268,7 +269,7 @@ func TestMergeAbort(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "a\nb\nc\n")
 	commitAll(t, r, "c1")
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -278,13 +279,13 @@ func TestMergeAbort(t *testing.T) {
 	write(t, r, "f.txt", "a\nM\nc\n")
 	commitAll(t, r, "sửa")
 
-	if _, err := Merge(r, MergeOptions{Branch: "phu"}); err != nil {
+	if _, err := ops.Merge(r, ops.MergeOptions{Branch: "phu"}); err != nil {
 		t.Fatal(err)
 	}
-	if !MergeInProgress(r) {
+	if !ops.MergeInProgress(r) {
 		t.Fatalf("phải còn trạng thái merge sau khi gặp xung đột")
 	}
-	if _, err := Merge(r, MergeOptions{Abort: true}); err != nil {
+	if _, err := ops.Merge(r, ops.MergeOptions{Abort: true}); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "f.txt"); got != "a\nM\nc\n" {
@@ -297,7 +298,7 @@ func TestCherryPick(t *testing.T) {
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -305,7 +306,7 @@ func TestCherryPick(t *testing.T) {
 	target := commitAll(t, r, "thêm dòng")
 
 	checkout(t, r, "main")
-	res, err := CherryPick(r, CherryPickOptions{Commits: []object.Hash{target}})
+	res, err := ops.CherryPick(r, ops.CherryPickOptions{Commits: []object.Hash{target}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,7 +325,7 @@ func TestRevert(t *testing.T) {
 	write(t, r, "f.txt", "1\n2\n")
 	c2 := commitAll(t, r, "thêm dòng")
 
-	if _, err := Revert(r, RevertOptions{Commits: []object.Hash{c2}}); err != nil {
+	if _, err := ops.Revert(r, ops.RevertOptions{Commits: []object.Hash{c2}}); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "f.txt"); got != "1\n" {
@@ -338,21 +339,21 @@ func TestStashVaPop(t *testing.T) {
 	commitAll(t, r, "c1")
 	write(t, r, "f.txt", "1\n2\n")
 
-	h, err := Stash(r, "việc dang dở", false)
+	h, err := ops.Stash(r, "việc dang dở", false)
 	if err != nil {
 		t.Fatalf("stash thất bại: %v", err)
 	}
 	if got := read(t, r, "f.txt"); got != "1\n" {
 		t.Fatalf("stash phải đưa file về nội dung cũ, nhận %q", got)
 	}
-	entries, err := StashList(r)
+	entries, err := ops.StashList(r)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(entries) != 1 || entries[0].Hash != h {
 		t.Fatalf("danh sách stash sai: %+v", entries)
 	}
-	if err := StashPop(r, 0); err != nil {
+	if err := ops.StashPop(r, 0); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "f.txt"); got != "1\n2\n" {
@@ -366,13 +367,13 @@ func TestStashFileChuaTheoDoi(t *testing.T) {
 	commitAll(t, r, "c1")
 	write(t, r, "moi.txt", "file mới\n")
 
-	if _, err := Stash(r, "", true); err != nil {
+	if _, err := ops.Stash(r, "", true); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(r.WorkPath("moi.txt")); !os.IsNotExist(err) {
 		t.Fatalf("file chưa theo dõi phải bị xóa khỏi đĩa sau khi stash")
 	}
-	if err := StashPop(r, 0); err != nil {
+	if err := ops.StashPop(r, 0); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "moi.txt"); got != "file mới\n" {
@@ -384,7 +385,7 @@ func TestStashKhongCoThayDoi(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
-	if _, err := Stash(r, "", false); err == nil {
+	if _, err := ops.Stash(r, "", false); err == nil {
 		t.Fatalf("phải báo lỗi khi không có gì để lưu tạm")
 	}
 }
@@ -394,7 +395,7 @@ func TestRebaseLenNhachKhac(t *testing.T) {
 	write(t, r, "base.txt", "1\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -406,7 +407,7 @@ func TestRebaseLenNhachKhac(t *testing.T) {
 	commitAll(t, r, "c3")
 
 	// Rebase nhánh phụ lên trên main.
-	res, err := Rebase(r, RebaseOptions{Upstream: "main", Branch: "phu"})
+	res, err := ops.Rebase(r, ops.RebaseOptions{Upstream: "main", Branch: "phu"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -454,7 +455,7 @@ func TestRebaseKhongDoiNhanh(t *testing.T) {
 	c2 := commitAll(t, r, "c2")
 
 	// Rebase lên chính HEAD hiện tại không làm thay đổi gì.
-	res, err := Rebase(r, RebaseOptions{Upstream: "HEAD"})
+	res, err := ops.Rebase(r, ops.RebaseOptions{Upstream: "HEAD"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -472,7 +473,7 @@ func TestRebaseVaHuy(t *testing.T) {
 	write(t, r, "gia.txt", "1\n2\n3\n")
 	commitAll(t, r, "c1")
 
-	if err := CreateBranch(r, CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
+	if err := ops.CreateBranch(r, ops.CreateBranchOptions{Name: "phu", StartPoint: "main"}); err != nil {
 		t.Fatal(err)
 	}
 	checkout(t, r, "phu")
@@ -486,22 +487,22 @@ func TestRebaseVaHuy(t *testing.T) {
 	origHead, _ := r.Head()
 
 	// Rebase nhánh phụ lên main: xung đột nên rebase phải dừng lại.
-	res, err := Rebase(r, RebaseOptions{Upstream: "main", Branch: "phu"})
+	res, err := ops.Rebase(r, ops.RebaseOptions{Upstream: "main", Branch: "phu"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(res.Conflicts) == 0 {
 		t.Fatalf("phải báo xung đột, nhận %+v", res)
 	}
-	if !RebaseInProgress(r) {
+	if !ops.RebaseInProgress(r) {
 		t.Fatalf("rebase dừng giữa chừng thì phải còn trạng thái")
 	}
 
 	// Huỷ rebase phải đưa mọi thứ về trạng thái trước đó.
-	if _, err := Rebase(r, RebaseOptions{Abort: true}); err != nil {
+	if _, err := ops.Rebase(r, ops.RebaseOptions{Abort: true}); err != nil {
 		t.Fatalf("abort thất bại: %v", err)
 	}
-	if RebaseInProgress(r) {
+	if ops.RebaseInProgress(r) {
 		t.Fatalf("abort phải xóa trạng thái rebase")
 	}
 	if got := read(t, r, "gia.txt"); got != "1\n2\ncu-aa-main\n" {
@@ -521,7 +522,7 @@ func TestResetCacCheDo(t *testing.T) {
 	c2 := commitAll(t, r, "c2")
 
 	// Hard reset đưa cả nội dung đĩa về c1.
-	if err := Reset(r, ResetOptions{Target: "HEAD~1", Mode: "hard"}); err != nil {
+	if err := ops.Reset(r, ops.ResetOptions{Target: "HEAD~1", Mode: "hard"}); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "f.txt"); got != "1\n" {
@@ -533,7 +534,7 @@ func TestResetCacCheDo(t *testing.T) {
 	}
 
 	// Soft reset chỉ di chuyển con trỏ, giữ nguyên index.
-	if err := Reset(r, ResetOptions{Target: "HEAD", Mode: "soft"}); err != nil {
+	if err := ops.Reset(r, ops.ResetOptions{Target: "HEAD", Mode: "soft"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -574,7 +575,7 @@ func TestLogVaLocTheoDinhDanh(t *testing.T) {
 	write(t, r, "b.txt", "1\n")
 	commitAll(t, r, "thêm b")
 
-	all, err := Log(r, LogOptions{})
+	all, err := ops.Log(r, ops.LogOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -586,7 +587,7 @@ func TestLogVaLocTheoDinhDanh(t *testing.T) {
 	}
 
 	// Chỉ lọc theo một đường dẫn.
-	filtered, err := Log(r, LogOptions{Paths: []string{"a.txt"}})
+	filtered, err := ops.Log(r, ops.LogOptions{Paths: []string{"a.txt"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -602,7 +603,7 @@ func TestDiffBaVung(t *testing.T) {
 
 	// Sửa trên đĩa: diff mặc định phải thấy thay đổi.
 	write(t, r, "f.txt", "1\nX\n")
-	diffs, err := Diff(r, DiffOptions{})
+	diffs, err := ops.Diff(r, ops.DiffOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -611,17 +612,17 @@ func TestDiffBaVung(t *testing.T) {
 	}
 
 	// Sau khi stage: diff mặc định rỗng, diff --staged có nội dung.
-	if err := Add(r, AddOptions{All: true}); err != nil {
+	if err := ops.Add(r, ops.AddOptions{All: true}); err != nil {
 		t.Fatal(err)
 	}
-	diffs, err = Diff(r, DiffOptions{})
+	diffs, err = ops.Diff(r, ops.DiffOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(diffs) != 0 {
 		t.Fatalf("sau khi stage, diff mặc định phải rỗng: %+v", diffs)
 	}
-	diffs, err = Diff(r, DiffOptions{Staged: true})
+	diffs, err = ops.Diff(r, ops.DiffOptions{Staged: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -636,14 +637,14 @@ func TestRemoveVaMove(t *testing.T) {
 	write(t, r, "di.txt", "2\n")
 	commitAll(t, r, "c1")
 
-	if err := Move(r, "cu.txt", "thu-muc/moi.txt"); err != nil {
+	if err := ops.Move(r, "cu.txt", "thu-muc/moi.txt"); err != nil {
 		t.Fatalf("move thất bại: %v", err)
 	}
 	if _, err := os.Stat(r.WorkPath("thu-muc/moi.txt")); err != nil {
 		t.Fatalf("file sau move phải tồn tại: %v", err)
 	}
 
-	if err := Remove(r, []string{"di.txt"}, true, false); err != nil {
+	if err := ops.Remove(r, []string{"di.txt"}, true, false); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := os.Stat(r.WorkPath("di.txt")); !os.IsNotExist(err) {
@@ -658,7 +659,7 @@ func TestRestoreTuCommit(t *testing.T) {
 	write(t, r, "f.txt", "sau\n")
 	commitAll(t, r, "c2")
 
-	if err := Restore(r, RestoreOptions{Source: "HEAD~1", Paths: []string{"f.txt"}}); err != nil {
+	if err := ops.Restore(r, ops.RestoreOptions{Source: "HEAD~1", Paths: []string{"f.txt"}}); err != nil {
 		t.Fatal(err)
 	}
 	if got := read(t, r, "f.txt"); got != "ban dau\n" {
@@ -671,7 +672,7 @@ func TestFsckKhoSach(t *testing.T) {
 	write(t, r, "f.txt", "1\n")
 	commitAll(t, r, "c1")
 
-	report, err := Fsck(r)
+	report, err := ops.Fsck(r)
 	if err != nil {
 		t.Fatal(err)
 	}

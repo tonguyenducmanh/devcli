@@ -1,7 +1,8 @@
-package storage
+package storage_test
 
 import (
 	"bytes"
+	"github.com/tonguyenducmanh/devcli/internal/vcs/storage"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,13 +11,13 @@ import (
 )
 
 // newStore tạo object store trong thư mục tạm.
-func newStore(t *testing.T) *ObjectStore {
+func newStore(t *testing.T) *storage.ObjectStore {
 	t.Helper()
 	dir := filepath.Join(t.TempDir(), "objects")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	return NewObjectStore(dir)
+	return storage.NewObjectStore(dir)
 }
 
 func TestGhiVaDocBlob(t *testing.T) {
@@ -130,10 +131,10 @@ func TestDocTreeVaCommit(t *testing.T) {
 
 func TestRefDocVaGhi(t *testing.T) {
 	dir := t.TempDir()
-	r := NewRefStore(dir)
+	r := storage.NewRefStore(dir)
 	hash := object.ComputeHash(object.TypeBlob, []byte("x"))
 
-	if _, err := r.Resolve("refs/heads/main"); err != ErrRefNotFound {
+	if _, err := r.Resolve("refs/heads/main"); err != storage.ErrRefNotFound {
 		t.Fatalf("phải báo ref chưa tồn tại")
 	}
 	if err := r.Write("refs/heads/main", hash); err != nil {
@@ -177,11 +178,11 @@ func TestRefDocVaGhi(t *testing.T) {
 
 func TestReflog(t *testing.T) {
 	dir := t.TempDir()
-	r := NewRefStore(dir)
+	r := storage.NewRefStore(dir)
 	h1 := object.ComputeHash(object.TypeBlob, []byte("1"))
 	h2 := object.ComputeHash(object.TypeBlob, []byte("2"))
 
-	if _, err := r.ReadReflog("refs/heads/main"); err != ErrReflogNotFound {
+	if _, err := r.ReadReflog("refs/heads/main"); err != storage.ErrReflogNotFound {
 		t.Fatalf("phải báo reflog chưa tồn tại")
 	}
 	if err := r.AppendReflog("refs/heads/main", h1, h2, "commit: thử"); err != nil {
