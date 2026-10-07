@@ -107,7 +107,141 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		},
 	}
 
-	sysCmd.AddCommand(lsCmd, headCmd, tailCmd, catCmd, rmemptyCmd)
+	pwdCmd := &cobra.Command{
+		Use:     "pwd",
+		Short:   "In đường dẫn thư mục hiện tại",
+		Long:    `In ra đường dẫn tuyệt đối của thư mục làm việc hiện tại.`,
+		Example: `  td sys pwd`,
+		Args:    cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return sys.Pwd(cmd.OutOrStdout())
+		},
+	}
+
+	mkdirCmd := &cobra.Command{
+		Use:   "mkdir [thư mục...]",
+		Short: "Tạo thư mục mới",
+		Long:  `Tạo một hoặc nhiều thư mục mới. Có thể sử dụng cờ -p để tạo đệ quy các thư mục cha nếu chưa tồn tại.`,
+		Example: `  td sys mkdir testdir
+  td sys mkdir -p a/b/c`,
+		Args: arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return exitError("cần truyền tên thư mục")
+			}
+			p, _ := cmd.Flags().GetBool("parents")
+			return sys.Mkdir(cmd.OutOrStdout(), args, p)
+		},
+	}
+	mkdirCmd.Flags().BoolP("parents", "p", false, "tạo đệ quy các thư mục cha")
+
+	touchCmd := &cobra.Command{
+		Use:     "touch [tệp...]",
+		Short:   "Tạo tệp trống hoặc cập nhật thời gian",
+		Long:    `Tạo một tệp tin trống nếu chưa tồn tại, hoặc cập nhật thời gian sửa đổi nếu đã tồn tại.`,
+		Example: `  td sys touch file.txt`,
+		Args:    arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return exitError("cần truyền tên tệp")
+			}
+			return sys.Touch(cmd.OutOrStdout(), args)
+		},
+	}
+
+	rmCmd := &cobra.Command{
+		Use:   "rm [tệp...]",
+		Short: "Xoá tệp hoặc thư mục",
+		Long:  `Xoá một hoặc nhiều tệp. Sử dụng cờ -r để xoá thư mục đệ quy.`,
+		Example: `  td sys rm file.txt
+  td sys rm -rf dir`,
+		Args: arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return exitError("cần truyền đường dẫn")
+			}
+			r, _ := cmd.Flags().GetBool("recursive")
+			f, _ := cmd.Flags().GetBool("force")
+			return sys.Rm(cmd.OutOrStdout(), args, r, f)
+		},
+	}
+	rmCmd.Flags().BoolP("recursive", "r", false, "xoá đệ quy thư mục")
+	rmCmd.Flags().BoolP("force", "f", false, "bỏ qua các lỗi không tồn tại")
+
+	cpCmd := &cobra.Command{
+		Use:   "cp [nguồn...] [đích]",
+		Short: "Sao chép tệp hoặc thư mục",
+		Long:  `Sao chép các tệp tin hoặc thư mục từ nguồn đến đích.`,
+		Example: `  td sys cp file1.txt file2.txt
+  td sys cp -r dir1 dir2`,
+		Args: arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
+				return exitError("cần ít nhất 2 đường dẫn (nguồn và đích)")
+			}
+			sources := args[:len(args)-1]
+			target := args[len(args)-1]
+			r, _ := cmd.Flags().GetBool("recursive")
+			return sys.Cp(cmd.OutOrStdout(), sources, target, r)
+		},
+	}
+	cpCmd.Flags().BoolP("recursive", "r", false, "sao chép đệ quy thư mục")
+
+	mvCmd := &cobra.Command{
+		Use:   "mv [nguồn...] [đích]",
+		Short: "Di chuyển hoặc đổi tên tệp",
+		Long:  `Di chuyển hoặc đổi tên các tệp tin, thư mục từ nguồn đến đích.`,
+		Example: `  td sys mv file1.txt file2.txt
+  td sys mv file1.txt dir/`,
+		Args: arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
+				return exitError("cần ít nhất 2 đường dẫn (nguồn và đích)")
+			}
+			sources := args[:len(args)-1]
+			target := args[len(args)-1]
+			return sys.Mv(cmd.OutOrStdout(), sources, target)
+		},
+	}
+
+	wcCmd := &cobra.Command{
+		Use:   "wc [tệp...]",
+		Short: "Đếm số dòng, từ, ký tự",
+		Long:  `Đếm và in ra số dòng, số từ và số byte của các tệp tin.`,
+		Example: `  td sys wc file.txt
+  td sys wc -l file.txt`,
+		Args: arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return exitError("cần truyền đường dẫn tệp")
+			}
+			l, _ := cmd.Flags().GetBool("lines")
+			wo, _ := cmd.Flags().GetBool("words")
+			c, _ := cmd.Flags().GetBool("bytes")
+			return sys.Wc(cmd.OutOrStdout(), args, l, wo, c)
+		},
+	}
+	wcCmd.Flags().BoolP("lines", "l", false, "chỉ in số dòng")
+	wcCmd.Flags().BoolP("words", "w", false, "chỉ in số từ")
+	wcCmd.Flags().BoolP("bytes", "c", false, "chỉ in số byte")
+
+	grepCmd := &cobra.Command{
+		Use:     "grep [mẫu] [tệp...]",
+		Short:   "Tìm kiếm văn bản trong tệp",
+		Long:    `Tìm kiếm các chuỗi văn bản khớp với biểu thức chính quy trong các tệp tin.`,
+		Example: `  td sys grep "hello" file.txt`,
+		Args:    arbitraryArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
+				return exitError("cần truyền mẫu và ít nhất 1 tệp")
+			}
+			pattern := args[0]
+			files := args[1:]
+			return sys.Grep(cmd.OutOrStdout(), pattern, files)
+		},
+	}
+
+	sysCmd.AddCommand(lsCmd, headCmd, tailCmd, catCmd, rmemptyCmd, pwdCmd, mkdirCmd, touchCmd, rmCmd, cpCmd, mvCmd, wcCmd, grepCmd)
 
 	return sysCmd
 }
