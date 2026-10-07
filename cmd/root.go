@@ -41,6 +41,7 @@ var (
 const (
 	groupVersionControl = "version-control"
 	groupGeneral        = "general"
+	groupSystem         = "system"
 )
 
 // rootCmd là lệnh gốc của ứng dụng.
@@ -143,6 +144,7 @@ func init() {
 
 	// Đăng ký các nhóm công cụ.
 	registerToolGroup(newVCSCmd())
+	registerToolGroup(newSysCmd())
 	registerToolGroup(newConfigCmd())
 	registerToolGroup(newVersionCmd())
 
@@ -150,6 +152,7 @@ func init() {
 	rootCmd.AddGroup(
 		&cobra.Group{ID: groupGeneral, Title: "Lệnh chung:"},
 		&cobra.Group{ID: groupVersionControl, Title: "Quản lý phiên bản:"},
+		&cobra.Group{ID: groupSystem, Title: "Tiện ích hệ thống:"},
 	)
 
 	// Dịch phần trợ giúp sang tiếng Việt, phải làm sau khi cây lệnh đã đủ.

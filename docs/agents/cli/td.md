@@ -40,6 +40,7 @@ td [flags]
 ### SEE ALSO
 
 * [td config](td_config.md)	 - Xem và chỉnh sửa cấu hình của td
+* [td sys](td_sys.md)	 - Các tiện ích hệ thống (ls, cat, head, tail)
 * [td use](td_use.md)	 - Đặt nhóm công cụ mặc định
 * [td vcs](td_vcs.md)	 - Quản lý phiên bản mã nguồn cục bộ
 * [td version](td_version.md)	 - Hiển thị phiên bản và thông tin môi trường
