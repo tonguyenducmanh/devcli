@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/tonguyenducmanh/devcli/internal/coreutils"
+	"github.com/tonguyenducmanh/devcli/internal/sys"
 )
 
 func newSysCmd() *cobra.Command {
@@ -34,7 +34,7 @@ Nếu không truyền thư mục, mặc định sẽ liệt kê thư mục hiệ
 			all, _ := cmd.Flags().GetBool("all")
 			long, _ := cmd.Flags().GetBool("long")
 
-			return coreutils.Ls(cmd.OutOrStdout(), dir, all, long)
+			return sys.Ls(cmd.OutOrStdout(), dir, all, long)
 		},
 	}
 	lsCmd.Flags().BoolP("all", "a", false, "hiển thị cả tệp ẩn")
@@ -53,7 +53,7 @@ Mặc định in 10 dòng đầu tiên.`,
 				return exitError("cần truyền đường dẫn tệp")
 			}
 			lines, _ := cmd.Flags().GetInt("lines")
-			return coreutils.Head(cmd.OutOrStdout(), args[0], lines)
+			return sys.Head(cmd.OutOrStdout(), args[0], lines)
 		},
 	}
 	headCmd.Flags().IntP("lines", "n", 10, "số dòng cần in")
@@ -71,7 +71,7 @@ Mặc định in 10 dòng cuối cùng.`,
 				return exitError("cần truyền đường dẫn tệp")
 			}
 			lines, _ := cmd.Flags().GetInt("lines")
-			return coreutils.Tail(cmd.OutOrStdout(), args[0], lines)
+			return sys.Tail(cmd.OutOrStdout(), args[0], lines)
 		},
 	}
 	tailCmd.Flags().IntP("lines", "n", 10, "số dòng cần in")
@@ -85,7 +85,7 @@ Nếu không truyền tệp nào hoặc truyền '-' hệ thống sẽ đọc t�
   td sys cat file1.txt file2.txt`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return coreutils.Cat(cmd.OutOrStdout(), args)
+			return sys.Cat(cmd.OutOrStdout(), args)
 		},
 	}
 
@@ -103,7 +103,7 @@ Mặc định sẽ quét thư mục hiện tại.`,
 			if len(args) > 0 {
 				dir = args[0]
 			}
-			return coreutils.RmEmpty(cmd.OutOrStdout(), dir)
+			return sys.RmEmpty(cmd.OutOrStdout(), dir)
 		},
 	}
 
