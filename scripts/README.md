@@ -11,10 +11,13 @@ thư mục gốc chỉ còn mã nguồn và tài liệu.
 | `build_binaries.sh` | Toàn bộ cấu hình build nằm ở đầu tệp này, phần còn lại là logic |
 | `build_agent_docs.sh` | Sinh lại tài liệu lệnh trong `agents/cli/` |
 | `check.sh` | Kiểm tra trọn vẹn trước khi đóng góp |
+| `remove_old_tags.sh` | Xoá các tag cũ trong kho git, giữ lại danh sách tag chỉ định |
 
-Cấu hình nằm ngay trong `build_binaries.sh`, không tách tệp riêng. Thêm
-nền tảng, đổi phiên bản, đổi tên lệnh hay đổi cờ biên dịch đều chỉ sửa một
-tệp duy nhất, đọc cũng chỉ một chỗ.
+Hai script cuối cùng là công cụ bảo trì, không liên quan tới build:
+`check.sh` kiểm tra mã nguồn, `remove_old_tags.sh` dọn tag. Cấu hình build nằm
+ngay trong `build_binaries.sh`, không tách tệp riêng. Thêm nền tảng, đổi phiên
+bản, đổi tên lệnh hay đổi cờ biên dịch đều chỉ sửa một tệp duy nhất, đọc cũng
+chỉ một chỗ.
 
 ## Cách chạy
 

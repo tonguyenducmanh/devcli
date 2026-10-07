@@ -11,6 +11,9 @@ thêm một object riêng nên lưu được lời giải thích, ai đó và th
 
 Một tham số là tạo tag tại HEAD, không có tham số thì in danh sách.
 
+Dùng -q khi cần đọc danh sách bằng kịch bản: lệnh sẽ in ra rỗng thay vì in
+thông báo "Chưa có tag nào", nên không phải lọc bỏ câu văn bản.
+
 ```
 td vcs tag [flags]
 ```
@@ -32,6 +35,7 @@ td vcs tag [flags]
   -h, --help             hiển thị phần trợ giúp của lệnh này
   -l, --list             liệt kê các tag
   -m, --message string   nội dung chú thích cho tag
+  -q, --quiet            liệt kê và im lặng khi không có tag nào, để dùng trong kịch bản
 ```
 
 ### Options inherited from parent commands

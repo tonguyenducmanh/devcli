@@ -683,7 +683,10 @@ var vcsTagCmd = &cobra.Command{
 Tag nhẹ chỉ là một con trỏ trỏ tới commit. Tag có chú thích (-a kèm -m) tạo
 thêm một object riêng nên lưu được lời giải thích, ai đó và thời điểm tạo.
 
-Một tham số là tạo tag tại HEAD, không có tham số thì in danh sách.`,
+Một tham số là tạo tag tại HEAD, không có tham số thì in danh sách.
+
+Dùng -q khi cần đọc danh sách bằng kịch bản: lệnh sẽ in ra rỗng thay vì in
+thông báo "Chưa có tag nào", nên không phải lọc bỏ câu văn bản.`,
 	Example: `  td vcs tag                        liệt kê các tag
   td vcs tag v1.0.0                 tạo tag nhẹ
   td vcs tag -a v1.0.0 -m "ghi chú"  tạo tag có chú thích
@@ -743,7 +746,12 @@ Một tham số là tạo tag tại HEAD, không có tham số thì in danh sác
 			return err
 		}
 		if len(tags) == 0 {
-			printLine("Chưa có tag nào.")
+			// Với -q thì im lặng hoàn toàn, để kịch bản đọc được danh sách
+			// rỗng mà không phải lọc bỏ câu thông báo.
+			quiet, _ := cmd.Flags().GetBool("quiet")
+			if !quiet {
+				printLine("Chưa có tag nào.")
+			}
 			return nil
 		}
 		for _, t := range tags {
@@ -772,4 +780,5 @@ func init() {
 	vcsTagCmd.Flags().StringP("message", "m", "", "nội dung chú thích cho tag")
 	vcsTagCmd.Flags().BoolP("delete", "d", false, "xóa tag")
 	vcsTagCmd.Flags().BoolP("list", "l", false, "liệt kê các tag")
+	vcsTagCmd.Flags().BoolP("quiet", "q", false, "liệt kê và im lặng khi không có tag nào, để dùng trong kịch bản")
 }
