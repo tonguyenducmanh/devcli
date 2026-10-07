@@ -26,5 +26,6 @@ Nhóm lệnh chứa các tiện ích thao tác với tệp tin và hệ thống,
 * [td sys cat](td_sys_cat.md)	 - In toàn bộ nội dung của tệp
 * [td sys head](td_sys_head.md)	 - In N dòng đầu tiên của tệp
 * [td sys ls](td_sys_ls.md)	 - Liệt kê các tệp tin trong thư mục
+* [td sys rmempty](td_sys_rmempty.md)	 - Xoá các thư mục rỗng đệ quy
 * [td sys tail](td_sys_tail.md)	 - In N dòng cuối cùng của tệp
 

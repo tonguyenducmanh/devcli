@@ -89,7 +89,25 @@ Nếu không truyền tệp nào hoặc truyền '-' hệ thống sẽ đọc t�
 		},
 	}
 
-	sysCmd.AddCommand(lsCmd, headCmd, tailCmd, catCmd)
+	rmemptyCmd := &cobra.Command{
+		Use:   "rmempty [thư mục]",
+		Short: "Xoá các thư mục rỗng đệ quy",
+		Long: `Tìm và xoá tất cả các thư mục rỗng bên trong thư mục được chỉ định.
+Quá trình này được thực hiện đệ quy (xoá thư mục con rỗng, sau đó nếu thư mục cha rỗng thì xoá tiếp).
+Mặc định sẽ quét thư mục hiện tại.`,
+		Example: `  td sys rmempty
+  td sys rmempty /tmp/test`,
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			dir := "."
+			if len(args) > 0 {
+				dir = args[0]
+			}
+			return coreutils.RmEmpty(cmd.OutOrStdout(), dir)
+		},
+	}
+
+	sysCmd.AddCommand(lsCmd, headCmd, tailCmd, catCmd, rmemptyCmd)
 
 	return sysCmd
 }
