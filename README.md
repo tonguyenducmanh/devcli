@@ -31,7 +31,7 @@ sẽ bổ sung theo cùng khuôn mẫu.
 ## Build
 
 ```bash
-./scripts/build_all.sh
+./build_all.sh
 ```
 
 Lệnh trên sinh lại tài liệu lệnh trong `agents/cli/`, rồi build cho mọi nền

@@ -7,11 +7,13 @@ thư mục gốc chỉ còn mã nguồn và tài liệu.
 
 | Tệp | Vai trò |
 | --- | --- |
-| `build_all.sh` | Điểm vào chính để build: sinh tài liệu rồi build tệp thực thi |
 | `build_binaries.sh` | Toàn bộ cấu hình build nằm ở đầu tệp này, phần còn lại là logic |
 | `build_agent_docs.sh` | Sinh lại tài liệu lệnh trong `agents/cli/` |
 | `check.sh` | Kiểm tra trọn vẹn trước khi đóng góp |
 | `remove_old_tags.sh` | Xoá các tag cũ trong kho git, giữ lại danh sách tag chỉ định |
+
+Điểm vào để build không nằm ở đây mà ở thư mục gốc, tên `build_all.sh`. Nó gọi
+`build_agent_docs.sh` rồi `build_binaries.sh`.
 
 Hai script cuối cùng là công cụ bảo trì, không liên quan tới build:
 `check.sh` kiểm tra mã nguồn, `remove_old_tags.sh` dọn tag. Cấu hình build nằm
@@ -21,19 +23,21 @@ chỉ một chỗ.
 
 ## Cách chạy
 
-Tất cả script đều tự tìm thư mục gốc qua vị trí của chính nó, nên chạy được
-từ bất kỳ thư mục nào:
+Từ thư mục gốc của kho:
 
 ```bash
-./scripts/build_all.sh                    # sinh tài liệu rồi build mọi nền tảng
-./scripts/build_all.sh mac-arm linux      # chỉ build một vài nền tảng
-./scripts/build_binaries.sh --list        # xem danh sách nền tảng
-./scripts/check.sh                        # kiểm tra trước khi đóng góp
+./build_all.sh                        # sinh tài liệu rồi build mọi nền tảng
+./build_all.sh mac-arm linux          # chỉ build một vài nền tảng
+./scripts/build_binaries.sh --list    # xem danh sách nền tảng
+./scripts/check.sh                    # kiểm tra trước khi đóng góp
 ```
 
-`build_all.sh` gọi lần lượt `build_agent_docs.sh` rồi `build_binaries.sh`.
-Muốn build tệp thực thi mà không sinh lại tài liệu thì gọi
-`build_binaries.sh` trực tiếp.
+Mọi script đều tự tìm thư mục gốc qua vị trí của chính nó, nên chạy được từ bất
+kỳ thư mục nào.
+
+`build_all.sh` gọi lần lượt `build_agent_docs.sh` rồi `build_binaries.sh`. Muốn
+build tệp thực thi mà không sinh lại tài liệu thì gọi `build_binaries.sh` trực
+tiếp.
 
 ## Cấu hình
 
@@ -64,7 +68,7 @@ Sửa dòng `VERSION`, đây là nguồn duy nhất:
 
 ```sh
 VERSION=1.2.3
-./scripts/build_all.sh
+./build_all.sh
 ```
 
 Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `td version` luôn khớp

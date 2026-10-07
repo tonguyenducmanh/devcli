@@ -48,7 +48,7 @@ OUT_DIR=out
 #     tên | goos | goarch | đuôi tệp
 #
 #   tên     tên ngắn gọn, dùng để chọn nền tảng khi chạy lệnh build,
-#           ví dụ: ./scripts/build_all.sh mac-arm
+#           ví dụ: ./build_all.sh mac-arm
 #   goos    giá trị GOOS mà trình biên dịch Go hiểu.
 #   goarch  giá trị GOARCH mà trình biên dịch Go hiểu.
 #   đuôi    phần mở rộng tên tệp, bỏ trống nếu không cần.

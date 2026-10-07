@@ -15,7 +15,7 @@ tiên.
 ```bash
 git clone <url>
 cd devcli
-./scripts/build_all.sh
+./build_all.sh
 ```
 
 ## Trước khi mở pull request

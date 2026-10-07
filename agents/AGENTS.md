@@ -49,7 +49,8 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `internal/vcs/ops/` | Nghiệp vụ cấp cao, mỗi tệp một nhóm lệnh |
 | `internal/vcs/config/` | Đọc ghi cấu hình dạng mục và khoá |
 | `internal/tools/docgen/` | Sinh tài liệu Markdown cho cây lệnh |
-| `scripts/` | Mọi cấu hình và script build (xem `scripts/README.md`) |
+| `build_all.sh` | Điểm vào để build, nằm ở gốc kho |
+| `scripts/` | Cấu hình và script build còn lại (xem `scripts/README.md`) |
 | `tests/` | Toàn bộ mã kiểm thử, tách theo vùng nghiệp vụ |
 | `agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
 
@@ -132,7 +133,7 @@ Nên đặt tên cờ theo đúng việc nó làm: `td vcs branch --hash` chứ 
 ## Lệnh thường dùng
 
 ```bash
-./scripts/build_all.sh                  # build Mac, Linux, Windows vào out/
+./build_all.sh                  # build Mac, Linux, Windows vào out/
 ./scripts/build_binaries.sh     # chỉ phần build binary
 ./scripts/build_agent_docs.sh   # sinh lại agents/cli
 go test ./...                   # chạy kiểm thử
@@ -153,7 +154,7 @@ trong `out/`.
 Phát hành bản mới thì sửa đúng một dòng đó rồi chạy:
 
 ```bash
-./scripts/build_all.sh
+./build_all.sh
 ```
 
 Biến `AppName`, `Version`, `Author` và `RepoURL` trong `cmd/root.go` phải khai
