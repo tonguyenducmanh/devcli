@@ -1,17 +1,20 @@
 # Đóng góp cho td
 
-Cảm ơn bạn quan tâm tới dự án. Tài liệu này mô tả cách thiết lập môi trường
-và những quy ước cần giữ khi gửi thay đổi.
+Cảm ơn bạn quan tâm tới dự án. Tài liệu này nói về **quy trình đóng góp**.
+
+Quy ước viết mã, kiến trúc và bản đồ mã nguồn nằm ở
+[agents/AGENTS.md](agents/AGENTS.md) — đọc tệp đó trước khi viết dòng mã đầu
+tiên.
 
 ## Yêu cầu
 
-- Go 1.23 trở lên.
+- Go 1.23 trở lên, kiểm tra bằng `go version`.
 
 ## Thiết lập
 
 ```bash
 git clone <url>
-cd td
+cd devcli
 ./scripts/build_all.sh
 ```
 
@@ -23,8 +26,8 @@ Chạy một lệnh, script sẽ báo cáo từng bước:
 ./scripts/check.sh
 ```
 
-Bước cuối sinh lại tài liệu vào thư mục tạm rồi so với bản đã commit, nên tài
-liệu lệch với cây lệnh sẽ bị chặn trước khi gửi.
+Bước cuối sinh lại tài liệu vào thư mục tạm rồi so với bản đã commit, nên
+tài liệu lệch với cây lệnh sẽ bị chặn trước khi gửi.
 
 ## Quy trình
 
@@ -33,31 +36,12 @@ liệu lệch với cây lệnh sẽ bị chặn trước khi gửi.
 3. Viết mã kèm kiểm thử đặt trong `tests/`.
 4. Chạy `./scripts/build_agent_docs.sh` nếu có thay đổi cây lệnh.
 5. Chạy `./scripts/check.sh` để chắc chắn mọi thứ đều qua.
-5. Mở pull request mô tả *vì sao* thay đổi, không chỉ *thay đổi gì*.
+6. Mở pull request mô tả *vì sao* thay đổi, không chỉ *thay đổi gì*.
 
-## Quy ước mã nguồn
+## Trước khi gửi
 
-- Chú thích và mọi thông điệp người dùng bằng **tiếng Việt**.
-- Tên hàm, biến, kiểu dữ liệu bằng tiếng Anh theo chuẩn Go.
-- Chú thích giải thích *tại sao*, không lặp lại cái mà tên hàm đã nói.
-- Mỗi lệnh mới cần đủ `Short`, `Long` và `Example`. Có kiểm thử bắt buộc.
-- Giữ nguyên phụ thuộc một chiều giữa các tầng. Có kiểm thử bắt buộc.
-- Không thêm phụ thuộc mới nếu chưa cần thiết; chuẩn bẩy gói đã đủ cho các
-  tính năng hiện có.
+Ba điều dễ quên, đều đã có trong [`agents/AGENTS.md`](agents/AGENTS.md):
 
-Chi tiết về kiến trúc và bản đồ mã nguồn nằm trong
-[agents/AGENTS.md](agents/AGENTS.md).
-
-## Kiểm thử
-
-- Kiểm thử nghiệp vụ đặt cạnh mã, đặt tên theo hành vi cần kiểm chứng.
-- Một kiểm thử nên kiểm tra *điều gì đúng* chứ không chỉ *điều gì sai*.
-- Kiểm thử phải chạy được mà không cần mạng và không phụ thuộc thứ tự chạy.
-- Khi sửa một lỗi, thêm kiểm thử tái hiện lỗi đó trước khi sửa mã.
-
-## Tài liệu
-
-- `README.md` mô tả tổng quan cho người đọc.
-- `AGENTS.md` mô tả kiến trúc cho người sửa mã.
-- `agents/cli/` do công cụ sinh ra, **không sửa tay**. Chạy
-  `./scripts/build_agent_docs.sh`.
+- Chú thích và thông điệp người dùng bằng **tiếng Việt**.
+- Không gọi chương trình ngoài, dữ liệu chỉ nằm trong `.tdx`.
+- `agents/cli/` do công cụ sinh ra, **không sửa tay**.

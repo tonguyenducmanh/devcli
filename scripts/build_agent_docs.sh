@@ -7,13 +7,15 @@
 # Khi nào cần chạy lại:
 #   - Thêm, bỏ hoặc đổi tên một lệnh
 #   - Sửa Short, Long, Example hoặc mô tả cờ của một lệnh
-#   - Đổi kiến trúc câu lệnh (thêm nhóm, thêm cờ toàn cục)
+#   - Đổi kiến trúc cây lệnh (thêm nhóm, thêm cờ toàn cục)
 #
+# build_all.sh đã gọi sẵn script này nên thường không cần chạy riêng.
 # Nếu quên chạy, tài liệu sẽ lệch với cây lệnh. Chạy ./scripts/check.sh để
 # phát hiện ra điều đó.
 set -e
 
-ROOT_DIR=$(pwd)
+# Script nằm trong scripts/ nên thư mục gốc project là thư mục cha của nó.
+ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 OUT_DIR="$ROOT_DIR/agents/cli"
 
 echo "--- Sinh tài liệu lệnh vào agents/cli ---"

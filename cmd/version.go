@@ -15,10 +15,10 @@ func newVersionCmd() *cobra.Command {
 
 Thông tin này hữu ích khi báo lỗi, giúp biết bản dựng được biên dịch từ
 phiên bản nào.`,
-		Example: `  td version`,
+		Example: "  " + AppName + " version",
 		Args:    noArgsArg,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			printLine("td phiên bản %s", Version)
+			printLine("%s phiên bản %s", AppName, Version)
 			printLine("nền tảng: %s/%s, %s", runtime.GOOS, runtime.GOARCH, runtime.Version())
 			return nil
 		},

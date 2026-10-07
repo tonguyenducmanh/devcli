@@ -8,17 +8,31 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
 )
 
-// Version là phiên bản hiển thị qua lệnh `td version`.
+// Các biến toàn cục của ứng dụng.
 //
-// Khai báo bằng var (không phải const) để script build ghi đè được giá trị
-// này bằng cờ -ldflags "-X ...cmd.Version=<số phiên bản>" lúc biên dịch.
-var Version = "0.1.0"
+// Đều khai báo bằng `var` để script build ghi đè được giá trị lúc biên dịch
+// bằng cờ -ldflags "-X ...cmd.<Tên>=<giá trị>". Giá trị dưới đây là giá trị
+// mặc định khi chạy thẳng bằng `go build` mà không qua script.
+//
+// Nguồn cấu hình nằm trong scripts/build.conf.
+var (
+	// AppName là tên gọi lệnh trên terminal, ví dụ "td" trong "td vcs status".
+	AppName = "td"
+
+	// Version là phiên bản hiển thị qua lệnh `td version`.
+	Version = "0.0.0-dev"
+
+	// RepoURL là nơi phát hành, dùng để in gợi ý khi báo lỗi.
+	// Để rỗng nghĩa là không in gợi ý.
+	RepoURL = ""
+)
 
 // Tên nhóm lệnh, dùng để gom lệnh trong phần trợ giúp.
 const (
@@ -28,19 +42,22 @@ const (
 
 // rootCmd là lệnh gốc của ứng dụng.
 var rootCmd = &cobra.Command{
-	Use:   "td",
-	Short: "td - bộ công cụ dòng lệnh cá nhân",
-	Long: `td là bộ công cụ dòng lệnh cá nhân, tự quản lý toàn bộ dữ liệu của nó.
+	Use:   AppName,
+	Short: AppName + " - bộ công cụ dòng lệnh cá nhân",
+	Long: fmt.Sprintf(`%s là bộ công cụ dòng lệnh cá nhân, tự quản lý toàn bộ dữ liệu của nó.
 
-Mỗi nhóm công cụ là một lệnh con của td, ví dụ:
-  td vcs ...     quản lý phiên bản mã nguồn cục bộ
+Mỗi nhóm công cụ là một lệnh con của %s, ví dụ:
+  %s vcs ...     quản lý phiên bản mã nguồn cục bộ
 
-Dữ liệu của td được lưu trong thư mục .tdx cạnh dự án.`,
-	Example: `  td vcs init                     khởi tạo kho tại thư mục hiện tại
-  td vcs status                   xem các thay đổi chưa commit
-  td vcs commit -m "tin nhắn"     ghi lại thay đổi
-  td config --list                xem cấu hình đang dùng
-  td --help                       xem toàn bộ lệnh`,
+Dữ liệu của %s được lưu trong thư mục .tdx cạnh dự án.`,
+		AppName, AppName, AppName, AppName),
+	Example: strings.Join([]string{
+		"  " + AppName + " vcs init                   khởi tạo kho tại thư mục hiện tại",
+		"  " + AppName + " vcs status                 xem các thay đổi chưa commit",
+		"  " + AppName + " vcs commit -m \"tin nhắn\"   ghi lại thay đổi",
+		"  " + AppName + " config --list              xem cấu hình đang dùng",
+		"  " + AppName + " --help                     xem toàn bộ lệnh",
+	}, "\n"),
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	// Khi không có lệnh con nào được gọi thì in phần trợ giúp.
@@ -79,13 +96,13 @@ func verboseEnabled(cmd *cobra.Command) bool {
 // errRepoNotFound trả về thông báo gợi ý khi lệnh cần repo nhưng không tìm thấy.
 func errRepoNotFound(err error) error {
 	if errors.Is(err, repo.ErrNotRepo) {
-		return fmt.Errorf("chưa có kho td nào ở đây, hãy chạy `td vcs init` để khởi tạo")
+		return fmt.Errorf("chưa có kho %s nào ở đây, hãy chạy `%s vcs init` để khởi tạo", AppName, AppName)
 	}
 	return err
 }
 
 func init() {
-	rootCmd.SetVersionTemplate("td phiên bản {{.Version}}\n")
+	rootCmd.SetVersionTemplate(AppName + " phiên bản {{.Version}}\n")
 	rootCmd.Version = Version
 
 	// Cờ toàn cục áp dụng cho mọi lệnh.

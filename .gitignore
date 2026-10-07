@@ -9,6 +9,3 @@ coverage.out
 
 # Dữ liệu td sinh ra khi thử nghiệm
 .tdx/
-
-# Tài liệu sinh tự động được commit, nhưng bản nháp cục bộ thì không
-/agents/cli/*.tmp

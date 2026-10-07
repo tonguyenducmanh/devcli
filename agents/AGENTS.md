@@ -50,8 +50,7 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `internal/tools/docgen/` | Sinh tài liệu Markdown cho cây lệnh |
 | `scripts/` | Mọi cấu hình và script build (xem `scripts/README.md`) |
 | `tests/` | Toàn bộ mã kiểm thử, tách theo vùng nghiệp vụ |
-| `agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `llms.txt`, `cli/` |
-| `scripts/VERSION` | Nguồn duy nhất của số phiên bản |
+| `agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
 
 ## Mô hình dữ liệu
 
@@ -114,18 +113,19 @@ mỗi lần đóng góp.
 
 ## Phiên bản
 
-Số phiên bản nằm trong file `scripts/VERSION`, là nguồn duy nhất.
-`scripts/build_all.sh` đọc file đó rồi gắn vào binary bằng cờ ldflags, nên `td version`
-luôn khớp với tên file trong `out/`.
+Số phiên bản nằm ở biến `VERSION` trong phần cấu hình của
+`scripts/build_binaries.sh`, là nguồn duy nhất. Script build đọc biến đó rồi
+gắn vào tệp thực thi bằng cờ ldflags, nên `td version` luôn khớp với tên file
+trong `out/`.
 
-Ghi đè tạm mà không cần sửa file:
+Phát hành bản mới thì sửa đúng một dòng đó rồi chạy:
 
 ```bash
-VERSION=1.2.3 ./scripts/build_all.sh
+./scripts/build_all.sh
 ```
 
-Biến `Version` trong `cmd/root.go` phải khai báo bằng `var` thì ldflags mới ghi
-được, đừng đổi thành `const`.
+Biến `AppName`, `Version` và `RepoURL` trong `cmd/root.go` phải khai báo bằng
+`var` thì ldflags mới ghi được, đừng đổi thành `const`.
 
 ## Về kiểm thử
 

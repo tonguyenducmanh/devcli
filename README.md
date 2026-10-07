@@ -9,68 +9,81 @@ sẽ bổ sung theo cùng khuôn mẫu.
 
 ## Yêu cầu
 
-- Go 1.23 trở lên (kiểm tra bằng `go version`).
-- Không cần thư viện nào khác lúc chạy, td là một binary tĩnh duy nhất.
+- Go 1.23 trở lên, kiểm tra bằng `go version`.
+- Không cần gì khác lúc chạy. td là một tệp thực thi duy nhất.
 
 ## Build
 
 ```bash
-./scripts/build_all.sh               # build Mac, Linux, Windows vào out/
-./scripts/check.sh              # định dạng + phân tích tĩnh + kiểm thử + đối chiếu tài liệu
-go test ./...                # chạy kiểm thử
+./scripts/build_all.sh
 ```
 
-Kết quả nằm trong `out/`, tên file chứa kèm phiên bản:
+Lệnh trên sinh lại tài liệu lệnh trong `agents/cli/`, rồi build cho mọi nền
+tảng khai báo trong `scripts/build_binaries.sh`. Kết quả nằm ở thư mục `out/`,
+tên file chứa kèm số phiên bản:
 
 ```
-out/td-mac-arm-0.1.0
-out/td-mac-intel-0.1.0
-out/td-linux-0.1.0
-out/td-windows-0.1.0.exe
+out/td-mac-arm-0.1.0          macOS trên chip Apple Silicon
+out/td-linux-0.1.0            Linux 64 bit
+out/td-windows-0.1.0.exe      Windows 64 bit
 ```
+
+Chỉ cần một nền tảng thì nêu tên:
+
+```bash
+./scripts/build_binaries.sh mac-arm windows   # build 2 nền tảng
+./scripts/build_binaries.sh --list           # xem danh sách có thể build
+```
+
+Muốn thêm hoặc bỏ một nền tảng, sửa mục `TARGETS` ở đầu `scripts/build_binaries.sh`,
+không cần đụng vào phần logic của script. Cùng chỗ đó còn cấu hình tên lệnh,
+tên tệp thực thi, thư mục kết quả và các cờ biên dịch. Chi tiết ở
+[`scripts/README.md`](scripts/README.md).
 
 ### Phiên bản
 
-Phiên bản lấy từ file `scripts/VERSION`, là nguồn duy nhất cho toàn bộ dự án. Ghi đè tạm khi build mà không cần sửa file:
+Số phiên bản nằm ở biến `VERSION` trong phần cấu hình của
+[`scripts/build_binaries.sh`](scripts/build_binaries.sh), là nguồn duy nhất cho
+toàn bộ dự án. Đổi phiên bản thì sửa dòng đó rồi build lại:
 
-```bash
-VERSION=1.2.3 ./scripts/build_all.sh
+```sh
+VERSION=1.2.3
 ```
 
-Phiên bản được gắn vào binary lúc biên dịch nên `td version` luôn cho biết đúng
-bản đang chạy. Muốn phát hành bản mới thì sửa `scripts/VERSION`, chạy `./scripts/build_all.sh`,
-rồi đẩy lên trang phát hành.
+Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `td version` luôn cho
+biết đúng bản đang chạy, khớp với tên file trong `out/`.
 
 ### Build bằng lệnh go thuần
 
 ```bash
-go build -o td .
-go install .            # cài vào $GOPATH/bin
+go build -o td .    # cho máy đang chạy
+go install .        # cài vào $GOPATH/bin
 ```
 
-## Cài đặt
+## Dùng tệp thực thi trên từng hệ điều hành
 
-td là một binary độc lập, nên "cài đặt" chỉ là chép file executable vào một
+Chọn đúng tệp trong `out/` theo hệ điều hành và kiến trúc máy, rồi chép vào một
 thư mục nằm trong `PATH`.
-
-```bash
-# cài cho bản dùng thử
-install -m 755 out/td-mac-arm-0.1.0 ~/bin/td
-
-# hoặc chỉ cần dùng trong dự án mà không cài
-./out/td-mac-arm-0.1.0 vcs status
-```
 
 ### macOS
 
+Bản dựng cho Apple Silicon, kiểm tra bằng `uname -m` cho ra `arm64`.
+
 ```bash
 install -m 755 out/td-mac-arm-0.1.0 ~/bin/td
+
 echo 'export PATH="$PATH:$HOME/bin"' >> ~/.zshrc
 source ~/.zshrc
 td version
 ```
 
-Nếu tải binary bằng trình duyệt, macOS có thể chặn vì không có chữ ký:
+Muốn cài cho toàn hệ thống thay vì chỉ tài khoản của bạn:
+
+```bash
+sudo install -m 755 out/td-mac-arm-0.1.0 /usr/local/bin/td
+```
+
+Nếu sao chép tệp bằng trình duyệt, macOS có thể chặn vì không có chữ ký:
 
 ```bash
 xattr -d com.apple.quarantine ~/bin/td
@@ -78,22 +91,38 @@ xattr -d com.apple.quarantine ~/bin/td
 
 ### Linux
 
-```bash
-# không cần sudo
-install -m 755 out/td-linux-0.1.0 ~/.local/bin/td
-echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
+Bản dựng cho máy 64 bit thông thường, kiểm tra bằng `uname -m` cho ra
+`x86_64`.
 
-# hoặc cài cho toàn hệ thống
+```bash
+install -m 755 out/td-linux-0.1.0 ~/.local/bin/td
+
+echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+Hoặc cài cho toàn hệ thống:
+
+```bash
 sudo install -m 755 out/td-linux-0.1.0 /usr/local/bin/td
 ```
 
+Kiểm tra tệp đã quyền chạy chưa:
+
+```bash
+ls -l ~/bin/td          # phần cuối phải là rwxr-xr-x
+chmod +x ~/bin/td       # nếu chưa có
+```
+
 ### Windows
+
+Mở PowerShell ở thư mục chứa thư mục `out/`:
 
 ```powershell
 New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\td"
 Copy-Item out\td-windows-0.1.0.exe "$env:LOCALAPPDATA\td\td.exe"
 
-# thêm vào Path của người dùng, vĩnh viễn
+# thêm vào Path của người dùng, có hiệu lực vĩnh viễn
 [Environment]::SetEnvironmentVariable(
   "Path",
   [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\td",
@@ -101,55 +130,55 @@ Copy-Item out\td-windows-0.1.0.exe "$env:LOCALAPPDATA\td\td.exe"
 )
 ```
 
-Mở cửa sổ PowerShell mới rồi kiểm tra bằng `td version`.
+Mở một cửa sổ PowerShell mới rồi kiểm tra:
 
-### Cài bằng trình quản lý gói
-
-Khi phát hành trên trang Releases, có thể đưa td vào các trình quản lý gói phổ
-biến, người dùng cập nhật và gỡ cài đặt bằng một lệnh:
-
-| Hệ điều hành | Trình quản lý | Lệnh cài | Lệnh cập nhật | Lệnh gỡ |
-| --- | --- | --- | --- | --- |
-| macOS | Homebrew | `brew install td` | `brew upgrade td` | `brew uninstall td` |
-| Windows | Scoop | `scoop install td` | `scoop update td` | `scoop uninstall td` |
-| Windows | winget | `winget install td` | `winget upgrade td` | `winget uninstall td` |
-| Linux | Go | `go install ...@latest` | chạy lại lệnh | xoá trong `$GOPATH/bin` |
-
-## Cập nhật
-
-Vì cấu hình nằm ở `~/.config/td/config` và dữ liệu mỗi dự án nằm trong thư mục
-`.tdx`, **cài đè binary là đủ để cập nhật**, không mất dữ liệu:
-
-```bash
-# tải bản mới, chép đè lên binary cũ
-install -m 755 out/td-linux-1.2.0 /usr/local/bin/td
-td version        # xác nhận đã lên phiên bản mới
+```powershell
+td version
 ```
 
-Trên Windows:
+Windows không cần cấp quyền thực thi như trên macOS và Linux. Nếu PowerShell chặn
+việc chạy tệp, xem [Execution Policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/set-executionpolicy).
+
+### Dùng tạm mà không cài
+
+Không cần chép vào `PATH` cũng chạy được, gọi thẳng tệp thôi:
+
+```bash
+./out/td-mac-arm-0.1.0 vcs status
+```
+
+### Thay bằng bản mới
+
+td không lưu gì cạnh tệp thực thi, nên chép tệp mới đè lên tệp cũ là xong.
+Cấu hình nằm ở `~/.config/td/config` và dữ liệu mỗi dự án nằm trong thư mục
+`.tdx`, cả hai đều không bị ảnh hưởng.
+
+```bash
+install -m 755 out/td-linux-1.2.0 ~/.local/bin/td
+```
 
 ```powershell
 Copy-Item -Force out\td-windows-1.2.0.exe "$env:LOCALAPPDATA\td\td.exe"
 ```
 
-Dùng trình quản lý gói thì không cần làm gì, chỉ cần lệnh `upgrade`.
-
-## Gỡ cài đặt
+### Gỡ bỏ
 
 ```bash
-# xoá binary
-rm ~/bin/td            # hoặc: sudo rm /usr/local/bin/td
-
-# xoá thêm cấu hình toàn cục
-rm -rf ~/.config/td
-
-# xoá thêm kho td trong các dự án (nếu muốn)
-find . -type d -name .tdx -prune -exec rm -rf {} +
+rm ~/bin/td                    # hoặc ~/.local/bin/td, /usr/local/bin/td
 ```
 
-Chạy `td` sau khi gỡ không còn ý nghĩa, nhưng thư mục `.tdx` trong dự án vẫn là
-dữ liệu thô. Xoá hay giữ là tuỳ bạn, nên lệnh xoá được tách riêng khỏi bước gỡ
-binary.
+Tệp thực thi là toàn bộ phần mềm, xoá nó là xong. Nếu muốn xoá nốt cấu hình:
+
+```bash
+rm -rf ~/.config/td
+```
+
+Dữ liệu kho mã nguồn trong thư mục `.tdx` của từng dự án không bị đụng tới,
+vì đó là lịch sử công việc của bạn. Xoá thủ công khi không cần nữa:
+
+```bash
+find . -type d -name .tdx -prune -exec rm -rf {} +
+```
 
 ## Bắt đầu nhanh
 
@@ -294,7 +323,6 @@ Bao gồm:
 | --- | --- |
 | `agents/README.md` | Mô tả thư mục tài liệu cho trợ lý lập trình |
 | `agents/AGENTS.md` | Kiến trúc, bất biến, quy trình và quy ước viết mã |
-| `agents/llms.txt` | Tóm tắt ngắn cho trợ lý AI |
 | `agents/cli/` | Tham chiếu từng lệnh, sinh tự động |
 | `CONTRIBUTING.md` | Quy trình đóng góp |
 | `tests/README.md` | Vì sao kiểm thử nằm ở thư mục riêng |

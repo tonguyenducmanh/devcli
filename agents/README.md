@@ -12,7 +12,6 @@ tài liệu khiến cả hai đều kém rõ ràng.
 | Tệp | Dành cho | Nội dung | Có sinh tự động? |
 | --- | --- | --- | --- |
 | `AGENTS.md` | Trợ lý lập trình | Kiến trúc, bất biến, quy ước viết mã | Không, viết tay |
-| `llms.txt` | Trợ lý AI | Tóm tắt dự án trong vài dòng | Không, viết tay |
 | `cli/` | Trợ lý AI | Tham chiếu từng lệnh: cú pháp, ví dụ, cờ | **Có** |
 
 ### `AGENTS.md`
@@ -25,11 +24,6 @@ Tài liệu nền cho trợ lý lập trình làm việc trên kho mã này. G�
 4. **Quy trình và quy ước** — thêm lệnh mới, thêm nhóm công cụ mới, viết mã.
 
 Sửa `AGENTS.md` mỗi khi kiến trúc thay đổi.
-
-### `llms.txt`
-
-Bản tóm tắt ngắn gọn, theo định dạng thường dùng để trợ lý AI đọc nhanh.
-Chỉ mô tả: dự án làm gì, có nhóm lệnh nào, tài liệu ở đâu.
 
 ### `cli/`
 
@@ -72,8 +66,11 @@ Quên chạy sẽ khiến tài liệu lệch với thực tế. `./scripts/check
 | Trợ lý | Tệp được đọc tự động |
 | --- | --- |
 | opencode, cursor, claude code, và nhiều công cụ khác | `AGENTS.md` ở thư mục gốc, đi theo đường dẫn tới tệp thật |
-| Trợ lý AI tìm kiếm tài liệu | `llms.txt` |
 | Bất kỳ trợ lý nào cần chi tiết về lệnh | `cli/td_vcs_<tên lệnh>.md` |
+
+Không có tệp tóm tắt riêng kiểu `llms.txt`. `AGENTS.md` đã nằm ngay ở
+thư mục gốc nên mọi trợ lý đọc được ngay, thêm tệp tóm tắt chỉ tạo thêm một
+nơi phải cập nhật mà không thêm thông tin gì.
 
 Vì nhiều công cụ chỉ tự tìm `AGENTS.md` ở thư mục gốc, có một tệp trỏ ngắn
 cùng tên ở gốc. Tệp đó chỉ dẫn tới tệp thật trong thư mục này.

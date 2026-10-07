@@ -18,11 +18,11 @@ td [flags]
 ### Examples
 
 ```
-  td vcs init                     khởi tạo kho tại thư mục hiện tại
-  td vcs status                   xem các thay đổi chưa commit
-  td vcs commit -m "tin nhắn"     ghi lại thay đổi
-  td config --list                xem cấu hình đang dùng
-  td --help                       xem toàn bộ lệnh
+  td vcs init                   khởi tạo kho tại thư mục hiện tại
+  td vcs status                 xem các thay đổi chưa commit
+  td vcs commit -m "tin nhắn"   ghi lại thay đổi
+  td config --list              xem cấu hình đang dùng
+  td --help                     xem toàn bộ lệnh
 ```
 
 ### Options

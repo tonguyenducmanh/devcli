@@ -7,13 +7,14 @@ thư mục gốc chỉ còn mã nguồn và tài liệu.
 
 | Tệp | Vai trò |
 | --- | --- |
-| `VERSION` | Số phiên bản của ứng dụng, nguồn duy nhất |
-| `build_all.sh` | Điểm vào chính để build |
-| `build_binaries.sh` | Build binary cho Mac, Linux, Windows vào `out/` |
+| `build_all.sh` | Điểm vào chính để build: sinh tài liệu rồi build tệp thực thi |
+| `build_binaries.sh` | Toàn bộ cấu hình build nằm ở đầu tệp này, phần còn lại là logic |
 | `build_agent_docs.sh` | Sinh lại tài liệu lệnh trong `agents/cli/` |
 | `check.sh` | Kiểm tra trọn vẹn trước khi đóng góp |
-| `td_version.sh` | Các hàm đọc phiên bản và tạo ldflags, được `source` bởi script khác |
-| `golangci.yml` | Cấu hình phân tích mã |
+
+Cấu hình nằm ngay trong `build_binaries.sh`, không tách tệp riêng. Thêm
+nền tảng, đổi phiên bản, đổi tên lệnh hay đổi cờ biên dịch đều chỉ sửa một
+tệp duy nhất, đọc cũng chỉ một chỗ.
 
 ## Cách chạy
 
@@ -21,61 +22,108 @@ Tất cả script đều tự tìm thư mục gốc qua vị trí của chính n
 từ bất kỳ thư mục nào:
 
 ```bash
-./scripts/build_all.sh
-./scripts/check.sh
+./scripts/build_all.sh                    # sinh tài liệu rồi build mọi nền tảng
+./scripts/build_all.sh mac-arm linux      # chỉ build một vài nền tảng
+./scripts/build_binaries.sh --list        # xem danh sách nền tảng
+./scripts/check.sh                        # kiểm tra trước khi đóng góp
 ```
 
-## Đổi phiên bản
+`build_all.sh` gọi lần lượt `build_agent_docs.sh` rồi `build_binaries.sh`.
+Muốn build tệp thực thi mà không sinh lại tài liệu thì gọi
+`build_binaries.sh` trực tiếp.
 
-Sửa nội dung file `VERSION`:
+## Cấu hình
 
-```bash
-echo "1.2.3" > scripts/VERSION
-```
+Phần cấu hình của `build_binaries.sh` nằm giữa hai đường kẻ `═══`, gồm bảy
+biến khai báo thuần:
 
-Rồi build lại:
+| Biến | Ý nghĩa |
+| --- | --- |
+| `CMD_NAME` | Tên gọi lệnh trên terminal, ví dụ `td vcs status` |
+| `REPO_URL` | Nơi phát hành, dùng để in gợi ý khi báo lỗi |
+| `VERSION` | Số phiên bản của ứng dụng |
+| `APP_NAME` | Tiền tố cho tên tệp trong `out/` |
+| `OUT_DIR` | Thư mục chứa kết quả build |
+| `BUILD_FLAGS` | Cờ biên dịch, mặc định `-s -w` |
+| `CGO_ENABLED` | Đặt `0` để tệp thực thi tĩnh thật sự |
 
-```bash
-./scripts/build_all.sh
-```
+Cùng phần còn có `TARGETS`, danh sách nền tảng cần build.
 
-Tên file trong `out/` và kết quả của `td version` đều lấy từ file này.
+### Đổi phiên bản
 
-Muốn thử một phiên bản khác mà không sửa file:
-
-```bash
-VERSION=9.9.9 ./scripts/build_all.sh
-```
-
-## Về `td_version.sh`
-
-Đây là tệp duy nhất được `source` chứ không phải chạy như script:
+Sửa dòng `VERSION`, đây là nguồn duy nhất:
 
 ```sh
-. "$(dirname "$0")/td_version.sh"
-VERSION=$(td_get_version)
-LDFLAGS=$(td_get_ldflags "$VERSION")
+VERSION=1.2.3
+./scripts/build_all.sh
 ```
 
-Các hàm cung cấp:
+Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `td version` luôn khớp
+với tên file trong `out/`.
 
-- `td_find_scripts_dir` — vị trí thư mục `scripts`.
-- `td_get_version` — đọc phiên bản, ưu tiên biến môi trường `VERSION`.
-- `td_get_ldflags` — tạo cờ ldflags gắn phiên bản vào binary.
+### Đổi tên lệnh
 
-Lưu ý: biến `Version` trong `cmd/root.go` phải khai báo bằng `var` thì ldflags
-mới ghi được. Đừng đổi thành `const`.
+Sửa `CMD_NAME`:
 
-## Về `golangci.yml`
+```sh
+CMD_NAME=devtool
+```
 
-Vì không nằm ở thư mục gốc nên khi chạy phải chỉ định đường dẫn:
+Đổi thành `devtool` thì chạy bằng `devtool vcs status`, phần trợ giúp cũng tự
+đổi theo.
+
+### Thêm hoặc bỏ một nền tảng
+
+Sửa mục `TARGETS`. Mỗi dòng có dạng:
+
+```
+tên | goos | goarch | đuôi tệp
+```
+
+Danh sách mặc định gồm macOS Apple Silicon, Linux và Windows:
+
+```
+mac-arm|darwin|arm64|
+linux|linux|amd64|
+windows|windows|amd64|.exe
+```
+
+Ví dụ thêm bản cho Linux trên chip ARM:
+
+```
+mac-arm|darwin|arm64|
+linux|linux|amd64|
+linux-arm|linux|arm64|
+windows|windows|amd64|.exe
+```
+
+Cột đuôi tệp bỏ trống nếu không cần. Xem kết quả sau khi sửa:
 
 ```bash
-golangci-lint run -c scripts/golangci.yml
+./scripts/build_binaries.sh --list
 ```
 
-Cài golangci-lint:
+### Đổi cờ biên dịch
+
+Sửa `BUILD_FLAGS` và `CGO_ENABLED`. Cờ gắn phiên bản và các biến toàn cục
+(`-X ...cmd.Version`) do `make_ldflags` tự thêm, không khai báo ở đây.
+
+Lưu ý: các biến `AppName`, `Version` và `RepoURL` trong `cmd/root.go` phải
+khai báo bằng `var` thì `ldflags` mới ghi được. Đừng đổi thành `const`.
+
+## Kiểm tra mã nguồn
+
+`check.sh` chạy bốn bước, tất cả phải qua:
+
+1. `gofmt -s -l .` — định dạng.
+2. `go vet ./...` — phân tích tĩnh.
+3. `go test ./...` — kiểm thử trong `tests/`.
+4. Đối chiếu `agents/cli/` với cây lệnh.
+
+Muốn phân tích sâu hơn thì dùng `golangci-lint`, nhưng tự cài vì dự án không
+kèm cấu hình:
 
 ```bash
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+golangci-lint run
 ```
