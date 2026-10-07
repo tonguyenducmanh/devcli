@@ -155,6 +155,7 @@ func (r *Repo) lookupShortHash(prefix string) (object.Hash, bool) {
 	if len(prefix) < 4 || len(prefix) > 40 {
 		return object.ZeroHash, false
 	}
+	prefix = strings.ToLower(prefix)
 	for _, c := range prefix {
 		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
 			return object.ZeroHash, false

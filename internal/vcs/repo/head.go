@@ -24,10 +24,9 @@ func (r *Repo) UpdateHeadCommit(h object.Hash, msg string) error {
 	if err := r.UpdateRefWithLog(headRef, h, msg); err != nil {
 		return err
 	}
-	// Ghi thêm vào reflog HEAD để theo dõi được việc chuyển nhánh.
+	// Ghi thêm vào reflog HEAD để theo dõi được việc cập nhật nhánh.
 	old, _ := r.Refs.Resolve(headRef)
-	_ = old
-	return r.Refs.AppendReflog(headFile, object.ZeroHash, h, msg)
+	return r.Refs.AppendReflog(headFile, old, h, msg)
 }
 
 // UpdateHeadRef chuyển HEAD sang một nhánh khác, ghi reflog cho cả hai.

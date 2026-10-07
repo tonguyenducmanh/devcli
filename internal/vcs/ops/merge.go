@@ -150,7 +150,7 @@ func Merge(r *repo.Repo, opts MergeOptions) (*MergeResult, error) {
 	}
 	msg := opts.Message
 	if msg == "" {
-		msg = fmt.Sprintf("Merge branch '%s' into %s", opts.Branch, currentName(r))
+		msg = fmt.Sprintf("Hợp nhất nhánh '%s' vào %s", opts.Branch, currentName(r))
 	}
 	if err := r.WriteState(MergeMsg, msg+"\n"); err != nil {
 		return nil, err
