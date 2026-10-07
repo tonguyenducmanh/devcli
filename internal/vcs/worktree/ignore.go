@@ -20,26 +20,39 @@ type ignoreRule struct {
 	negate   bool
 	dirOnly  bool
 	anchored bool
-	base     string
+	// base là thư mục chứa tệp ignore sinh ra quy tắc này. Quy tắc chỉ áp dụng
+	// cho những đường dẫn nằm bên trong base, đúng như gitignore lồng nhau.
+	base string
+	// source là đường dẫn tệp ignore, dùng để nạp lại mà không nhân bản quy
+	// tắc. Rỗng với quy tắc nạp từ reader không gắn với tệp nào.
+	source string
 }
 
 // NewIgnore tạo bộ quy tắc rỗng.
 func NewIgnore(base string) *Ignore { return &Ignore{base: base} }
 
-// AddFile nạp các quy tắc từ một file ignore.
+// IgnoreFileName là tên tệp ignore đặt trong thư mục bất kỳ, kể cả thư mục con.
+const IgnoreFileName = ".tdxignore"
+
+// AddFile nạp các quy tắc từ một tệp ignore.
+//
+// Nạp lại cùng một tệp sẽ thay thế các quy tắc cũ chứ không nối thêm, để quét
+// cây làm việc nhiều lần vẫn không sinh quy tắc trùng.
 func (ig *Ignore) AddFile(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	return ig.AddReader(f, filepath.Dir(path))
+	return ig.addFrom(f, filepath.Dir(path), path)
 }
 
-// AddReader nạp quy tắc từ một reader, dir là thư mục chứa nguồn quy tắc.
-func (ig *Ignore) AddReader(r interface {
+// addFrom đọc quy tắc từ reader rồi nối vào cuối danh sách.
+func (ig *Ignore) addFrom(r interface {
 	Read([]byte) (int, error)
-}, dir string) error {
+}, dir, source string) error {
+	ig.dropSource(source)
+
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 	for sc.Scan() {
@@ -47,13 +60,34 @@ func (ig *Ignore) AddReader(r interface {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
-		ig.addPattern(line, dir)
+		ig.addPattern(line, dir, source)
 	}
 	return sc.Err()
 }
 
-func (ig *Ignore) addPattern(line, dir string) {
-	r := ignoreRule{base: dir}
+// dropSource xoá các quy tắc cũ đến từ một tệp ignore.
+func (ig *Ignore) dropSource(source string) {
+	if source == "" {
+		return
+	}
+	kept := ig.rules[:0]
+	for _, r := range ig.rules {
+		if r.source != source {
+			kept = append(kept, r)
+		}
+	}
+	ig.rules = kept
+}
+
+// AddReader nạp quy tắc từ một reader, dir là thư mục chứa nguồn quy tắc.
+func (ig *Ignore) AddReader(r interface {
+	Read([]byte) (int, error)
+}, dir string) error {
+	return ig.addFrom(r, dir, "")
+}
+
+func (ig *Ignore) addPattern(line, dir, source string) {
+	r := ignoreRule{base: dir, source: source}
 	if strings.HasPrefix(line, "!") {
 		r.negate = true
 		line = line[1:]
@@ -85,7 +119,11 @@ func (ig *Ignore) Matches(repoRoot, rel string) bool {
 	rel = filepath.ToSlash(rel)
 	ignored := false
 	for _, r := range ig.rules {
-		if !r.match(rel) {
+		// Quy tắc từ tệp ignore nằm trong thư mục con chỉ có tác dụng bên
+		// trong thư mục đó. Ở đây cắt tiền tố thư mục ra, rồi mẫu được so với
+		// phần đường dẫn còn lại.
+		sub, ok := trimBasePrefix(repoRoot, r.base, rel)
+		if !ok || !r.match(sub) {
 			continue
 		}
 		if r.negate {
@@ -95,6 +133,30 @@ func (ig *Ignore) Matches(repoRoot, rel string) bool {
 		ignored = true
 	}
 	return ignored
+}
+
+// trimBasePrefix cắt tiền tố thư mục chứa tệp ignore ra khỏi đường dẫn, trả về
+// phần còn lại.
+//
+// Trả về false nếu đường dẫn không nằm trong thư mục đó, tức là quy tắc không
+// có tác dụng với đường dẫn này. Chính thư mục chứa tệp ignore cũng không được
+// coi là nằm trong đó, vì thư mục đó do tệp ignore ở cấp trên quyết định.
+func trimBasePrefix(repoRoot, base, rel string) (string, bool) {
+	prefix := filepath.ToSlash(base)
+	if root := filepath.ToSlash(repoRoot); strings.HasPrefix(prefix, root) {
+		prefix = strings.TrimPrefix(prefix, root)
+	}
+	prefix = strings.Trim(prefix, "/")
+	if prefix == "" || prefix == "." {
+		return rel, true
+	}
+	if rel == prefix {
+		return "", false
+	}
+	if after, ok := strings.CutPrefix(rel, prefix+"/"); ok {
+		return after, true
+	}
+	return "", false
 }
 
 // match kiểm tra một quy tắc có khớp với đường dẫn hay không.

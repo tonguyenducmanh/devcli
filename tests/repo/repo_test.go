@@ -10,6 +10,56 @@ import (
 )
 
 // newTestRepo tạo một repo tạm cho mỗi phép kiểm tra.
+// TestIgnoreFilesListsNested bảo đảm liệt kê đủ các tệp ignore và sắp theo
+// thứ tự quyết định.
+func TestIgnoreFilesListsNested(t *testing.T) {
+	r := newTestRepo(t)
+
+	// Gốc trước, rồi thư mục con, rồi tệp riêng của máy đứng cuối.
+	writeFile(t, r, ".tdxignore", "*.log\n")
+	writeFile(t, r, "sub/.tdxignore", "tmp/\n")
+	writeFile(t, r, "sub/deep/.tdxignore", "scratch.txt\n")
+
+	files, err := r.IgnoreFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []string{
+		".tdxignore",
+		"sub/.tdxignore",
+		"sub/deep/.tdxignore",
+		".tdx/info/exclude",
+	}
+	if len(files) != len(want) {
+		t.Fatalf("mong đợi %d tệp, nhận %d: %v", len(want), len(files), files)
+	}
+	for i, w := range want {
+		if files[i] != w {
+			t.Errorf("vị trí %d: mong đợi %q, nhận %q", i, w, files[i])
+		}
+	}
+}
+
+// TestIgnoreFilesSkipsIgnoredDirectory bảo đảm không liệt kê tệp ignore nằm
+// trong thư mục đã bị bỏ qua, vì quy tắc ở đó không bao giờ được thực thi.
+func TestIgnoreFilesSkipsIgnoredDirectory(t *testing.T) {
+	r := newTestRepo(t)
+
+	writeFile(t, r, ".tdxignore", "vendor/\n")
+	writeFile(t, r, "vendor/.tdxignore", "*.go\n")
+
+	files, err := r.IgnoreFiles()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range files {
+		if f == "vendor/.tdxignore" {
+			t.Error("tệp ignore trong thư mục đã bị bỏ qua không nên xuất hiện")
+		}
+	}
+}
+
 func newTestRepo(t *testing.T) *repo.Repo {
 	t.Helper()
 	dir := t.TempDir()

@@ -135,6 +135,95 @@ func TestSameContents(t *testing.T) {
 	}
 }
 
+// viếtIgnoreFile ghi nội dung vào một tệp ignore rồi trả về đường dẫn.
+func viếtIgnoreFile(t *testing.T, dir, content string) string {
+	t.Helper()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(dir, worktree.IgnoreFileName)
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// TestIgnoreNestedFileOnlyAppliesInside bảo đảm .tdxignore trong thư mục con chỉ
+// có tác dụng bên trong thư mục đó.
+//
+// Quy tắc đặt sai phạm vi thì rất khó phát hiện: tệp bị bỏ qua ngoài ý muốn ở
+// một nơi, và tệp lẽ ra phải bị bỏ qua lại không bị.
+func TestIgnoreNestedFileOnlyAppliesInside(t *testing.T) {
+	root := t.TempDir()
+	ig := worktree.NewIgnore(root)
+
+	if err := ig.AddFile(viếtIgnoreFile(t, root, "*.log\n")); err != nil {
+		t.Fatal(err)
+	}
+	sub := filepath.Join(root, "sub")
+	if err := ig.AddFile(viếtIgnoreFile(t, sub, "only-here.txt\n")); err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		path string
+		want bool
+	}{
+		{"only-here.txt", false},         // ngoài sub, quy tắc không tới
+		{"sub/only-here.txt", true},      // trong sub
+		{"sub/deep/only-here.txt", true}, // vẫn trong sub
+		{"other.txt", false},
+		{"sub/other.txt", false},
+		{"sub/a.log", true}, // quy tắc ở gốc vẫn áp dụng mọi cấp
+	}
+	for _, tc := range cases {
+		if got := ig.Matches(root, tc.path); got != tc.want {
+			t.Errorf("%s: mong đợi bỏ qua=%v, nhận %v", tc.path, tc.want, got)
+		}
+	}
+}
+
+// TestIgnoreNestedFileCanOverrideParent bảo đảm quy tắc sâu hơn được nạp sau
+// nên thắng quy tắc ở cấp trên.
+func TestIgnoreNestedFileCanOverrideParent(t *testing.T) {
+	root := t.TempDir()
+	ig := worktree.NewIgnore(root)
+
+	if err := ig.AddFile(viếtIgnoreFile(t, root, "*.log\n")); err != nil {
+		t.Fatal(err)
+	}
+	if err := ig.AddFile(viếtIgnoreFile(t, filepath.Join(root, "sub"), "!keep.log\n")); err != nil {
+		t.Fatal(err)
+	}
+
+	if !ig.Matches(root, "keep.log") {
+		t.Error("keep.log ở gốc phải bị bỏ qua theo quy tắc ở gốc")
+	}
+	if ig.Matches(root, "sub/keep.log") {
+		t.Error("sub/keep.log phải được giữ lại nhờ dấu ! trong sub/.tdxignore")
+	}
+}
+
+// TestIgnoreReloadSameFileDoesNotDuplicate bảo đảm nạp lại cùng một tệp không
+// sinh quy tắc trùng.
+//
+// Cây làm việc được quét lại nhiều lần, mỗi lần lại nạp các tệp ignore bên
+// trong. Nếu không thay quy tắc cũ, số quy tắc sẽ tăng vô hạn theo số lần quét.
+func TestIgnoreReloadSameFileDoesNotDuplicate(t *testing.T) {
+	root := t.TempDir()
+	ig := worktree.NewIgnore(root)
+	path := viếtIgnoreFile(t, root, "*.log\nbuild/\n")
+
+	for i := 0; i < 5; i++ {
+		if err := ig.AddFile(path); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := ig.Len(); got != 2 {
+		t.Errorf("nạp 5 lần cùng một tệp phải giữ 2 quy tắc, nhận %d", got)
+	}
+}
+
 func TestIgnorePatternsDiffer(t *testing.T) {
 	root := t.TempDir()
 	ig := worktree.NewIgnore(root)

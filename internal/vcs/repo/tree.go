@@ -359,6 +359,13 @@ func (r *Repo) ScanWorktree() ([]TreeNode, error) {
 			return filepath.SkipDir
 		}
 		if d.IsDir() {
+			// Nạp .tdxignore của thư mục này ngay khi bước vào, trước khi xét
+			// thư mục con bên trong. Nạp lúc duyệt tới tệp thì thứ tự từ vựng
+			// của WalkDir có thể làm một thư mục con nào đó được vào trước khi
+			// quy tắc kịp nạp. Quy tắc sâu hơn nạp sau nên thắng, giống git.
+			if rel != "." {
+				r.loadIgnoreIn(path)
+			}
 			// Không đi vào thư mục bị bỏ qua.
 			if r.Ignore.Matches(r.Root, rel) {
 				return filepath.SkipDir
@@ -555,4 +562,75 @@ func (r *Repo) UpdateRefWithLog(ref string, h object.Hash, msg string) error {
 		return err
 	}
 	return r.Refs.AppendReflog(ref, old, h, msg)
+}
+
+// loadIgnoreIn nạp tệp ignore nằm trong một thư mục, nếu có.
+//
+// Không nạp lại tệp ở thư mục gốc vì Open đã lo rồi. Lỗi đọc tệp bị bỏ qua:
+// một tệp ignore hỏng không nên làm hỏng luôn việc quét cây làm việc, và tệp
+// đó sẽ được báo lỗi khi lệnh ignore in nội dung.
+func (r *Repo) loadIgnoreIn(dir string) {
+	if filepath.Base(dir) == DirName {
+		return
+	}
+	f := filepath.Join(dir, worktree.IgnoreFileName)
+	if _, err := os.Stat(f); err != nil {
+		return
+	}
+	_ = r.Ignore.AddFile(f)
+}
+
+// IgnoreFiles trả về các tệp chứa quy tắc bỏ qua, theo đường dẫn tương đối tới
+// gốc kho.
+//
+// Gồm .tdx/info/exclude và mọi tệp .tdxignore từ gốc xuống các thư mục con.
+// Kết quả sắp theo thứ tự thư mục nông trước, để đọc ra quy tắc theo đúng thứ
+// tự quyết định: quy tắc sâu hơn nằm sau nên thắng.
+//
+// Thư mục đã bị bỏ qua thì không vào, vì git cũng không đọc tệp ignore bên
+// trong thư mục mà chính quy tắc ở cấp trên đã loại bỏ.
+func (r *Repo) IgnoreFiles() ([]string, error) {
+	var out []string
+
+	err := filepath.WalkDir(r.Root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil // bỏ qua thư mục không đọc được
+		}
+		rel, rerr := r.RelPath(path)
+		if rerr != nil {
+			return nil
+		}
+		if rel == DirName || strings.HasPrefix(rel, DirName+"/") {
+			return filepath.SkipDir
+		}
+		if d.IsDir() {
+			r.loadIgnoreIn(path)
+			if r.Ignore.Matches(r.Root, rel) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if d.Name() == worktree.IgnoreFileName {
+			out = append(out, rel)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		di, dj := strings.Count(out[i], "/"), strings.Count(out[j], "/")
+		if di != dj {
+			return di < dj
+		}
+		return out[i] < out[j]
+	})
+
+	// Tệp exclude của riêng máy để cuối cùng. Nó được nạp trước .tdxignore nên
+	// quy tắc chung của dự án có thể phủ lên nó, đọc ra sau cho đúng ý nghĩa.
+	if _, err := os.Stat(filepath.Join(r.GitDir, "info", "exclude")); err == nil {
+		out = append(out, filepath.ToSlash(filepath.Join(DirName, "info", "exclude")))
+	}
+	return out, nil
 }

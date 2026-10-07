@@ -345,12 +345,32 @@ docs/*.tmp      bỏ qua tệp .tmp nằm trong thư mục docs
 Dấu `/` ở cuối mẫu nói mẫu đó chỉ áp dụng cho thư mục. Dấu `*` không vượt qua
 dấu `/`, dấu `**` vượt được nhiều cấp. Quy tắc ở dưới thắng quy tắc ở trên.
 
-Hai tệp được td đọc tự động, không cần khai báo ở đâu:
+### Đặt quy tắc trong thư mục con
+
+`.tdxignore` có thể đặt ở bất kỳ thư mục nào, và quy tắc trong đó **chỉ áp dụng
+bên trong thư mục chứa nó**, không lan sang nơi khác:
+
+```
+.tdxignore              *.log          bỏ qua mọi tệp .log, mọi cấp
+sub/.tdxignore          tmp/           chỉ bỏ qua thư mục sub/tmp và bên dưới
+sub/deep/.tdxignore     !keep.log      trong sub/deep thì giữ lại keep.log
+```
+
+Quy tắc sâu hơn nạp sau nên thắng quy tắc ở cấp trên.
+
+### Hai tệp ignore
 
 | Tệp | Phạm vi | Có commit không |
 | --- | --- | --- |
-| `.tdxignore` | Cả nhóm cùng dùng, nằm ở gốc dự án | Nên commit |
+| `.tdxignore` | Cả nhóm cùng dùng, đặt ở gốc hoặc thư mục con | Nên commit |
 | `.tdx/info/exclude` | Riêng máy này, nằm trong `.tdx` | Không, tự sinh khi `init` |
+
+### Xem quy tắc đang có
+
+```bash
+td vcs ignore          # in nội dung mọi tệp ignore kèm đường dẫn
+td vcs ignore --help   # hướng dẫn viết mẫu, in ra luôn nếu kho chưa có quy tắc
+```
 
 Tệp bị bỏ qua sẽ không xuất hiện trong `td vcs status` và không được
 `td vcs add` đưa vào vùng chuẩn bị.
@@ -359,6 +379,7 @@ Xem thêm trong phần trợ giúp:
 
 ```bash
 td vcs --help
+td vcs ignore
 ```
 
 ## Kiểm thử

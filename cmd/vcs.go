@@ -43,8 +43,13 @@ Muốn quy tắc chỉ áp dụng cho riêng máy này thì ghi vào .tdx/info/e
 đó nằm trong .tdx nên không được commit. Còn .tdxignore nằm ở gốc dự án nên
 có thể commit để cả nhóm cùng dùng.
 
+Quy tắc cũng đặt được trong thư mục con, khi đó nó chỉ áp dụng bên trong thư mục
+đó chứ không lan sang nơi khác.
+
 Hai tệp này được td đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
-không xuất hiện trong status và không được add vào vùng chuẩn bị.`,
+không xuất hiện trong status và không được add vào vùng chuẩn bị.
+
+Xem các quy tắc đang có trong kho: td vcs ignore`,
 		Example: `  # Khởi tạo kho rồi ghi lại thay đổi đầu tiên
   td vcs init
   td vcs add .
@@ -79,6 +84,7 @@ không xuất hiện trong status và không được add vào vùng chuẩn b�
 
 	cmd.AddCommand(
 		vcsInitCmd,
+		vcsIgnoreCmd,
 		vcsStatusCmd,
 		vcsAddCmd,
 		vcsCommitCmd,

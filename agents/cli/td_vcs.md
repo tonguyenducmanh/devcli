@@ -32,8 +32,13 @@ Muốn quy tắc chỉ áp dụng cho riêng máy này thì ghi vào .tdx/info/e
 đó nằm trong .tdx nên không được commit. Còn .tdxignore nằm ở gốc dự án nên
 có thể commit để cả nhóm cùng dùng.
 
+Quy tắc cũng đặt được trong thư mục con, khi đó nó chỉ áp dụng bên trong thư mục
+đó chứ không lan sang nơi khác.
+
 Hai tệp này được td đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
 không xuất hiện trong status và không được add vào vùng chuẩn bị.
+
+Xem các quy tắc đang có trong kho: td vcs ignore
 
 ```
 td vcs [flags]
@@ -78,6 +83,7 @@ td vcs [flags]
 * [td vcs diff](td_vcs_diff.md)	 - Hiển thị khác biệt giữa các phiên bản
 * [td vcs fsck](td_vcs_fsck.md)	 - Kiểm tra tính toàn vẹn của kho và các tham chiếu
 * [td vcs hash-object](td_vcs_hash-object.md)	 - Tính và in mã băm của nội dung tệp
+* [td vcs ignore](td_vcs_ignore.md)	 - In các quy tắc bỏ qua tệp đang có trong kho
 * [td vcs init](td_vcs_init.md)	 - Khởi tạo kho mã nguồn td trong thư mục cho trước
 * [td vcs log](td_vcs_log.md)	 - Xem lịch sử commit
 * [td vcs merge](td_vcs_merge.md)	 - Hợp nhất một nhánh vào nhánh hiện tại
