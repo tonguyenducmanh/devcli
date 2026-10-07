@@ -52,7 +52,7 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `build_all.sh` | Điểm vào để build, nằm ở gốc kho |
 | `scripts/` | Cấu hình và script build còn lại (xem `scripts/README.md`) |
 | `tests/` | Toàn bộ mã kiểm thử, tách theo vùng nghiệp vụ |
-| `agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
+| `docs/agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
 
 ## Mô hình dữ liệu
 
@@ -135,7 +135,7 @@ Nên đặt tên cờ theo đúng việc nó làm: `td vcs branch --hash` chứ 
 ```bash
 ./build_all.sh                  # build Mac, Linux, Windows vào out/
 ./scripts/build_binaries.sh     # chỉ phần build binary
-./scripts/build_agent_docs.sh   # sinh lại agents/cli
+./scripts/build_agent_docs.sh   # sinh lại docs/agents/cli
 go test ./...                   # chạy kiểm thử
 ./scripts/check.sh              # kiểm tra trọn vẹn trước khi đóng góp
 ```
@@ -178,11 +178,11 @@ Khi sửa một lỗi, thêm kiểm thử tái hiện lỗi đó trước khi s�
 
 ## Tài liệu tham chiếu lệnh
 
-`agents/cli/` chứa tài liệu Markdown cho từng lệnh, sinh tự động từ cây lệnh
+`docs/agents/cli/` chứa tài liệu Markdown cho từng lệnh, sinh tự động từ cây lệnh
 bằng `internal/tools/docgen`. Khi cần biết chính xác một lệnh nhận những gì và
 làm gì, đọc tệp tương ứng thay vì đọc mã nguồn.
 
-Tệp `agents/cli/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
+Tệp `docs/agents/cli/td_vcs.md` là mục lục của nhóm `vcs`, bắt đầu từ đó.
 
 Thư mục này không sửa tay được. Sau khi thay đổi cây lệnh, chạy:
 

@@ -34,12 +34,12 @@ trap 'rm -rf "$TMP_DOCS"' EXIT
 go run ./internal/tools/docgen -out "$TMP_DOCS" >/dev/null
 
 # So từng tệp, bỏ qua dòng thời gian sinh tự động ở cuối tệp.
-if diff -r -I '^## Auto generated' "$ROOT_DIR/agents/cli" "$TMP_DOCS" >/dev/null 2>&1; then
+if diff -r -I '^## Auto generated' "$ROOT_DIR/docs/agents/cli" "$TMP_DOCS" >/dev/null 2>&1; then
     echo "OK"
 else
-    echo "Lỗi: agents/cli lệch với cây lệnh."
+    echo "Lỗi: docs/agents/cli lệch với cây lệnh."
     echo "Chạy: ./scripts/build_agent_docs.sh"
-    diff -r -I '^## Auto generated' "$ROOT_DIR/agents/cli" "$TMP_DOCS" | head -20
+    diff -r -I '^## Auto generated' "$ROOT_DIR/docs/agents/cli" "$TMP_DOCS" | head -20
     exit 1
 fi
 
