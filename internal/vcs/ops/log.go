@@ -46,9 +46,11 @@ type LogEntry struct {
 	Summary     string
 	Refs        []string
 	GraphPrefix string
-	Body        string
-	StatLines   []string
-	Patch       string
+	// Parents là các mã băm cha của commit, dùng để dựng biểu đồ nhánh.
+	Parents   []object.Hash
+	Body      string
+	StatLines []string
+	Patch     string
 }
 
 // Log dựng danh sách lịch sử commit đã định dạng.
@@ -91,6 +93,7 @@ func Log(r *repo.Repo, opts LogOptions) ([]LogEntry, error) {
 			When:    e.Commit.Author.When,
 			Summary: e.Commit.Summary(),
 			Body:    bodyOf(e.Commit.Message),
+			Parents: e.Commit.Parents,
 		}
 		if refs, err := r.RefsContaining(e.Hash); err == nil {
 			le.Refs = refs
