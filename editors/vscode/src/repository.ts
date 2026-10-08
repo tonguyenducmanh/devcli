@@ -34,6 +34,14 @@ export const GROUP_LABELS: Record<GroupId, string> = {
 	[GroupId.Untracked]: 'Untracked Changes'
 };
 
+/**
+ * Nội dung hiện cho mỗi phía khi tệp là tệp nhị phân.
+ *
+ * Cả hai phía cùng một dòng này thì khung so sánh không hiện khác biệt nào, khác
+ * với việc chỉ một phía có chữ, lúc đó mọi dòng đều thành khác biệt giả.
+ */
+const BINARY_NOTE = '(tệp nhị phân, không hiển thị nội dung)';
+
 /** Chữ viết tắt hiện ở góc tệp trong cây thư mục, giống git. */
 export const BADGES: Record<TdStatusCode, string> = {
 	A: 'A',
@@ -223,8 +231,10 @@ export class Repository implements Disposable {
 			resourceUri: uri,
 			contextValue: contextValueOf(state),
 			command: {
-				command: 'td.openFile',
-				title: 'Open File',
+				// Bấm vào tên tệp thì mở khung so sánh, giống extension git.
+				// Ai muốn mở thẳng tệp thì tắt cấu hình td.openDiffOnClick.
+				command: this.openDiffOnClick() ? 'td.openChange' : 'td.openFile',
+				title: this.openDiffOnClick() ? 'Open Changes' : 'Open File',
 				// Truyền cả kho lẫn tệp: khung Source Control gọi lệnh mà không
 				// kèm gì, còn các lệnh khác gọi với đúng hai đối số này.
 				arguments: [this.sourceControl, uri]
@@ -238,6 +248,11 @@ export class Repository implements Disposable {
 			}
 		};
 		return resource;
+	}
+
+	/** Cấu hình có bật mở khung so sánh khi bấm tệp trong khung Source Control. */
+	private openDiffOnClick(): boolean {
+		return workspace.getConfiguration('td', Uri.file(this.root)).get<boolean>('openDiffOnClick', true);
 	}
 
 	/**
@@ -262,25 +277,75 @@ export class Repository implements Disposable {
 	/**
 	 * Nội dung của một phía trong khung so sánh.
 	 *
-	 * Phía trên đĩa thì đọc tệp thật để giữ đúng dấu xuống dòng cuối cùng; phía
-	 * còn lại dựng lại từ khác biệt của td.
+	 * Phía trên đĩa thì đọc tệp thật để giữ đúng dấu xuống dòng cuối cùng. Phía
+	 * nằm trong HEAD đọc thẳng từ kho nên không phụ thuộc tệp có bị thay đổi ở
+	 * commit đó hay không. Phía còn lại dựng lại từ khác biệt của td vì vùng
+	 * chuẩn bị và cây làm việc chỉ tồn tại trên đĩa.
 	 */
 	async contentOf(relativePath: string, ref: Ref | string, side: Side, token: CancellationToken): Promise<string> {
-		let patch: TdPatch | undefined;
 		if (ref === Ref.Worktree) {
-			return Buffer.from(await workspace.fs.readFile(this.toAbsolutePath(relativePath))).toString('utf8');
+			return this.readWorktreeFile(relativePath);
+		}
+		if (token.isCancellationRequested) {
+			return '';
 		}
 		if (ref === Ref.Head) {
-			patch = await this.patchFor(relativePath, true);
-		} else if (ref === Ref.Index) {
-			patch = await this.patchFor(relativePath, false);
-		} else {
-			patch = await this.patchForRevision(relativePath, String(ref));
+			// Tệp chưa có trong HEAD thì phía này rỗng, ví dụ tệp vừa được thêm.
+			return (await this.contentAt(relativePath, Ref.Head)) ?? '';
 		}
+		const patch = ref === Ref.Index
+			? await this.patchFor(relativePath, false)
+			: await this.patchForRevision(relativePath, String(ref));
 		if (token.isCancellationRequested || !patch) {
 			return '';
 		}
+		if (patch.binary) {
+			return BINARY_NOTE;
+		}
 		return side === Side.New ? patch.new : patch.old;
+	}
+
+	/**
+	 * Nội dung tệp ở HEAD hoặc ở vùng chuẩn bị, undefined khi tệp không có ở đó.
+	 *
+	 * HEAD đọc thẳng từ kho nên đúng với mọi tệp, kể cả tệp mà commit đó không
+	 * đụng tới. Khi lệnh td trên máy chưa có `vcs show-file` thì rơi về cách dựng
+	 * từ khác biệt đã stage: cách đó chỉ đúng với tệp đang chờ commit, nên tiện
+	 * ích ghi một dòng ra kênh log nhắc nâng cấp td.
+	 */
+	async contentAt(relativePath: string, ref: Ref.Head | Ref.Index): Promise<string | undefined> {
+		if (ref === Ref.Index) {
+			const patch = await this.patchFor(relativePath, false);
+			return patch ? patch.new : '';
+		}
+		const result = await this.td.showFile(this.root, 'HEAD', relativePath);
+		if (result.unsupported) {
+			this.warnOldTd();
+			const patch = await this.patchFor(relativePath, true);
+			return patch ? patch.old : undefined;
+		}
+		return result.found ? result.content : undefined;
+	}
+
+	/** Đọc tệp trên đĩa, tệp không còn thì trả về nội dung rỗng. */
+	private async readWorktreeFile(relativePath: string): Promise<string> {
+		try {
+			const data = await workspace.fs.readFile(this.toAbsolutePath(relativePath));
+			return Buffer.from(data).toString('utf8');
+		} catch {
+			// Tệp đã bị xoá khỏi đĩa: phía phải của khung so sánh là rỗng.
+			return '';
+		}
+	}
+
+	/** Báo một lần rằng lệnh td trên máy cũ hơn tiện ích. */
+	private warnedOldTd = false;
+	private warnOldTd(): void {
+		if (this.warnedOldTd) {
+			return;
+		}
+		this.warnedOldTd = true;
+		this.td.note('Lệnh td trên máy chưa có `td vcs show-file`, nội dung ở HEAD tạm dựng từ khác biệt đã stage. Cập nhật td để xem đúng nội dung mọi tệp.');
 	}
 
 	/** Khác biệt của một tệp giữa một commit và phụ huynh của nó. */

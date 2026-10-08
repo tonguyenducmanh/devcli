@@ -277,3 +277,37 @@ func splitSections(out string) (staged, unstaged, untracked map[string]bool) {
 	}
 	return groups["staged"], groups["unstaged"], groups["untracked"]
 }
+
+// TestShowFileReadsFromRevision bảo đảm đọc được nội dung tệp ở một điểm lịch sử.
+//
+// Khung so sánh trong trình soạn thảo gọi lệnh này cho từng phía của khung, nên
+// lệnh phải in ra nội dung nguyên văn chứ không phải khác biệt.
+func TestShowFileReadsFromRevision(t *testing.T) {
+	root := newRepo(t)
+	writeFile(t, root, "a.txt", "một\nhai\n")
+	writeFile(t, root, "khac.txt", "giữ nguyên\n")
+	commitAll(t, root, "c1")
+	writeFile(t, root, "a.txt", "một\nhai sửa\n")
+	writeFile(t, root, "moi.txt", "tệp mới\n")
+	commitAll(t, root, "c2")
+
+	if out := mustRun(t, "vcs", "show-file", "-C", root, "HEAD", "--", "a.txt"); out != "một\nhai sửa\n" {
+		t.Fatalf("nội dung ở HEAD phải là bản mới nhất, nhận %q", out)
+	}
+	if out := mustRun(t, "vcs", "show-file", "-C", root, "HEAD~1", "--", "a.txt"); out != "một\nhai\n" {
+		t.Fatalf("nội dung ở commit cũ phải là bản cũ, nhận %q", out)
+	}
+	// Tệp mà commit cuối không đụng tới vẫn phải đọc được.
+	if out := mustRun(t, "vcs", "show-file", "-C", root, "HEAD", "--", "khac.txt"); out != "giữ nguyên\n" {
+		t.Fatalf("tệp không đổi vẫn phải đọc được, nhận %q", out)
+	}
+
+	// Tệp không có ở điểm đó phải báo lỗi chứ không in ra rỗng.
+	if _, err := run(t, "vcs", "show-file", "-C", root, "HEAD~1", "--", "moi.txt"); err == nil {
+		t.Fatal("đọc tệp chưa tồn tại ở điểm đó phải báo lỗi")
+	}
+	// Không nêu tệp nào thì báo lỗi chứ không in ra nội dung rỗng.
+	if out, err := run(t, "vcs", "show-file", "-C", root, "HEAD"); err == nil || out != "" {
+		t.Fatalf("thiếu danh sách tệp phải báo lỗi, nhận %q", out)
+	}
+}

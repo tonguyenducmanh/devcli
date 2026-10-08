@@ -350,6 +350,49 @@ Mặc định lấy HEAD. Kèm -p để in luôn nội dung khác biệt của t
 	},
 }
 
+// vcsShowFileCmd in nội dung một tệp tại một điểm trong lịch sử.
+var vcsShowFileCmd = &cobra.Command{
+	Use:   "show-file <điểm> [-- tệp...]",
+	Short: "In nội dung một tệp ở một điểm trong lịch sử",
+	Long: `In nguyên văn nội dung một tệp như nó nằm trong cây của một commit.
+
+Điểm xuất phát là một commit, tên nhánh hoặc một tham chiệu khác; mặc định lấy
+HEAD. Sau dấu hai gạch ngang là danh sách tệp cần in.
+
+Khác với "td vcs diff", lệnh này đọc thẳng nội dung đã lưu trong kho nên tệp
+không bị thay đổi ở commit đó vẫn in ra được.`,
+	Example: `  td vcs show-file HEAD -- cmd/root.go
+  td vcs show-file v1.0.0 -- README.md
+  td vcs show-file abc1234 -- a.txt b.txt`,
+	Args: arbitraryArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		r, err := openRepo(cmd)
+		if err != nil {
+			return err
+		}
+		// Đường dẫn lọc nằm sau dấu "--".
+		paths, rest := splitPathsAtDash(cmd, args)
+		rev := "HEAD"
+		if len(rest) > 0 {
+			rev = rest[0]
+		}
+		if len(paths) == 0 {
+			return exitError("cần chỉ định tệp sau dấu --, ví dụ: td vcs show-file HEAD -- a.txt")
+		}
+		for _, p := range paths {
+			data, found, err := ops.ShowFile(r, rev, p)
+			if err != nil {
+				return err
+			}
+			if !found {
+				return exitError("%s không có trong %s", p, rev)
+			}
+			fmt.Fprint(os.Stdout, string(data))
+		}
+		return nil
+	},
+}
+
 // vcsReflogCmd xem nhật ký thay đổi của ref.
 var vcsReflogCmd = &cobra.Command{
 	Use:   "reflog [ref]",

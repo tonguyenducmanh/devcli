@@ -12,7 +12,7 @@ import {
 
 import { Model } from './model';
 import { Repository } from './repository';
-import { Ref, Side } from './uri';
+import { parseTdUri, Ref, Side, TD_SCHEME } from './uri';
 import { TdBranch, TdLogEntry, TdStash, TdTag } from './parse';
 
 /** Thông tin mà hộp chọn nhanh hiển thị được cho một dòng dữ liệu. */
@@ -25,6 +25,17 @@ interface Picked<T> {
 	detail?: string;
 	/** Giá trị thật trả về khi người dùng chọn. */
 	value: T;
+}
+
+/** Một cặp phía để so sánh, kèm nhãn hiện trên khung so sánh. */
+interface DiffGroup {
+	/** Đường dẫn tương đối trong kho, dùng làm địa chỉ hiển thị của mục. */
+	path: string;
+	title: string;
+	/** Phía gốc: nội dung trước khi thay đổi. */
+	original: Uri;
+	/** Phía đã sửa: nội dung sau khi thay đổi. */
+	modified: Uri;
 }
 
 /**
@@ -99,6 +110,24 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return inner instanceof Uri ? inner : undefined;
 		}
 		return undefined;
+	}
+
+	/**
+	 * Địa chỉ của tệp thật, kể cả khi đang là địa chỉ ảnh của tiện ích.
+	 *
+	 * Nút trên khung so sánh và trên trình soạn thảo đều trỏ tới địa chỉ ảo, mà
+	 * mở địa chỉ ảo chỉ cho thấy lại đúng nội dung đang xem. Người dùng bấm nút
+	 * *Open File* thì phải ra tệp thật trên đĩa.
+	 */
+	function realFileOf(uri: Uri | undefined): Uri | undefined {
+		if (!uri || uri.scheme !== TD_SCHEME) {
+			return uri;
+		}
+		const info = parseTdUri(uri);
+		if (!info) {
+			return uri;
+		}
+		return Uri.file(path.join(info.repo, info.path));
 	}
 
 	/** Bắt buộc có kho, nếu không thì báo cho người dùng biết. */
@@ -488,18 +517,23 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 
 	// ─── Mở tệp và khung so sánh ───────────────────────────────
 
-	/** Mở tệp, hoặc mở khung so sánh nếu cấu hình yêu cầu. */
+	/**
+	 * Mở tệp trên đĩa, không mở khung so sánh.
+	 *
+	 * Được gọi từ nút trong khung Source Control, nên địa chỉ đến từ đó có thể
+	 * là địa chỉ ảnh của tiện ích. Khi đó cần dịch về tệp thật, nếu không lệnh
+	 * này chỉ mở lại một bản ảo đang có sẵn.
+	 */
 	async function openFile(candidate: unknown, second?: unknown): Promise<void> {
 		const uri = uriOf(second) ?? uriOf(candidate);
 		if (!uri) {
 			return;
 		}
-		const repository = repositoryOf(uri);
-		if (repository && workspace.getConfiguration('td', uri).get<boolean>('openDiffOnClick', false)) {
-			await openChanges(repository, [uri]);
+		const real = realFileOf(uri);
+		if (!real) {
 			return;
 		}
-		await window.showTextDocument(uri);
+		await window.showTextDocument(real);
 	}
 
 	/** Mở khung so sánh cho các tệp đang chọn trong khung Source Control. */
@@ -518,7 +552,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 
 	/** Mở tệp như nó nằm trong HEAD. */
 	async function openHEADFile(candidate: unknown, second?: unknown): Promise<void> {
-		const uri = uriOf(second) ?? uriOf(candidate);
+		const uri = realFileOf(uriOf(second) ?? uriOf(candidate));
 		let repository: Repository;
 		try {
 			repository = requireRepository(candidate, 'xem nội dung trong HEAD');
@@ -529,8 +563,8 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		const relative = repository.toRelativePath(uri);
-		const exists = await td.diff(repository.root, { revision: 'HEAD', paths: [relative] });
-		if (exists.length === 0) {
+		const content = await repository.contentAt(relative, Ref.Head);
+		if (content === undefined) {
 			void window.showWarningMessage(`${relative} không có trong HEAD.`);
 			return;
 		}
@@ -548,66 +582,93 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		if (!hash) {
 			return;
 		}
-		const patches = await td.diff(repository.root, { revision: hash });
-		if (patches.length === 0) {
+		// Chỉ xin danh sách tệp thay đổi. Nội dung từng phía đọc sau, đúng lúc
+		// khung so sánh thật sự cần tới, nên commit sửa nhiều tệp vẫn mở nhanh.
+		const paths = await td.changedFiles(repository.root, { revision: hash });
+		if (paths.length === 0) {
 			void window.showInformationMessage('Commit này không thay đổi tệp nào.');
 			return;
 		}
-		if (patches.length === 1) {
-			const only = patches[0];
-			await commands.executeCommand(
-				'vscode.diff',
-				repository.uriFor(only.path, hash, Side.Old),
-				repository.uriFor(only.path, hash, Side.New),
-				repository.toAbsolutePath(only.path),
-				only.path
-			);
-			return;
-		}
-		await commands.executeCommand(
-			'vscode.changes',
-			repository.root,
-			patches.map(p => repository.toAbsolutePath(p.path)),
-			repository.root
-		);
+		await openDiffGroups(repository, paths.map(relative => ({
+			path: relative,
+			title: `${relative} (${hash})`,
+			original: repository.uriFor(relative, hash, Side.Old),
+			modified: repository.uriFor(relative, hash, Side.New)
+		})));
 	}
 
-	/** Mở khung so sánh, một tệp thì mở cặp, nhiều tệp thì mở giao diện nhiều tệp. */
+	/**
+	 * Mở khung so sánh cho các tệp đang chọn trong khung Source Control.
+	 *
+	 * Chọn hai phía theo đúng ý nghĩa, giống git: đã stage hết thì so HEAD với
+	 * vùng chuẩn bị; còn sửa trên đĩa thì so vùng chuẩn bị với chính tệp trên
+	 * đĩa.
+	 */
 	async function openChanges(repository: Repository, uris: Uri[]): Promise<void> {
-		if (uris.length === 0) {
-			return;
+		const groups: DiffGroup[] = [];
+		for (const uri of uris) {
+			const relative = repository.toRelativePath(uri);
+			if (!relative || relative.startsWith('..')) {
+				continue;
+			}
+			groups.push(workingTreeGroup(repository, relative));
 		}
-		if (uris.length > 1) {
-			await commands.executeCommand('vscode.changes', repository.root, uris, repository.root);
-			return;
-		}
-		const uri = uris[0];
-		const relative = repository.toRelativePath(uri);
+		await openDiffGroups(repository, groups);
+	}
+
+	/**
+	 * Cặp phía trái và phái phải để so sánh một tệp đang thay đổi.
+	 *
+	 * Tệp đã xoá khỏi đĩa thì phía phải là một tài liệu rỗng, cũng lấy từ vùng
+	 * chuẩn bị để hai phía cùng nguồn.
+	 */
+	function workingTreeGroup(repository: Repository, relative: string): DiffGroup {
+		const uri = repository.toAbsolutePath(relative);
 		const state = repository.current;
 		const inIndex = state.staged.some(e => e.path === relative);
 		const inWorktree = state.unstaged.some(e => e.path === relative)
 			|| state.untracked.some(e => e.path === relative);
 
-		// Chọn hai phía theo đúng ý nghĩa, giống git:
-		// đã stage hết thì so HEAD với vùng chuẩn bị; còn sửa trên đĩa thì so
-		// vùng chuẩn bị với chính tệp trên đĩa.
-		let left: Uri;
-		let right: Uri;
-		let title: string;
 		if (inIndex && !inWorktree) {
-			left = repository.uriFor(relative, Ref.Head, Side.Old);
-			right = repository.uriFor(relative, Ref.Index, Side.New);
-			title = `${relative} (Staged Changes)`;
-		} else {
-			left = repository.uriFor(relative, Ref.Index, Side.Old);
-			// Tệp đã xoá khỏi đĩa thì phía phải là bản rỗng, cũng lấy từ vùng
-			// chuẩn bị cho nhất quán.
-			right = existsSync(uri.fsPath)
-				? uri
-				: repository.uriFor(relative, Ref.Index, Side.New);
-			title = `${relative} (Working Tree)`;
+			return {
+				path: relative,
+				title: `${relative} (Staged Changes)`,
+				original: repository.uriFor(relative, Ref.Head, Side.Old),
+				modified: repository.uriFor(relative, Ref.Index, Side.New)
+			};
 		}
-		await commands.executeCommand('vscode.diff', left, right, uri, title);
+		return {
+			path: relative,
+			title: `${relative} (Working Tree)`,
+			original: repository.uriFor(relative, Ref.Index, Side.Old),
+			modified: existsSync(uri.fsPath) ? uri : repository.uriFor(relative, Ref.Index, Side.New)
+		};
+	}
+
+	/**
+	 * Mở khung so sánh cho một hay nhiều tệp.
+	 *
+	 * Một tệp thì mở đúng một khung so sánh. Nhiều tệp thì mở khung so sánh
+	 * nhiều tệp của VS Code, và mỗi mục phải là một bộ ba gồm địa chỉ hiển thị,
+	 * phía gốc và phía đã sửa: thiếu phía nào thì VS Code báo lỗi
+	 * `Invalid argument 'resourceList'` và không mở gì cả.
+	 */
+	async function openDiffGroups(repository: Repository, groups: DiffGroup[]): Promise<void> {
+		if (groups.length === 0) {
+			return;
+		}
+		if (groups.length === 1) {
+			const only = groups[0];
+			await commands.executeCommand('vscode.diff', only.original, only.modified, only.title);
+			return;
+		}
+		const title = `${groups.length} tệp đang thay đổi`;
+		const list = groups.map(group => [
+			repository.toAbsolutePath(group.path),
+			group.original,
+			group.modified
+		]);
+		await commands.executeCommand('vscode.changes', title, list);
 	}
 
 	// ─── Nhánh ──────────────────────────────────────────────────

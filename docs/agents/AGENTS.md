@@ -203,6 +203,20 @@ Hai điều cần nhớ khi sửa cho khớp với phần còn lại của kho:
 - Lệnh `td` luôn được gọi với `-C` đặt trước mọi thứ khác. Đặt `-C` cuối dòng lệnh
   thì khi lệnh có danh sách tệp sau dấu `--`, td sẽ hiểu `-C` là một đường dẫn.
 
+Các lệnh của VS Code có kiểm tra tham số theo tên, sai hình dạng là bị từ chối
+ngay với thông báo *Invalid argument*. Hai lệnh hay dùng:
+
+- `vscode.diff(trái, phải, tiêu đề)`: đúng ba đối số, đối số thứ ba là chuỗi.
+- `vscode.changes(tiêu đề, [[địa chỉ, phía gốc, phía đã sửa], ...])`: mỗi mục
+  phải là bộ ba địa chỉ, không phải danh sách địa chỉ thuần.
+
+Kiểm thử của tiện ích nằm ở `editors/vscode/src/test/`. Bản giả API VS Code
+dùng chung nằm ở `harness.ts`; nó ghi lại cả lệnh lẫn đối số truyền vào nên soi
+được đúng cái khung so sánh sẽ được mở ra. `manifest.test.ts` kiểm tra phần khai
+báo trong `package.json`, nơi mà lỗi không biểu hiện lúc chạy mã nguồn: một
+submenu khai báo mà không có lệnh nào thuộc về nó thì menu ra trống mà mọi kiểm
+thử khác vẫn xanh.
+
 ```bash
 cd editors/vscode && npm install && npm run compile && npm test
 ```

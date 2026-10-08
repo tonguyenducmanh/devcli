@@ -96,6 +96,7 @@ td vcs [flags]
 * [td vcs revert](td_vcs_revert.md)	 - Hoàn tác thay đổi của một commit
 * [td vcs rm](td_vcs_rm.md)	 - Gỡ tệp khỏi theo dõi và khỏi cây làm việc
 * [td vcs show](td_vcs_show.md)	 - Hiển thị chi tiết của một commit
+* [td vcs show-file](td_vcs_show-file.md)	 - In nội dung một tệp ở một điểm trong lịch sử
 * [td vcs stash](td_vcs_stash.md)	 - Lưu tạm và khôi phục các thay đổi chưa commit
 * [td vcs status](td_vcs_status.md)	 - Hiển thị trạng thái thay đổi của cây làm việc
 * [td vcs switch](td_vcs_switch.md)	 - Chuyển sang nhánh khác

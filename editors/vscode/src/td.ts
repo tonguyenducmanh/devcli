@@ -5,6 +5,7 @@ import * as path from 'node:path';
 
 import {
 	parseBranches,
+	parseChangedPaths,
 	parseLogOneline,
 	parsePatches,
 	parseStashes,
@@ -55,6 +56,24 @@ export interface DiffOptions {
 	paths?: string[];
 }
 
+/** Nội dung một tệp ở một điểm lịch sử, cùng lý do khi không đọc được. */
+export interface TdFileContent {
+	/** Nội dung nguyên văn, rỗng khi tệp không tồn tại ở điểm đó. */
+	content: string;
+	/** false khi tệp không có ở điểm đó. */
+	found: boolean;
+	/** true khi lệnh td trên máy chưa có `vcs show-file`. */
+	unsupported: boolean;
+}
+
+/**
+ * Dấu nhận biết thông báo của td khi không có lệnh con tương ứng.
+ *
+ * Cần để phân biệt "td trên máy cũ hơn tiện ích" với "tệp không có trong
+ * commit", vì cả hai đều làm lệnh thoát với mã khác không.
+ */
+const UNKNOWN_COMMAND = /không có lệnh nào tên/;
+
 /**
  * Bọc lệnh `td vcs`.
  *
@@ -84,6 +103,11 @@ export class Td {
 	/** Lấy đường dẫn tệp thực thi đang dùng. */
 	get command(): string {
 		return this.executable;
+	}
+
+	/** Ghi một dòng ghi chú vào kênh log mà không phải chạy lệnh nào. */
+	note(line: string): void {
+		this.report?.(line);
 	}
 
 	/** Những dòng đã chạy gần đây, phục vụ phần log của extension. */
@@ -168,6 +192,52 @@ export class Td {
 			args.push('--', ...options.paths);
 		}
 		return parsePatches(await this.text(root, args));
+	}
+
+	/**
+	 * Chỉ xin danh sách tệp thay đổi, không lấy nội dung.
+	 *
+	 * Dùng để mở khung so sánh nhiều tệp: liệt kê tệp rẻ hơn nhiều so với xin
+	 * khác biệt đầy đủ, còn nội dung từng phía thì đợi khung so sánh thật sự cần
+	 * mới đọc. Nhờ vậy một commit sửa hàng trăm tệp vẫn mở tức thì.
+	 */
+	async changedFiles(root: string, options: DiffOptions = {}): Promise<string[]> {
+		const args = ['diff', '--name-only'];
+		if (options.staged) {
+			args.push('--staged');
+		}
+		if (options.revision) {
+			args.push(options.revision);
+		}
+		if (options.paths && options.paths.length > 0) {
+			args.push('--', ...options.paths);
+		}
+		return parseChangedPaths(await this.text(root, args));
+	}
+
+	/**
+	 * `td vcs show-file <điểm> -- <tệp>`: nội dung tệp ở một điểm lịch sử.
+	 *
+	 * Phía đối diện của một khung so sánh cần nội dung rỗng đúng lúc tệp không
+	 * tồn tại ở điểm đó, nên "không có" phải là một kết quả chứ không phải lỗi.
+	 * Trường `unsupported` báo lệnh td trên máy còn cũ hơn tiện ích, lúc đó
+	 * người gọi nên rơi về cách dựng nội dung từ khác biệt.
+	 */
+	async showFile(root: string, revision: string, relativePath: string): Promise<TdFileContent> {
+		try {
+			const result = await this.run(root, ['show-file', revision, '--', relativePath]);
+			return { content: result.stdout, found: true, unsupported: false };
+		} catch (error) {
+			if (error instanceof TdError && UNKNOWN_COMMAND.test(error.result.stderr)) {
+				return { content: '', found: false, unsupported: true };
+			}
+			// Tệp không có ở điểm đó là chuyện thường nên không báo, còn lỗi thật
+			// thì ghi ra kênh log để không biến thành phía rỗng trong khung so sánh.
+			if (error instanceof TdError && !/không có trong/.test(error.message)) {
+				this.report?.(`đọc ${relativePath} ở ${revision} không được: ${error.message}`);
+			}
+			return { content: '', found: false, unsupported: false };
+		}
 	}
 
 	/** `td vcs log --oneline`, có giới hạn số dòng theo cấu hình. */

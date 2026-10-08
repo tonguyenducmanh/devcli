@@ -24,6 +24,35 @@ func HashWorktreeFile(r *repo.Repo, rel string) (object.Hash, error) {
 	return object.ComputeHash(object.TypeBlob, data), nil
 }
 
+// ShowFile đọc nội dung một tệp tại một điểm trong lịch sử.
+//
+// Tệp không tồn tại ở điểm đó thì trả về found là false chứ không phải lỗi:
+// phía đối diện của một khung so sánh cần nội dung rỗng khi tệp mới được thêm
+// hoặc đã bị xoá, nên "không có" là một câu trả lời hợp lệ chứ không phải hỏng.
+func ShowFile(r *repo.Repo, rev, rel string) (data []byte, found bool, err error) {
+	h, err := resolveCommitish(r, rev)
+	if err != nil {
+		return nil, false, err
+	}
+	tree, err := r.CommitTree(h)
+	if err != nil {
+		return nil, false, err
+	}
+	nodes, err := r.Flatten(tree)
+	if err != nil {
+		return nil, false, err
+	}
+	node, ok := nodes[rel]
+	if !ok || node.Mode.IsTree() {
+		return nil, false, nil
+	}
+	data, err = r.Objects.ReadBlob(node.Hash)
+	if err != nil {
+		return nil, false, err
+	}
+	return data, true, nil
+}
+
 // CatFile in nội dung của một object theo loại được yêu cầu.
 func CatFile(r *repo.Repo, kind, rev string, verbose bool) error {
 	h, err := resolveCommitish(r, rev)

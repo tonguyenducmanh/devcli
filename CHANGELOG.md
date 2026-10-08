@@ -172,6 +172,79 @@ tới một tệp thực thi cụ thể.
 
 ---
 
+### Mốc 6 · 2026-10-08 — Sửa ba lỗi tiện ích thấy được khi dùng thật
+
+Các mốc trên chỉ kiểm chứng tới mức kích hoạt với API giả, chưa mở VS Code thật
+để soi bằng mắt. Đợt này bắt được ba lỗi mà người dùng thấy ngay lần đầu mở
+khung Source Control.
+
+| Tệp | Sửa gì |
+| --- | --- |
+| `editors/vscode/src/commands.ts` | `vscode.diff` truyền thừa một đối số, làm lệnh bị VS Code từ chối |
+| `editors/vscode/src/commands.ts` | `vscode.changes` nhận sai hình dạng danh sách tệp |
+| `editors/vscode/src/repository.ts`, `package.json` | Bấm tệp mở thẳng tệp, không mở khung so sánh |
+| `editors/vscode/package.json` | Năm submenu khai báo mà không có lệnh nào, nên nút `...` mở ra trống |
+| `internal/vcs/ops/plumbing.go`, `cmd/vcs_basic.go` | Thêm `td vcs show-file` |
+| `editors/vscode/src/td.ts`, `repository.ts` | Nội dung ở HEAD đọc bằng `show-file` thay vì dựng từ khác biệt |
+
+**1. Bấm tệp không ra khung so sánh.** `td.openDiffOnClick` mặc định là `false`
+và mọi tệp trong khung Source Control đều gắn lệnh `td.openFile`, nên bấm vào là
+mở tệp. Đổi mặc định thành `true` và chọn lệnh theo cấu hình, giống cách
+extension git làm trong `ResourceCommandResolver`.
+
+**2. `vscode.diff` bị từ chối.** Lệnh nhận `(trái, phải, tiêu đề)` và kiểm tra
+thứ tự đối số theo tên; mã cũ truyền `(trái, phải, địa chỉ, tiêu đề)` nên VS Code
+báo *Invalid argument 'title'*. Đã sửa lại đúng ba đối số.
+
+**3. `vscode.changes` bị từ chối khi bấm vào một commit.** Đối số thứ hai phải là
+danh sách bộ ba `[địa chỉ hiển thị, phía gốc, phía đã sửa]`; mã cũ truyền danh
+sách địa chỉ thuần nên VS Code báo *Invalid argument 'resourceList'* và không mở
+gì cả. Đúng lúc này người dùng không thấy tệp nào được commit đó đổi.
+
+**4. Không có thao tác nào trong menu.** Năm submenu `td.commit`, `td.changes`,
+`td.branch`, `td.stash`, `td.tags` chỉ khai báo nhãn, không có mục menu nào trỏ
+tới, nên bấm nút ba chấm ở thanh Source Control ra một danh sách rỗng. Đã điền
+đủ lệnh cho cả năm, thêm nút trên tiêu đề bốn khung bên và lời nhắc khi khung
+trống.
+
+**5. `td vcs show-file`.** Trước đợt này nội dung phía HEAD được dựng lại từ
+`td vcs diff --staged`, chỉ đúng với tệp đang chờ commit: tệp sạch không nằm
+trong khác biệt nào nên phía đó rỗng và khung so sánh hiện sai. Lệnh mới đọc thẳng
+blob trong cây của commit nên đúng với mọi tệp, kể cả tệp vừa được thêm (trả về
+rỗng vì tệp chưa có ở đó). Khi gặp `td` cũ hơn, tiện ích nhận ra qua thông báo
+*không có lệnh nào tên* rồi rơi về cách cũ và ghi một dòng ra kênh log.
+
+Ngoài ra, khung so sánh của một commit giờ chỉ xin tên tệp bằng
+`td vcs diff --name-only`, còn nội dung từng phía đọc sau đúng lúc khung so sánh
+cần tới. Trước đây phải nạp toàn bộ nội dung của mọi tệp trong commit ngay khi
+mở.
+
+Kiểm chứng:
+
+```bash
+./scripts/check.sh
+cd editors/vscode && npm run compile && npm test   # 43 kiểm thử
+```
+
+Kiểm thử mới:
+
+- `editors/vscode/src/test/manifest.test.ts` (mới): mọi submenu phải có lệnh,
+  mọi lệnh trong menu phải được khai báo, mọi lệnh phải có nhãn dịch, mỗi khung
+  bên phải có lời nhắc khi trống. Bắt được lỗi submenu rỗng ngay từ tệp khai báo.
+- `editors/vscode/src/test/smoke.test.ts`: bấm tệp phải mở `vscode.diff` với ba
+  đối số; bấm commit phải mở `vscode.changes` với danh sách bộ ba; nội dung ở
+  HEAD phải là nội dung thật kể cả với tệp sạch; tệp bị xoá và tệp chưa theo dõi
+  phải có đúng một phía rỗng; nút *Open File* trên khung so sánh phải ra tệp thật.
+- `editors/vscode/src/test/harness.ts` (mới): bản giả API VS Code dùng chung, có
+  ghi lại lệnh đã chạy kèm đối số để soi được tham số truyền vào.
+- `editors/vscode/src/test/td.test.ts`: `showFile` trả về `unsupported` khi lệnh
+  td trên máy chưa có `show-file`; `changedFiles` chỉ trả về tên tệp.
+- `tests/ops/ops_test.go`: `TestShowFileReadsContentAtRevision`,
+  `TestShowFileAfterAddAndRemove`.
+- `tests/cli/cli_test.go`: `TestShowFileReadsFromRevision`.
+
+---
+
 ## Chưa làm (tính đến 2026-10-08)
 
 ### Vì `td` chưa có, cần làm ở phần td trước
@@ -195,7 +268,7 @@ tới một tệp thực thi cụ thể.
 
 | Việc | Vì sao chưa làm |
 | --- | --- |
-| Chưa chạy thử trong cửa sổ VS Code thật | Mới kiểm chứng tới mức kích hoạt với API giả. Chưa mở VS Code thật để soi khung Source Control, khung so sánh và thanh trạng thái bằng mắt. Việc này nên làm trước khi phát hành. |
+| Chưa chạy thử trong cửa sổ VS Code thật | Ba lỗi ở mốc 6 đều do chưa mở VS Code thật mà lọt qua. Mốc đó đã soi lại từng đối số truyền cho `vscode.diff` và `vscode.changes`, tức là đúng những chỗ VS Code thật kiểm tra, nhưng vẫn chưa soi bằng mắt trên cửa sổ thật. |
 | Chưa thử trên macOS và Windows thật | Mới build được ba nền tảng. Phần đa nền tảng của tệp `.vsix` là chắc chắn vì không có mã native, nhưng đường dẫn cài `td` trên từng hệ chưa kiểm tra. |
 | Chưa có kiểm thử giao diện tự động | Bộ kiểm thử dừng ở tầng mô hình và tầng lệnh, chưa tới thao tác chuột và bàn phím trong khung. |
 | Chưa phát hành lên marketplace | `publisher` trong `package.json` đang là `td`, cần đổi thành tên nhà phát hành thật và khai báo `repository`. |
@@ -213,6 +286,10 @@ tới một tệp thực thi cụ thể.
 - **Tệp không có dấu xuống dòng cuối.** `td vcs diff` không in dấu báo như git, nên
   khi dựng lại nội dung để mở khung so sánh, phía dựng sẽ có thêm dấu xuống dòng ở
   cuối. Khung so sánh có thể hiện dòng cuối là khác biệt dù nội dung thật như nhau.
-  Chỉ xảy ra với tệp không có dấu xuống dòng cuối, ví dụ tệp do Windows ghi.
+  Chỉ xảy ra với tệp không có dấu xuống dòng cuối, ví dụ tệp do Windows ghi. Phía
+  trên đĩa và phía ở HEAD đã đọc thẳng nên không bị; còn phía ở vùng chuẩn bị và
+  phía ở một commit thì vẫn dựng từ khác biệt.
 - **Tệp nhị phân không hiện khác biệt.** `td` không in nội dung tệp nhị phân nên
   tiện ích không dựng được khung so sánh cho loại tệp đó, giống hành vi của git.
+  Cả hai phía đều hiện dòng *tệp nhị phân, không hiển thị nội dung* để khung so
+  sánh không báo nhầm là có khác biệt.

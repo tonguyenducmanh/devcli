@@ -951,3 +951,68 @@ func TestCleanWithPaths(t *testing.T) {
 		t.Fatal("rac.log không nằm trong danh sách nên phải còn lại")
 	}
 }
+
+// TestShowFileReadsContentAtRevision kiểm tra đọc nội dung tệp ở một điểm lịch sử.
+//
+// Khung so sánh của trình soạn thảo cần nội dung nguyên văn của tệp ở từng
+// phía, kể cả tệp mà commit đó không đụng tới, nên phải đọc thẳng trong cây của
+// commit chứ không dựng lại từ khác biệt.
+func TestShowFileReadsContentAtRevision(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "a.txt", "một\nhai\n")
+	write(t, r, "thu-muc/b.txt", "x\n")
+	first := commitAll(t, r, "c1")
+	write(t, r, "a.txt", "một\nhai sửa\n")
+	second := commitAll(t, r, "c2")
+
+	data, found, err := ops.ShowFile(r, "HEAD", "a.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !found || string(data) != "một\nhai sửa\n" {
+		t.Fatalf("HEAD phải là nội dung mới nhất, nhận %q", string(data))
+	}
+
+	// Tệp mà commit thứ hai không đụng tới vẫn đọc được ở commit đó, đây là
+	// điểm mà dựng lại từ khác biệt không làm được.
+	data, found, err = ops.ShowFile(r, second.String(), "thu-muc/b.txt")
+	if err != nil || !found || string(data) != "x\n" {
+		t.Fatalf("tệp không đổi ở commit vẫn phải đọc được, nhận %q", string(data))
+	}
+
+	data, found, err = ops.ShowFile(r, first.String(), "a.txt")
+	if err != nil || !found || string(data) != "một\nhai\n" {
+		t.Fatalf("phải đọc được nội dung ở commit cũ, nhận %q", string(data))
+	}
+
+	// Tệp chưa tồn tại ở điểm đó là câu trả lời hợp lệ chứ không phải lỗi.
+	data, found, err = ops.ShowFile(r, first.String(), "chua-co.txt")
+	if err != nil {
+		t.Fatalf("tệp không có ở điểm đó không phải lỗi: %v", err)
+	}
+	if found || data != nil {
+		t.Fatalf("phải báo không tìm thấy, nhận found=%v data=%q", found, string(data))
+	}
+}
+
+// TestShowFileAfterAddAndRemove kiểm tra hai phía rỗng của một tệp mới và tệp bị xoá.
+func TestShowFileAfterAddAndRemove(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "a.txt", "1\n")
+	commitAll(t, r, "c1")
+	write(t, r, "b.txt", "mới\n")
+	added := commitAll(t, r, "c2")
+
+	if _, found, err := ops.ShowFile(r, "HEAD~1", "b.txt"); err != nil || found {
+		t.Fatalf("trước khi thêm thì b.txt chưa tồn tại, nhận found=%v err=%v", found, err)
+	}
+	removeFile(t, r, "b.txt")
+	commitAll(t, r, "c3")
+
+	if _, found, err := ops.ShowFile(r, added.String(), "b.txt"); err != nil || !found {
+		t.Fatalf("tại commit đã thêm thì b.txt phải còn, nhận found=%v err=%v", found, err)
+	}
+	if _, found, err := ops.ShowFile(r, "HEAD", "b.txt"); err != nil || found {
+		t.Fatalf("sau khi xoá thì b.txt không còn, nhận found=%v err=%v", found, err)
+	}
+}

@@ -105,6 +105,9 @@ const STATUS_WORDS: Record<string, TdStatusCode> = {
 	'sửa': 'M',
 	'xoá': 'D',
 	'?': '?',
+	// Trong nhóm "chưa stage" td cũng liệt kê tệp chưa theo dõi, ghi là "mới".
+	// Nhóm chưa theo dõi có mục riêng nên mục trùng ở đây bị bỏ qua.
+	'mới': '?',
 	'U': 'U'
 };
 
@@ -330,6 +333,23 @@ export function parsePatches(stdout: string): TdPatch[] {
 	flush();
 
 	return patches;
+}
+
+/**
+ * Đọc output của `td vcs diff --name-only`.
+ *
+ * Lệnh in mỗi tệp thay đổi trên một dòng, không kèm tiền tố. Dòng nào không
+ * phải đường dẫn thì bỏ qua, vì lệnh có thể in thêm dòng trống ở cuối.
+ */
+export function parseChangedPaths(stdout: string): string[] {
+	const out: string[] = [];
+	for (const raw of stdout.split('\n')) {
+		const line = raw.replace(/\r$/, '').trim();
+		if (line) {
+			out.push(line);
+		}
+	}
+	return out;
 }
 
 /**

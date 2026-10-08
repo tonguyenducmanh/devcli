@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
@@ -246,6 +246,88 @@ runTd('Td: commit thiếu nội dung hoặc không có gì để commit thì td 
 		await td.unstage(root, ['a.txt']);
 		await td.discard(root, ['a.txt']);
 		await assert.rejects(() => td.commit(root, 'không có gì'), /không có gì để commit/);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+runTd('Td: show-file đọc nội dung ở một điểm lịch sử', async () => {
+	const td = new Td(TD_BIN!);
+	const root = await repo(td, { 'a.txt': 'một\nhai\n', 'khac.txt': 'giữ nguyên\n' });
+	try {
+		write(root, 'a.txt', 'một\nhai sửa\n');
+		await td.stage(root, ['a.txt']);
+		await td.commit(root, 'c2');
+
+		const head = await td.showFile(root, 'HEAD', 'a.txt');
+		assert.equal(head.found, true);
+		assert.equal(head.unsupported, false);
+		assert.equal(head.content, 'một\nhai sửa\n');
+
+		const old = await td.showFile(root, 'HEAD~1', 'a.txt');
+		assert.equal(old.content, 'một\nhai\n');
+
+		// Tệp mà commit cuối không đụng tới vẫn đọc được.
+		const untouched = await td.showFile(root, 'HEAD', 'khac.txt');
+		assert.equal(untouched.content, 'giữ nguyên\n');
+
+		// Tệp chưa có ở điểm đó là câu trả lời hợp lệ chứ không phải lỗi.
+		const missing = await td.showFile(root, 'HEAD', 'khong-co.txt');
+		assert.equal(missing.found, false);
+		assert.equal(missing.unsupported, false);
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+	}
+});
+
+// Lớp vỏ báo như td cũ: chạy được mọi lệnh trừ show-file.
+const runOldTd = process.platform === 'win32' ? test.skip : runTd;
+runOldTd('Td: show-file báo lệnh còn thiếu khi td trên máy cũ hơn', async () => {
+	const dir = mkdtempSync(path.join(tmpdir(), 'td-old-'));
+	const real = new Td(TD_BIN!);
+	const root = await repo(real);
+	const wrapper = path.join(dir, 'td');
+	writeFileSync(wrapper, [
+		'#!/bin/sh',
+		'for a in "$@"; do',
+		'\tif [ "$a" = "show-file" ]; then',
+		'\t\techo \'không có lệnh nào tên "show-file", xem danh sách: td vcs --help\' >&2',
+		'\t\texit 1',
+		'\tfi',
+		'done',
+		`exec ${JSON.stringify(TD_BIN!)} "$@"`,
+		''
+	].join('\n'), 'utf8');
+	chmodSync(wrapper, 0o755);
+	const old = new Td(wrapper);
+	try {
+		const result = await old.showFile(root, 'HEAD', 'a.txt');
+		assert.equal(result.unsupported, true);
+		assert.equal(result.found, false);
+		// Lệnh khác vẫn chạy được qua lớp vỏ.
+		const status = await old.status(root);
+		assert.equal(status.branch, 'main');
+	} finally {
+		rmSync(root, { recursive: true, force: true });
+		rmSync(dir, { recursive: true, force: true });
+	}
+});
+
+runTd('Td: changedFiles chỉ liệt kê tên tệp, không lấy nội dung', async () => {
+	const td = new Td(TD_BIN!);
+	const root = await repo(td, { 'a.txt': 'một\n', 'b.txt': 'hai\n' });
+	try {
+		write(root, 'a.txt', 'một sửa\n');
+		write(root, 'moi.txt', 'mới\n');
+
+		assert.deepEqual((await td.changedFiles(root, { revision: 'HEAD' })).sort(), ['a.txt', 'b.txt']);
+
+		// Lọc theo danh sách tệp thì chỉ còn tệp được nêu.
+		assert.deepEqual(await td.changedFiles(root, { revision: 'HEAD', paths: ['a.txt'] }), ['a.txt']);
+
+		// Không lọc thì lấy cả tệp đã sửa lẫn tệp chưa theo dõi trên đĩa.
+		const unstaged = (await td.changedFiles(root)).sort();
+		assert.deepEqual(unstaged, ['a.txt', 'moi.txt']);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

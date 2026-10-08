@@ -77,7 +77,8 @@ chính kho này làm ví dụ.
 | Xem thay đổi | Nhóm **Staged Changes**, **Changes**, **Merge Changes**, **Untracked Changes** |
 | Commit | Gõ nội dung vào ô nhập rồi bấm dấu tích, hoặc `TD: Commit` |
 | Stage, unstage, huỷ thay đổi | Nút cộng/trừ/thùng rác cạnh từng tệp, và trên tiêu đề nhóm |
-| Xem khác biệt | Bấm tên tệp để mở khung so sánh, hoặc bấm biểu tượng ngay cạnh |
+| Xem khác biệt | Bấm tên tệp để mở khung so sánh, chọn nhiều tệp để mở khung so sánh nhiều tệp |
+| Xem thay đổi của một commit | Bấm một dòng trong khung **Commits** |
 | Đường ngữ cảnh trong trình soạn thảo | Dấu nháy và dải khác biệt ở rìa tệp, giống git |
 | Chữ viết tắt trên cây thư mục | `M` đã sửa, `A` thêm, `D` xoá, `U` mới hoặc xung đột |
 | Nhánh, tag, bản lưu tạm | Các khung **Branches**, **Commits**, **Stashes**, **Tags** |
@@ -112,11 +113,16 @@ Toàn bộ phần dịch output của td nằm trong `src/parse.ts`. Nếu cây 
 | --- | --- |
 | Đọc trạng thái | `td vcs status` |
 | Khác biệt hai phía | `td vcs diff [--staged] -U1000000 -- <tệp>` |
-| Khác biệt của một commit | `td vcs diff <mã băm> -U1000000 -- <tệp>` |
+| Danh sách tệp của một commit | `td vcs diff --name-only <mã băm>` |
+| Nội dung tệp ở HEAD | `td vcs show-file HEAD -- <tệp>` |
 | Lịch sử | `td vcs log --oneline -n <số>` |
 | Nhánh, tag, bản lưu tạm | `td vcs branch -vv`, `td vcs tag -l`, `td vcs stash --list` |
 | Stage, unstage, huỷ | `td vcs add`, `td vcs restore --staged`, `td vcs restore` |
 | Xoá tệp chưa theo dõi | `td vcs clean -f <tệp>` |
+
+`show-file` cần `td` 0.1.0 trở lên. Gặp `td` cũ hơn thì tiện ích ghi một dòng
+ra kênh log và dựng phía HEAD từ khác biệt đã stage như trước, tức là tệp sạch
+vẫn hiện rỗng.
 
 ## Những chỗ chưa làm được
 
@@ -144,6 +150,7 @@ Thanh trạng thái vẫn hiện số commit đi trước/đi sau khi nhánh có
 | `src/views.ts` | Bốn khung nhánh, commit, stash, tag |
 | `src/decorations.ts` | Chữ viết tắt trên cây thư mục |
 | `src/uri.ts` | Lược đồ `td:` cho nội dung nằm trong kho |
+| `src/test/harness.ts` | Bản giả API VS Code dùng chung cho kiểm thử |
 
 ## Cấu hình
 
@@ -156,7 +163,7 @@ Thanh trạng thái vẫn hiện số commit đi trước/đi sau khi nhánh có
 | `td.decorations.enabled` | `true` | Hiện chữ viết tắt trên cây thư mục |
 | `td.showCommitInput` | `true` | Hiện ô nhập nội dung commit |
 | `td.alwaysShowStagedChangesResourceGroup` | `true` | Luôn hiện nhóm Staged Changes |
-| `td.openDiffOnClick` | `false` | Bấm tệp thì mở khung so sánh thay vì mở tệp |
+| `td.openDiffOnClick` | `true` | Bấm tệp thì mở khung so sánh thay vì mở tệp |
 | `td.confirmEmptyCommits` | `true` | Hỏi lại trước khi tạo commit rỗng |
 | `td.logMaxCount` | `500` | Số commit tối đa ở khung Commits |
 
