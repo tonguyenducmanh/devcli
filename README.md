@@ -31,6 +31,27 @@ Các nhóm khác sẽ được bổ sung theo cùng khuôn mẫu.
 - Không cần gì khác lúc chạy. devcli là một tệp thực thi duy nhất, không
   phụ thuộc thư viện hệ thống.
 
+## Build
+
+```bash
+./build_all.sh                # tài liệu + binary mọi nền tảng + tiện ích VS Code
+./build_all.sh --no-extension # bỏ qua bước đóng gói tiện ích
+```
+
+Kết quả nằm trong `out/`. Tệp `.vsix` cài vào VS Code trên mọi nền tảng:
+
+```bash
+code --install-extension out/devcli-vscode-0.1.0.vsix
+```
+
 ## Tài liệu chi tiết
 
 Mọi hướng dẫn cụ thể đã được chia nhỏ. Vui lòng tìm và đọc các tài liệu tương ứng bên trong thư mục `docs/`.
+
+Những thay đổi đáng kể của từng đợt nằm trong [`CHANGELOG.md`](CHANGELOG.md).
+
+## Trình soạn thảo
+
+| Thư mục | Vai trò |
+| --- | --- |
+| [`editors/vscode/`](editors/vscode/) | Tiện ích đưa `td` vào khung Source Control của VS Code |

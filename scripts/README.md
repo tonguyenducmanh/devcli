@@ -9,11 +9,15 @@ thư mục gốc chỉ còn mã nguồn và tài liệu.
 | --- | --- |
 | `build_binaries.sh` | Toàn bộ cấu hình build nằm ở đầu tệp này, phần còn lại là logic |
 | `build_agent_docs.sh` | Sinh lại tài liệu lệnh trong `agents/cli/` |
+| `build_extension.sh` | Đóng gói tiện ích VS Code thành tệp `.vsix` trong `out/` |
 | `check.sh` | Kiểm tra trọn vẹn trước khi đóng góp |
 | `remove_old_tags.sh` | Xoá các tag cũ trong kho git, giữ lại danh sách tag chỉ định |
 
 Điểm vào để build không nằm ở đây mà ở thư mục gốc, tên `build_all.sh`. Nó gọi
-`build_agent_docs.sh` rồi `build_binaries.sh`.
+`build_agent_docs.sh`, `build_binaries.sh` rồi `build_extension.sh`.
+
+`build_extension.sh` là bước duy nhất cần Node.js. Máy không có Node thì nó in
+một dòng bỏ qua rồi thoát với mã 0, để phần build Go không bị ảnh hưởng.
 
 Hai script cuối cùng là công cụ bảo trì, không liên quan tới build:
 `check.sh` kiểm tra mã nguồn, `remove_old_tags.sh` dọn tag. Cấu hình build nằm
@@ -132,6 +136,21 @@ khai báo bằng `var` thì `ldflags` mới ghi được. Đừng đổi thành 
 2. `go vet ./...` — phân tích tĩnh.
 3. `go test ./...` — kiểm thử trong `tests/`.
 4. Đối chiếu `agents/cli/` với cây lệnh.
+
+## Đóng gói tiện ích VS Code
+
+```bash
+./scripts/build_extension.sh             # build rồi đóng gói vào out/
+./scripts/build_extension.sh --package   # chỉ đóng gói, dùng lại kết quả build
+```
+
+Kết quả là `out/devcli-vscode-<phiên bản>.vsix`. Một tệp này cài được trên mọi
+nền tảng vì nó chỉ chứa JavaScript đã biên dịch. Máy đích cần có lệnh `td` riêng,
+đặt trong `PATH`, `~/go/bin` hoặc qua cấu hình `td.path`. Chi tiết ở
+[`editors/vscode/README.md`](../editors/vscode/README.md).
+
+Phiên bản của tiện ích nằm trong `editors/vscode/package.json`, còn tên tệp đầu
+ra đặt theo `APP_NAME` trong `build_binaries.sh`.
 
 ## Sinh trang man
 

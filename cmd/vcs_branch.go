@@ -654,11 +654,7 @@ chuẩn bị, không động tới con trỏ HEAD.`,
 
 		// Tách phần đích commit và danh sách tệp sau dấu "--".
 		opts := ops.ResetOptions{Mode: mode}
-		sep := indexOf(args, "--")
-		if sep >= 0 {
-			opts.Paths = args[sep+1:]
-			args = args[:sep]
-		}
+		opts.Paths, args = splitPathsAtDash(cmd, args)
 		if len(args) > 0 {
 			opts.Target = args[0]
 		}

@@ -23,6 +23,11 @@ nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
 	Args: maximumArgs(1, "[thư mục]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir := "."
+		// -C áp dụng cho mọi lệnh nên init cũng phải nghe nó, nếu không thì
+		// `td vcs init -C thu-muc-khac` lại khởi tạo nhầm ở thư mục hiện tại.
+		if c, err := cmd.Flags().GetString("dir"); err == nil && c != "" {
+			dir = c
+		}
 		if len(args) == 1 {
 			dir = args[0]
 		}

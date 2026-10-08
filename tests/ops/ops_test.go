@@ -1,11 +1,13 @@
 package ops_test
 
 import (
-	"github.com/tonguyenducmanh/devcli/internal/vcs/ops"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
+
+	"github.com/tonguyenducmanh/devcli/internal/vcs/ops"
 
 	"github.com/tonguyenducmanh/devcli/internal/vcs/object"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
@@ -24,6 +26,12 @@ func newRepo(t *testing.T) *repo.Repo {
 		t.Fatal(err)
 	}
 	return r
+}
+
+// existsIn báo tệp có còn trên đĩa hay không.
+func existsIn(r *repo.Repo, rel string) bool {
+	_, err := os.Lstat(r.WorkPath(rel))
+	return err == nil
 }
 
 // write ghi nội dung một file trong thư mục làm việc, tạo thư mục cha nếu thiếu.
@@ -768,6 +776,90 @@ func TestRestoreFromCommit(t *testing.T) {
 	}
 }
 
+// TestRestoreStagedUnstage kiểm tra --staged gỡ thay đổi đã stage về đúng HEAD.
+//
+// Nếu lệnh lấy nội dung từ chính vùng chuẩn bị thì nó chép lại nội dung đang
+// có và tệp vẫn ở trạng thái đã stage, tức là lệch chỉ không làm gì cả.
+func TestRestoreStagedUnstage(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "giai.txt", "ban dau\n")
+	commitAll(t, r, "c1")
+
+	write(t, r, "giai.txt", "sua tren dia\n")
+	write(t, r, "khac.txt", "moi\n")
+	if err := ops.Add(r, ops.AddOptions{Paths: []string{"giai.txt", "khac.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ops.Restore(r, ops.RestoreOptions{Staged: true, Paths: []string{"giai.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := st.IndexStatusOf("giai.txt"); got != ' ' {
+		t.Fatalf("giai.txt phải ra khỏi vùng chuẩn bị, nhận %q", string(got))
+	}
+	// Nội dung trên đĩa phải giữ nguyên, chỉ vùng chuẩn bị bị gỡ.
+	if got := read(t, r, "giai.txt"); got != "sua tren dia\n" {
+		t.Fatalf("--staged không được đụng vào cây làm việc, nhận %q", got)
+	}
+	// Tệp khác không nằm trong danh sách thì phải giữ nguyên trạng thái.
+	if got := st.IndexStatusOf("khac.txt"); got != 'A' {
+		t.Fatalf("khac.txt phải còn ở vùng chuẩn bị, nhận %q", string(got))
+	}
+}
+
+// TestRestoreDefaultOnlyWorktree kiểm tra lệch chỉ mặc định chỉ đụng cây làm việc.
+//
+// Đây là thao tác "huỷ thay đổi" trong khung Source Control: lấy lại nội dung
+// đang ở vùng chuẩn bị. Nếu lệch chỉ vô tình ghi cả vùng chuẩn bị thì thay đổi
+// bị huỷ lại được stage, đúng thứ mà người dùng không muốn.
+func TestRestoreDefaultOnlyWorktree(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "f.txt", "ban dau\n")
+	write(t, r, "g.txt", "ban dau\n")
+	commitAll(t, r, "c1")
+
+	// Sửa trên đĩa rồi stage, nên vùng chuẩn bị khác HEAD.
+	write(t, r, "f.txt", "da stage\n")
+	if err := ops.Add(r, ops.AddOptions{Paths: []string{"f.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := ops.Restore(r, ops.RestoreOptions{Paths: []string{"f.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := read(t, r, "f.txt"); got != "da stage\n" {
+		t.Fatalf("phải lấy nội dung đang ở vùng chuẩn bị, nhận %q", got)
+	}
+	st, err := r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := st.IndexStatusOf("f.txt"); got != 'M' {
+		t.Fatalf("vùng chuẩn bị phải giữ nguyên, nhận %q", string(got))
+	}
+
+	// Sửa trên đĩa một tệp chưa từng được stage thì huỷ sửa đổi đưa tệp về sạch.
+	write(t, r, "g.txt", "sua tren dia\n")
+	if err := ops.Restore(r, ops.RestoreOptions{Paths: []string{"g.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := read(t, r, "g.txt"); got != "ban dau\n" {
+		t.Fatalf("huỷ sửa đổi phải đưa tệp về nội dung của HEAD, nhận %q", got)
+	}
+	st, err = r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e, ok := st.Entry("g.txt"); !ok || e.WorkStatus != ' ' {
+		t.Fatalf("tệp chưa từng stage phải trở lại sạch, nhận %+v", e)
+	}
+}
+
 func TestFsckCleanRepo(t *testing.T) {
 	r := newRepo(t)
 	write(t, r, "f.txt", "1\n")
@@ -782,5 +874,80 @@ func TestFsckCleanRepo(t *testing.T) {
 	}
 	if report.ObjectCount == 0 || report.RefCount == 0 {
 		t.Fatalf("số lượng object và ref phải lớn hơn 0: %+v", report)
+	}
+}
+
+// TestCleanRemovesOnlyUntracked kiểm tra clean chỉ xoá tệp chưa theo dõi.
+//
+// Tệp đã được đưa vào vùng chuẩn bị thì thuộc về lịch sử, xoá nó đi là mất
+// thứ còn cứu được trong kho. Lệnh vì thế không được đụng tới.
+func TestCleanRemovesOnlyUntracked(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "theo-doi.txt", "còn trong kho\n")
+	commitAll(t, r, "c1")
+
+	write(t, r, "rac.txt", "tạm\n")
+	write(t, r, "build/cong.txt", "tạm\n")
+
+	results, err := ops.Clean(r, ops.CleanOptions{DryRun: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var removed []string
+	for _, res := range results {
+		removed = append(removed, res.Removed...)
+	}
+	sort.Strings(removed)
+	if len(removed) != 2 || removed[0] != "build/cong.txt" || removed[1] != "rac.txt" {
+		t.Fatalf("dry run phải liệt kê đúng hai tệp chưa theo dõi, nhận %v", removed)
+	}
+	// Dry run không được xoá gì cả.
+	if existsIn(r, "rac.txt") != true {
+		t.Fatal("dry run không được xoá tệp")
+	}
+
+	if _, err := ops.Clean(r, ops.CleanOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if existsIn(r, "rac.txt") || existsIn(r, "build/cong.txt") {
+		t.Fatalf("phải xoá hết tệp chưa theo dõi, nhận %v", removed)
+	}
+	if !existsIn(r, "theo-doi.txt") {
+		t.Fatal("tệp đã theo dõi không được xoá")
+	}
+
+	st, err := r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(st.Untracked()) != 0 {
+		t.Fatalf("kho phải sạch tệp chưa theo dõi: %+v", st.Untracked())
+	}
+}
+
+// TestCleanWithPaths chỉ xoá đúng những tệp được nêu tên.
+func TestCleanWithPaths(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "a.txt", "1\n")
+	commitAll(t, r, "c1")
+	write(t, r, "rac.txt", "tạm\n")
+	write(t, r, "rac.log", "tạm\n")
+
+	n, err := ops.CountCleanable(r, []string{"rac.txt"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("phải đếm được đúng một tệp, nhận %d", n)
+	}
+
+	if _, err := ops.Clean(r, ops.CleanOptions{Paths: []string{"rac.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+	if existsIn(r, "rac.txt") {
+		t.Fatal("rac.txt phải bị xoá")
+	}
+	if !existsIn(r, "rac.log") {
+		t.Fatal("rac.log không nằm trong danh sách nên phải còn lại")
 	}
 }

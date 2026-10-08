@@ -85,13 +85,22 @@ func Restore(r *repo.Repo, opts RestoreOptions) error {
 	if len(opts.Paths) == 0 {
 		return fmt.Errorf("thiếu đường dẫn: cần chỉ định file cần khôi phục")
 	}
-	// Mặc định nếu không chỉ định gì thì cập nhật cả index và worktree.
-	updateIndex := opts.Staged || (!opts.Staged && !opts.Worktree)
-	updateWorktree := opts.Worktree || (!opts.Staged && !opts.Worktree)
+	// Mặc định lệnh chỉ đụng vào cây làm việc: lấy nội dung đang ở vùng chuẩn
+	// bị rồi ghi đè lên đĩa, giống git. Cờ --staged mới đổi vùng chuẩn bị, cờ
+	// --worktree thì chỉ định rõ để làm đúng một vùng.
+	updateIndex := opts.Staged
+	updateWorktree := !opts.Staged
 
 	// Nguồn nội dung: commit chỉ định, HEAD, hoặc index.
 	sourceTree := object.ZeroHash
 	useCommit := opts.Source != "" || opts.SourceCommit != object.ZeroHash
+	// Gỡ thay đổi đã stage tức là đưa vùng chuẩn bị về đúng HEAD, giống git.
+	// Lấy từ chính vùng chuẩn bị sẽ khiến lệnh chép lại nội dung đang có nên
+	// không gỡ được gì cả.
+	if opts.Staged && !opts.Worktree && !useCommit {
+		opts.Source = "HEAD"
+		useCommit = true
+	}
 	if useCommit {
 		h := opts.SourceCommit
 		if h.IsZero() {
@@ -105,14 +114,15 @@ func Restore(r *repo.Repo, opts RestoreOptions) error {
 				return err
 			}
 		}
-		tree, terr := r.CommitTree(h)
-		if terr != nil {
-			return terr
+		// HEAD chưa có commit thì cây rỗng: mọi tệp trong index đều phải
+		// được gỡ, đúng như git restore --staged trên nhánh chưa có mốc nào.
+		if !h.IsZero() {
+			tree, terr := r.CommitTree(h)
+			if terr != nil {
+				return terr
+			}
+			sourceTree = tree
 		}
-		if h.IsZero() {
-			return fmt.Errorf("không có commit nào để khôi phục từ đó")
-		}
-		sourceTree = tree
 	}
 	nodes := map[string]repo.TreeNode{}
 	if useCommit {

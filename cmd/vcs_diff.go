@@ -49,10 +49,7 @@ Sau dấu hai gạch ngang là danh sách tệp cần lọc.`,
 			Context:  context,
 		}
 		// Đường dẫn lọc nằm sau dấu "--".
-		if i := indexOf(args, "--"); i >= 0 {
-			opts.Paths = args[i+1:]
-			args = args[:i]
-		}
+		opts.Paths, args = splitPathsAtDash(cmd, args)
 		// Tham số còn lại là phạm vi commit cần so sánh.
 		if len(args) > 0 {
 			opts.Revision = args[0]

@@ -79,6 +79,7 @@ td vcs [flags]
 * [td vcs cat-file](td_vcs_cat-file.md)	 - In nội dung của một object (blob, tree, commit, tag)
 * [td vcs checkout](td_vcs_checkout.md)	 - Chuyển sang nhánh hoặc commit khác
 * [td vcs cherry-pick](td_vcs_cherry-pick.md)	 - Áp dụng thay đổi của một commit cụ thể
+* [td vcs clean](td_vcs_clean.md)	 - Xoá tệp chưa được theo dõi
 * [td vcs commit](td_vcs_commit.md)	 - Ghi lại các thay đổi đã stage thành một commit
 * [td vcs diff](td_vcs_diff.md)	 - Hiển thị khác biệt giữa các phiên bản
 * [td vcs fsck](td_vcs_fsck.md)	 - Kiểm tra tính toàn vẹn của kho và các tham chiếu

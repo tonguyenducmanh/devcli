@@ -26,8 +26,13 @@ tests/
   config/        kiểm thử cấu hình
   repo/          kiểm thử lớp trừu tượng kho mã nguồn
   ops/           kiểm thử nghiệp vụ cấp cao theo dòng lệnh
+  cli/           kiểm thử cách dòng lệnh đọc đối số của nó
   architecture/  kiểm thử các bất biến kiến trúc
 ```
+
+`tests/cli/` là nơi duy nhất chạy cây lệnh trong bộ nhớ, nên nó dành cho những
+điều chỉ thấy được ở tầng dòng lệnh: đọc đối số, tên nhóm trong output, cách lệnh
+tự báo lỗi. Phần nghiệp vụ thì kiểm thử ở `tests/ops/`.
 
 Tệp kiểm thử dùng *gói kiểm thử ngoài* (`package object_test`), chỉ được
 dùng những thứ mà gói đó xuất ra. Hệ quả là mã kiểm thử chỉ kiểm chứng được

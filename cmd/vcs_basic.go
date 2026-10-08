@@ -273,20 +273,8 @@ func logOptionsFromFlags(cmd *cobra.Command, args []string) (ops.LogOptions, err
 	opts.Stat, _ = cmd.Flags().GetBool("stat")
 	opts.Reverse, _ = cmd.Flags().GetBool("reverse")
 	// Đường dẫn lọc nằm sau dấu "--" nếu có.
-	if i := indexOf(args, "--"); i >= 0 {
-		opts.Paths = args[i+1:]
-	}
+	opts.Paths, args = splitPathsAtDash(cmd, args)
 	return opts, nil
-}
-
-// indexOf trả về vị trí phần tử đầu tiên có giá trị cho trước.
-func indexOf(list []string, want string) int {
-	for i, v := range list {
-		if v == want {
-			return i
-		}
-	}
-	return -1
 }
 
 // printLogEntries in danh sách commit ra stdout.

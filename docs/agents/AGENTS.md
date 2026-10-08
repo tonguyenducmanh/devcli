@@ -52,7 +52,9 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `build_all.sh` | Điểm vào để build, nằm ở gốc kho |
 | `scripts/` | Cấu hình và script build còn lại (xem `scripts/README.md`) |
 | `tests/` | Toàn bộ mã kiểm thử, tách theo vùng nghiệp vụ |
+| `editors/vscode/` | Tiện ích VS Code đưa `td` vào khung Source Control |
 | `docs/agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
+| `CHANGELOG.md` | Những thay đổi đáng kể của từng đợt, kèm cách kiểm chứng |
 
 ## Mô hình dữ liệu
 
@@ -164,6 +166,13 @@ Khi chạy thẳng bằng `go build` mà không qua script, lệnh dùng giá tr
 khai trong `cmd/root.go`. Ba giá trị `AppName`, `Author` và `RepoURL` phải
 khớp với `build_binaries.sh`, có kiểm thử chặn.
 
+## Ghi changelog
+
+Thay đổi đủ lớn để người khác cần biết thì ghi vào `CHANGELOG.md` ở mục
+`Chưa phát hành`: nêu thêm gì, sửa gì, đụng tới tệp nào, kiểm chứng bằng cách nào
+và còn thiếu gì. Mục tiêu là người đọc trên máy khác dựng lại được bối cảnh mà
+không cần đọc lịch sử git.
+
 ## Về kiểm thử
 
 Mã kiểm thử nằm trong `tests/`, mỗi thư mục con kiểm thử một vùng nghiệp vụ.
@@ -174,7 +183,37 @@ mà gói đó xuất ra.
 ngoài, phụ thuộc giữa các tầng đi một chiều, mọi lệnh đủ `Short`/`Long`/
 `Example` bằng tiếng Việt, và binary chạy được với `PATH` rỗng.
 
+`tests/cli/` chạy cây lệnh trong bộ nhớ để kiểm tra tầng dòng lệnh, ví dụ cách
+lệnh đọc danh sách tệp sau dấu `--`.
+
 Khi sửa một lỗi, thêm kiểm thử tái hiện lỗi đó trước khi sửa mã.
+
+## Tiện ích VS Code
+
+`editors/vscode/` là tiện ích TypeScript đưa `td` vào khung Source Control của
+VS Code, viết bằng API `vscode.scm`. Nó không thuộc module Go nên `go build`
+và `go test` không đụng tới, và kiểm thử kiến trúc không quét tới.
+
+Hai điều cần nhớ khi sửa cho khớp với phần còn lại của kho:
+
+- Tiện ích **không** đọc tệp `.tdx` bằng tay, mọi thứ đi qua `td vcs`. Nhờ vậy
+  định dạng dữ liệu của kho không bị phụ thuộc vào nó.
+- Toàn bộ phần dịch output tiếng Việt của `td` nằm trong `editors/vscode/src/parse.ts`.
+  Đổi câu chữ trong output của `td` thì chỗ đó phải sửa theo.
+- Lệnh `td` luôn được gọi với `-C` đặt trước mọi thứ khác. Đặt `-C` cuối dòng lệnh
+  thì khi lệnh có danh sách tệp sau dấu `--`, td sẽ hiểu `-C` là một đường dẫn.
+
+```bash
+cd editors/vscode && npm install && npm run compile && npm test
+```
+
+Đóng gói thành tệp cài được:
+
+```bash
+./scripts/build_extension.sh     # ra out/devcli-vscode-<phiên bản>.vsix
+```
+
+`build_all.sh` đã gọi sẵn. Bước này cần Node.js và tự bỏ qua nếu máy không có.
 
 ## Tài liệu tham chiếu lệnh
 

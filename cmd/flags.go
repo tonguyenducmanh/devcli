@@ -35,3 +35,17 @@ func verboseOn(cmd *cobra.Command) bool {
 func addVerboseFlag(cmd *cobra.Command, desc string) {
 	cmd.Flags().BoolP("verbose", "v", false, desc)
 }
+
+// splitPathsAtDash tách danh sách tệp nằm sau dấu hai gạch ngang, giống git:
+// phần trước là đối số của lệnh, phần sau là tệp cần lọc.
+//
+// Dấu hai gạch ngang không nằm trong args vì pflag ăn mất nó khi phân tích cờ.
+// Vị trí của nó được ghi lại ở ArgsLenAtDash, nên phải hỏi pflag chứ không tự
+// dò lại trong args.
+func splitPathsAtDash(cmd *cobra.Command, args []string) (paths []string, rest []string) {
+	dash := cmd.Flags().ArgsLenAtDash()
+	if dash < 0 || dash > len(args) {
+		return nil, args
+	}
+	return args[dash:], args[:dash]
+}
