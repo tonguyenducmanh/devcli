@@ -162,6 +162,11 @@ func Init(root string, defaultBranch string) (*Repo, error) {
 	if err := r.Config.Save(); err != nil {
 		return nil, err
 	}
+	// Tạo tệp ignore mẫu ở gốc kho nếu chưa có, để kho mới khởi động mà không
+	// phải lần theo tệp build, log hay cache của công cụ khác.
+	if _, err := worktree.WriteDefaultIgnore(abs); err != nil {
+		return nil, err
+	}
 	// Tạo .tmx/info/exclude rỗng nếu chưa có để người dùng chỉnh sửa.
 	excludePath := filepath.Join(gitDir, "info", "exclude")
 	if _, err := os.Stat(excludePath); os.IsNotExist(err) {

@@ -42,7 +42,7 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `internal/vcs/object/` | Kiểu dữ liệu blob, tree, commit, tag; tính mã băm |
 | `internal/vcs/storage/` | Ghi đọc object nén zlib; quản lý tham chiếu và nhật ký |
 | `internal/vcs/index/` | Vùng chuẩn bị, đọc ghi nhị phân có checksum |
-| `internal/vcs/worktree/` | Đọc ghi tệp trên đĩa, quy tắc bỏ qua tệp |
+| `internal/vcs/worktree/` | Đọc ghi tệp trên đĩa, quy tắc bỏ qua tệp, tệp ignore mẫu |
 | `internal/vcs/repo/` | Lớp trừu tắng kho: cây nội dung, trạng thái, phân giải tham chiếu |
 | `internal/vcs/diff/` | Thuật toán Myers, căn dòng, dựng hunk |
 | `internal/vcs/merge/` | Hợp nhất ba phía kiểu diff3 |
@@ -72,6 +72,19 @@ Mỗi đơn vị dữ liệu gọi là *object*, lưu thành một tệp riêng 
 
 Cây nội dung được xây từ vùng chuẩn bị bởi `repo.TreeFromIndex`, dựng đệ quy
 theo `repo.WriteTree`.
+
+## Tệp ignore
+
+Tên tệp là `.tmxignore`, đặt ở bất kỳ thư mục nào và chỉ có tác dụng bên trong
+thư mục đó. Tệp của riêng máy là `.tmx/info/exclude`.
+
+`tm vcs init` tạo sẵn `.tmxignore` ở gốc kho bằng `worktree.WriteDefaultIgnore`.
+Nội dung mẫu nằm ở `internal/vcs/worktree/ignore_default.txt` và được nhúng vào
+tệp thực thi bằng `//go:embed`, nên sửa tệp mẫu thì phải chạy lại build.
+
+Hàm này **không** đè tệp đã có: người dùng có thể đã tự viết quy tắc riêng và
+khởi tạo không được xoá mất lựa chọn đó. Vì vậy khi thêm tệp ignore mới vào bộ
+mẫu, kiểm thử phải có cả tình huống tệp đã tồn tại.
 
 ## Thêm một lệnh mới
 

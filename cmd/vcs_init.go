@@ -1,11 +1,21 @@
 package cmd
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/spf13/cobra"
 
 	"github.com/tonguyenducmanh/devcli/internal/vcs/ops"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
+	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
 )
+
+// exists báo tệp có tồn tại không.
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
 
 // vcsInitCmd khởi tạo kho mã nguồn mới.
 var vcsInitCmd = &cobra.Command{
@@ -14,7 +24,12 @@ var vcsInitCmd = &cobra.Command{
 	Long: `Tạo thư mục .tmx trong thư mục cho trước để bắt đầu theo dõi phiên bản.
 
 Tham số thư mục không bắt buộc, mặc định là thư mục hiện tại. Lệnh sẽ báo lỗi
-nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.`,
+nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
+
+Lệnh còn tạo tệp .tmxignore ở gốc kho nếu chưa có, với bộ mẫu bỏ qua phổ biến
+cho dự án Node.js và Visual Studio: log, cache, thư mục build, node_modules.
+Nhờ vậy kho mới không phải lần theo những tệp đó khi thêm vào. Tệp đã có sẵn thì
+giữ nguyên, lệnh không ghi đè lựa chọn của người dùng.`,
 	Example: `  # Tạo kho trong thư mục hiện tại với nhánh main
   tm vcs init
 
@@ -39,12 +54,19 @@ nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
 			return exitError("tên nhánh khởi tạo không được để trống")
 		}
 
+		// Init tự tạo tệp ignore mẫu, nên phải xem trước khi gọi mới biết có
+		// cần báo cho người dùng biết không.
+		hadIgnore := exists(filepath.Join(dir, worktree.IgnoreFileName))
+
 		r, err := repo.Init(dir, branch)
 		if err != nil {
 			return err
 		}
 		printLine("Đã khởi tạo kho tm tại %s", r.Root)
 		printLine("Nhánh khởi tạo: %s", branch)
+		if !hadIgnore {
+			printLine("Đã tạo tệp %s với bộ mẫu bỏ qua mặc định", worktree.IgnoreFileName)
+		}
 		printLine("Bước tiếp theo: tm vcs add . && tm vcs commit -m \"tin nhắn\"")
 		return nil
 	},

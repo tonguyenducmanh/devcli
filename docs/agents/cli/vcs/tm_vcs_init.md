@@ -9,6 +9,11 @@ Tạo thư mục .tmx trong thư mục cho trước để bắt đầu theo dõi
 Tham số thư mục không bắt buộc, mặc định là thư mục hiện tại. Lệnh sẽ báo lỗi
 nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
 
+Lệnh còn tạo tệp .tmxignore ở gốc kho nếu chưa có, với bộ mẫu bỏ qua phổ biến
+cho dự án Node.js và Visual Studio: log, cache, thư mục build, node_modules.
+Nhờ vậy kho mới không phải lần theo những tệp đó khi thêm vào. Tệp đã có sẵn thì
+giữ nguyên, lệnh không ghi đè lựa chọn của người dùng.
+
 ```
 tm vcs init [thư mục] [flags]
 ```

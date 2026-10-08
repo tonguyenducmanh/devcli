@@ -277,6 +277,64 @@ docs/*.tmp
 	}
 }
 
+// TestWriteDefaultIgnoreCreatesTemplate bảo đảm lần đầu tạo tệp ignore mẫu
+// và lần sau không đè lên tệp người dùng đã sửa.
+func TestWriteDefaultIgnoreCreatesTemplate(t *testing.T) {
+	root := t.TempDir()
+
+	created, err := worktree.WriteDefaultIgnore(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !created {
+		t.Fatal("lần đầu phải tạo tệp ignore")
+	}
+
+	path := filepath.Join(root, worktree.IgnoreFileName)
+	body, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(body) == 0 {
+		t.Fatal("tệp ignore mẫu không được rỗng")
+	}
+	// Bộ mẫu phải bỏ qua được mấy thứ hay gặp, nếu không thì tạo ra cũng vô ích.
+	ig := worktree.NewIgnore(root)
+	if err := ig.AddFile(path); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"debug.log", "node_modules/x/y.js", "out/app", "dist/bundle.js"} {
+		if !ig.Matches(root, name) {
+			t.Errorf("tệp ignore mẫu phải bỏ qua %s", name)
+		}
+	}
+	for _, name := range []string{"main.go", "README.md", "src/index.ts"} {
+		if ig.Matches(root, name) {
+			t.Errorf("tệp ignore mẫu không được bỏ qua %s", name)
+		}
+	}
+
+	// Người dùng sửa tệp rồi gọi lại thì phải giữ nguyên tệp cũ.
+	edited := "# chỉ mỗi dòng này\n"
+	if err := os.WriteFile(path, []byte(edited), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	created, err = worktree.WriteDefaultIgnore(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created {
+		t.Error("tệp đã tồn tại thì không được báo là vừa tạo")
+	}
+	body, err = os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(body) != edited {
+		t.Errorf("nội dung người dùng sửa bị ghi đè: %q", body)
+	}
+}
+
 // TestPathPatternMatch kiểm tra việc khớp mẫu thông qua giao diện công khai
 // của bộ quy tắc bỏ qua, vì đó mới là hành vi người dùng thấy.
 func TestPathPatternMatch(t *testing.T) {

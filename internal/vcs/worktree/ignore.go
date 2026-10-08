@@ -2,6 +2,7 @@ package worktree
 
 import (
 	"bufio"
+	_ "embed"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,6 +34,33 @@ func NewIgnore(base string) *Ignore { return &Ignore{base: base} }
 
 // IgnoreFileName là tên tệp ignore đặt trong thư mục bất kỳ, kể cả thư mục con.
 const IgnoreFileName = ".tmxignore"
+
+// defaultIgnore là nội dung mẫu dùng khi `tm vcs init` tạo tệp ignore ở gốc kho.
+//
+// Nhúng sẵn trong tệp thực thi để lệnh init không phụ thuộc tệp bên ngoài, nhờ vậy
+// tm vẫn chạy được trên máy chỉ có một tệp thực thi. Nội dung là bộ mẫu phổ biến
+// cho dự án Node.js và Visual Studio, người dùng sửa thoải mái.
+//
+//go:embed ignore_default.txt
+var defaultIgnore string
+
+// WriteDefaultIgnore ghi tệp ignore mẫu vào thư mục gốc kho khi chưa có.
+//
+// Không đè tệp đã tồn tại: người dùng có thể đã tự chỉnh sửa, và việc khởi tạo
+// lại không được phép xoá mất lựa chọn của họ. Hàm trả về true khi vừa tạo tệp,
+// false khi đã có sẵn.
+func WriteDefaultIgnore(root string) (bool, error) {
+	path := filepath.Join(root, IgnoreFileName)
+	if _, err := os.Stat(path); err == nil {
+		return false, nil
+	} else if !os.IsNotExist(err) {
+		return false, err
+	}
+	if err := os.WriteFile(path, []byte(defaultIgnore), 0o644); err != nil {
+		return false, err
+	}
+	return true, nil
+}
 
 // AddFile nạp các quy tắc từ một tệp ignore.
 //

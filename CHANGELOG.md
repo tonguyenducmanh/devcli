@@ -9,6 +9,39 @@ bản theo [SemVer](https://semver.org/lang/vi/).
 
 ## Chưa phát hành
 
+### `tm vcs init` tạo sẵn tệp ignore
+
+Lệnh `tm vcs init` giờ tạo tệp `.tmxignore` ở gốc kho nếu chưa có, với bộ mẫu
+bỏ qua phổ biến cho dự án Node.js và Visual Studio: log, cache, thư mục build,
+`node_modules`, `.vsix` và một số tệp sinh tự động khác. Nhờ vậy `tm vcs add .`
+ngay sau khi khởi tạo không phải lần theo những thứ không nên theo dõi.
+
+Tệp đã tồn tại thì giữ nguyên, không ghi đè, để người dùng đã viết quy tắc riêng
+không bị mất. Lệnh chỉ in ra dòng báo "Đã tạo tệp .tmxignore" khi thật sự tạo
+mới.
+
+| Tệp | Vai trò |
+| --- | --- |
+| `internal/vcs/worktree/ignore_default.txt` | Nội dung mẫu, nhúng vào tệp thực thi bằng `//go:embed` |
+| `internal/vcs/worktree/ignore.go` | Hàm `WriteDefaultIgnore`, không đè tệp đã có |
+| `internal/vcs/repo/repo.go` | `Init` gọi hàm trên |
+| `cmd/vcs_init.go` | Mô tả lệnh và dòng báo cho người dùng |
+
+Kiểm chứng:
+
+```bash
+tm vcs init
+ls -a                    # có .tmxignore
+tm vcs status            # node_modules/, out/, *.log không hiện
+```
+
+Kiểm thử mới ở `tests/cli/cli_test.go` (init tạo tệp, không đè tệp cũ, loại trừ
+đúng tệp build) và `tests/worktree/worktree_test.go` (nội dung mẫu bỏ qua được
+mấy thứ hay gặp).
+
+Một phép kiểm thử cũ phải sửa: `tests/repo/repo_test.go` đếm số tệp đã stage sau
+`add .`, nay nhận 3 tệp thay vì 2 vì `.tmxignore` được tạo sẵn.
+
 ### Đổi tên lệnh `td` thành `tm`
 
 Lệnh trên terminal đổi từ `td` sang `tm`. Đổi theo bốn phần: tên lệnh gọi,

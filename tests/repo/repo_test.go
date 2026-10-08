@@ -183,8 +183,9 @@ func TestCommitAndStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(st.Staged()) != 2 {
-		t.Fatalf("phải có 2 file đã stage, nhận %d", len(st.Staged()))
+	// Ba tệp vì init tạo sẵn .tmxignore ở gốc kho.
+	if len(st.Staged()) != 3 {
+		t.Fatalf("phải có 3 file đã stage, nhận %d", len(st.Staged()))
 	}
 	if st.IndexStatusOf("a.txt") != 'A' {
 		t.Fatalf("file mới phải có trạng thái thêm")

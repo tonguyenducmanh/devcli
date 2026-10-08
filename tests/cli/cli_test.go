@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/tonguyenducmanh/devcli/cmd"
+	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
 )
 
 // runChạy lệnh trong bộ nhớ rồi trả về toàn bộ output và lỗi phát sinh.
@@ -199,6 +200,63 @@ func TestCleanListsBeforeDeleting(t *testing.T) {
 	// Tệp đã được theo dõi không được đụng tới.
 	if _, err := os.Stat(filepath.Join(root, "theo-doi.txt")); err != nil {
 		t.Fatalf("tệp đã theo dõi không được xoá: %v", err)
+	}
+}
+
+// TestInitCreatesDefaultIgnore bảo đảm init tạo tệp ignore mẫu và không đè lên
+// tệp người dùng đã có.
+func TestInitCreatesDefaultIgnore(t *testing.T) {
+	dir := t.TempDir()
+	out := mustRun(t, "vcs", "init", "-C", dir)
+
+	ignore := filepath.Join(dir, ".tmxignore")
+	body, err := os.ReadFile(ignore)
+	if err != nil {
+		t.Fatalf("init phải tạo tệp ignore ở gốc kho: %v", err)
+	}
+	if !strings.Contains(out, ".tmxignore") {
+		t.Errorf("lệnh phải báo là đã tạo tệp ignore: %s", out)
+	}
+
+	// Kho đã có sẵn thì init báo lỗi, nên kiểm tra việc không đè bằng cách gọi
+	// hàm của tầng nghiệp vụ trực tiếp.
+	if err := os.WriteFile(ignore, []byte("# tùy chọn\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	created, err := worktree.WriteDefaultIgnore(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if created {
+		t.Error("tệp ignore đã tồn tại thì không được ghi đè")
+	}
+	body, err = os.ReadFile(ignore)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(body) != "# tùy chọn\n" {
+		t.Errorf("nội dung tệp ignore bị ghi đè: %q", body)
+	}
+}
+
+// TestInitIgnoreSkipsBuildArtifacts bảo đảm tệp mẫu loại trừ đúng mấy thứ mà
+// người dùng không muốn theo dõi.
+func TestInitIgnoreSkipsBuildArtifacts(t *testing.T) {
+	dir := t.TempDir()
+	mustRun(t, "vcs", "init", "-C", dir)
+	writeFile(t, dir, "node_modules/dep/index.js", "x\n")
+	writeFile(t, dir, "out/app", "x\n")
+	writeFile(t, dir, "debug.log", "x\n")
+	writeFile(t, dir, "main.go", "package main\n")
+
+	out := mustRun(t, "vcs", "status", "-C", dir)
+	for _, gone := range []string{"node_modules", "out/", "debug.log"} {
+		if strings.Contains(out, gone) {
+			t.Errorf("tệp ignore mẫu phải bỏ qua %s: %s", gone, out)
+		}
+	}
+	if !strings.Contains(out, "main.go") {
+		t.Errorf("mã nguồn thật phải còn trong status: %s", out)
 	}
 }
 
