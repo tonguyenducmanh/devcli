@@ -41,7 +41,7 @@ Các nhóm khác sẽ được bổ sung theo cùng khuôn mẫu.
 Kết quả nằm trong `out/`. Tệp `.vsix` cài vào VS Code trên mọi nền tảng:
 
 ```bash
-code --install-extension out/td-devcli-vscode-0.1.0.vsix
+code --install-extension out/devcli-tm-vscode-0.1.0.vsix
 ```
 
 ## Tài liệu chi tiết

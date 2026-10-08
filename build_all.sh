@@ -23,10 +23,10 @@
 # là công cụ Go và không được phụ thuộc vào Node.
 #
 # Kết quả trong out/ có chứa số phiên bản, ví dụ:
-#   out/td-devcli-mac-arm-0.1.0
-#   out/td-devcli-linux-0.1.0
-#   out/td-devcli-windows-0.1.0.exe
-#   out/td-devcli-vscode-0.1.0.vsix
+#   out/devcli-tm-mac-arm-0.1.0
+#   out/devcli-tm-linux-0.1.0
+#   out/devcli-tm-windows-0.1.0.exe
+#   out/devcli-tm-vscode-0.1.0.vsix
 set -e
 
 # Script đang ở gốc kho nên thư mục chứa nó chính là thư mục gốc.

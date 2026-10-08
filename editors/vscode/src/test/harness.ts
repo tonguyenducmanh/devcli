@@ -27,6 +27,32 @@ export interface FakeState {
 	lastCall(id: string): RecordedCall | undefined;
 	/** Nội dung ảo mà tiện ích cấp cho các địa chỉ tm:, đọc để kiểm thử. */
 	contentOf(uri: unknown): Promise<string>;
+	/**
+	 * Câu trả lời cho các hộp thoại, theo thứ tự được dùng.
+	 *
+	 * Lệnh như tạo nhánh hay lưu tạm đều hỏi người dùng qua hộp nhập hoặc hộp
+	 * chọn nhanh, mà bản giả không có ai để trả lời. Kiểm thử xếp trước câu
+	 * trả lời vào đây rồi gọi lệnh; hết hàng thì hộp thoại bị huỷ, đúng như
+	 * người dùng bấm Esc.
+	 */
+	answers: DialogAnswers;
+	/** Sự kiện tệp trong workspace, để kiểm thử được phần làm mới trạng thái. */
+	fireFileEvent(kind: 'create' | 'change' | 'delete', fsPath: string): void;
+	/** Chờ cho các lệnh đã hứa hoàn tất, đúng như người dùng thấy. */
+	settle(ms?: number): Promise<void>;
+}
+
+/** Câu trả lời dồn theo thứ tự cho từng loại hộp thoại. */
+export interface DialogAnswers {
+	input: (string | undefined)[];
+	pick: unknown[];
+	warning: (string | undefined)[];
+	information: (string | undefined)[];
+}
+
+/** Lấy câu trả lời kế tiếp, hết hàng thì huỷ hộp thoại. */
+function nextAnswer<T>(queue: T[]): T | undefined {
+	return queue.shift();
 }
 
 export function findTm(): string | undefined {
@@ -35,12 +61,17 @@ export function findTm(): string | undefined {
 		return fromEnv;
 	}
 	try {
-		// Tên tệp do build_all.sh đặt theo cấu hình trong scripts/, nên thử cả
-		// ba tiền tố tên tệp build trong scripts/ cho chắc.
+		// Tên tệp do build_binaries.sh đặt theo biến APP_NAME, nên thử cả
+		// những tiền tố của các đời đặt tên trước cho chắc kho còn tệp build cũ.
 		const built = readdirSync(path.join(REPO_ROOT, 'out'))
-			.filter(name => /^(td-devcli|devcli|tm)(-|\.)/.test(name))
+			.filter(name => /^(devcli-tm|td-devcli|devcli|tm)(-|\.)/.test(name))
+			// Tệp đúng tên ứng dụng đứng trước, vì tệp theo nền tảng có thể là
+			// bản build cho máy khác nằm cùng thư mục.
+			.sort((a, b) => rankBinary(a) - rankBinary(b))
 			.map(name => path.join(REPO_ROOT, 'out', name))
-			.find(candidate => existsSync(candidate));
+			// Chạy thử mới biết tệp nào dùng được: `out` chứa cả ba nền tảng
+			// mà tệp của nền tảng khác sẽ báo lỗi khó hiểu như ENOEXEC.
+			.find(candidate => canRun(candidate));
 		if (built) {
 			return built;
 		}
@@ -53,6 +84,22 @@ export function findTm(): string | undefined {
 	} catch {
 		return undefined;
 	}
+}
+
+/** Tệp thực thi có chạy được trên máy này không. */
+function canRun(candidate: string): boolean {
+	try {
+		execFileSync(candidate, ['version'], { stdio: 'ignore' });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/** Thứ tự ưu tiên khi có nhiều tệp cùng nằm trong out. */
+function rankBinary(name: string): number {
+	const base = path.basename(name);
+	return base === 'tm' || base === 'tm.exe' ? 0 : 1;
 }
 
 export class Disposable {
@@ -133,6 +180,27 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 	const calls: RecordedCall[] = [];
 	const opened: unknown[] = [];
 	const shown: string[] = [];
+	const answers: DialogAnswers = { input: [], pick: [], warning: [], information: [] };
+
+	// Mỗi bộ theo dõi tệp nhớ listener để kiểm thử bắn sự kiện như lúc chạy thật.
+	type WatcherListener = (uri: FakeUri) => void;
+	const watcherListeners = new Map<string, WatcherListener[]>();
+	const watcherOf = (kind: string) => {
+		const on = (event: string) => (fn: WatcherListener) => {
+			const list = watcherListeners.get(event) ?? [];
+			list.push(fn);
+			watcherListeners.set(event, list);
+			return new Disposable(() => {
+				watcherListeners.set(event, (watcherListeners.get(event) ?? []).filter(l => l !== fn));
+			});
+		};
+		return {
+			onDidCreate: on(`${kind}:create`),
+			onDidChange: on(`${kind}:change`),
+			onDidDelete: on(`${kind}:delete`),
+			dispose: () => { }
+		};
+	};
 
 	const vscode = {
 		Uri: FakeUri,
@@ -191,12 +259,7 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 			}),
 			onDidChangeConfiguration: () => new Disposable(() => { }),
 			onDidChangeWorkspaceFolders: () => new Disposable(() => { }),
-			createFileSystemWatcher: () => ({
-				onDidCreate: () => new Disposable(() => { }),
-				onDidChange: () => new Disposable(() => { }),
-				onDidDelete: () => new Disposable(() => { }),
-				dispose: () => { }
-			}),
+			createFileSystemWatcher: (pattern: string) => watcherOf(pattern),
 			registerTextDocumentContentProvider: (scheme: string, provider: ContentProvider) => {
 				contentProviders.set(scheme, provider);
 				return new Disposable(() => contentProviders.delete(scheme));
@@ -213,16 +276,20 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 				shown.push(message);
 				return Promise.resolve(undefined);
 			},
-			showWarningMessage: (message: string) => {
+			showWarningMessage: (message: string, ...rest: unknown[]) => {
 				shown.push(message);
-				return Promise.resolve(undefined);
+				// Hộp xác nhận có nút bấm nên trả về nút mà answers.warning chỉ
+				// định. Hộp chỉ báo không có nút nào thì luôn trả undefined.
+				const hasButtons = rest.some(item => typeof item === 'string');
+				return Promise.resolve(hasButtons ? nextAnswer(answers.warning) : undefined);
 			},
 			showInformationMessage: (message: string) => {
 				shown.push(message);
+				nextAnswer(answers.information);
 				return Promise.resolve(undefined);
 			},
-			showInputBox: () => Promise.resolve(undefined),
-			showQuickPick: () => Promise.resolve(undefined),
+			showInputBox: () => Promise.resolve(nextAnswer(answers.input)),
+			showQuickPick: () => Promise.resolve(nextAnswer(answers.pick)),
 			showWorkspaceFolderPick: () => Promise.resolve(undefined),
 			showTextDocument: (target: unknown) => {
 				opened.push(target);
@@ -253,6 +320,15 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 		shown,
 		uri,
 		lastCall: id => [...calls].reverse().find(call => call.id === id),
+		answers,
+		fireFileEvent: (kind, fsPath) => {
+			for (const listener of watcherListeners.get(`**/*:${kind}`) ?? []) {
+				listener(FakeUri.file(fsPath));
+			}
+		},
+		settle: async (ms = 1500) => {
+			await new Promise(resolve => setTimeout(resolve, ms));
+		},
 		contentOf: async uri => {
 			const provider = contentProviders.get((uri as { scheme: string }).scheme);
 			if (!provider) {

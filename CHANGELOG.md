@@ -9,6 +9,82 @@ bản theo [SemVer](https://semver.org/lang/vi/).
 
 ## Chưa phát hành
 
+### Tên tệp build trong `out/` là `devcli-tm-*`
+
+Tiền tố tên tệp đổi từ `td-devcli` sang `devcli-tm`, khớp với tên kho `devcli` và
+lệnh `tm`. Nguồn duy nhất là biến `APP_NAME` trong `scripts/build_binaries.sh`;
+`scripts/build_extension.sh` trước đây khai báo lần thứ hai nên dễ lệch, nay đọc
+lại từ script build nên đổi tên chỉ cần sửa một chỗ.
+
+Kiểm thử mới ở `tests/architecture/artifact_test.go` chặn ba kiểu lệch: script
+đóng gói gán thẳng `APP_NAME`, tài liệu viết tên tệp khác tên build sinh ra, và bản
+giả kiểm thử của tiện ích không nhận ra tên tệp mới (lệch kiểu này thì toàn bộ
+kiểm thử cần lệnh `tm` bị bỏ qua mà báo cáo vẫn xanh).
+
+```bash
+./build_all.sh && ls out/
+```
+
+### Sửa lỗi khung so sánh thay đổi trong tiện ích VS Code
+
+Tiện ích dựng phía gốc của khung so sánh thay đổi trên đĩa bằng cách lấy phía cũ
+của khác biệt do `tm vcs diff` trả về. Cách đó chỉ đúng lúc hai bên còn khác nhau.
+Người dùng bấm hoàn tác từng dòng rồi hoàn tác cả tệp thì tệp khớp lại vùng chuẩn
+bị, không còn khác biệt nào để dựng, và phía gốc rơi về chuỗi rỗng trong khi phía
+phải vẫn còn nội dung. Khung so sánh lúc đó báo thay đổi từ tệp trống sang tệp mới
+có nội dung, tức là báo sai, dù hai bên đã giống nhau.
+
+Phía gốc giờ đọc thẳng từ vùng chuẩn bị nên luôn đúng, kể cả lúc không còn khác
+biệt. Tệp đã bị xoá khỏi đĩa thì phía phải là tài liệu ảo đọc cây làm việc, ra
+nội dung rỗng, thay vì lấy nhầm nội dung vùng chuẩn bị.
+
+| Tệp | Vai trò |
+| --- | --- |
+| `internal/vcs/ops/plumbing.go` | Hàm `IndexFile` đọc nội dung một tệp trong vùng chuẩn bị |
+| `cmd/vcs_basic.go` | Cờ `--index` cho `show-file` |
+| `editors/vscode/src/tm.ts` | `indexFile` cùng `readFileAt` dùng chung với `showFile` |
+| `editors/vscode/src/repository.ts` | `contentOf` và `contentAt` đọc thẳng, không dựng từ khác biệt |
+| `editors/vscode/src/commands.ts` | Tệp đã xoá thì phía phải đọc cây làm việc |
+
+Kiểm chứng:
+
+```bash
+cd editors/vscode && npm run compile && npm test
+```
+
+Kiểm thử mới ở `editors/vscode/src/test/khung-so-sanh.test.ts` mười tình huống:
+xoá dòng rồi xem khung so sánh, lưu rồi xoá thêm dòng; hoàn tác hết thì phía gốc
+vẫn là nội dung vùng chuẩn bị và tệp không còn bị ghi nhận là thay đổi; sửa, hoàn
+tác, sửa lại qua nhiều vòng; thay đổi đã stage; gỡ khỏi vùng chuẩn bị rồi sửa
+tiếp; tệp chưa theo dõi; tệp bị xoá; gỡ tệp đã xoá khỏi vùng chuẩn bị; tên tệp
+có dấu và khoảng trắng; mở lại nhiều lần không đổi kết quả.
+
+### `tm vcs restore --staged` gỡ đúng thay đổi đã xoá trên đĩa
+
+Lệnh lấy nội dung nguồn rồi ghi vào vùng chuẩn bị bằng cách stage lại tệp trên
+đĩa. Tệp đã bị xoá khỏi đĩa thì không stage được, nên lệnh xoá hẳn nó khỏi vùng
+chuẩn bị: thao tác *gỡ thay đổi* biến thành *stage thao tác xoá*. Nay ghi thẳng
+entry lấy từ commit nguồn vào vùng chuẩn bị, nên tệp đã xoá trở về thành xoá chưa
+stage, giống `git restore --staged`.
+
+Kiểm thử mới `TestRestoreStagedUnstageDeletedFile` ở `tests/ops/ops_test.go`, và
+`TestShowFileIndexReadsStagedContent` ở `tests/cli/cli_test.go` cho cờ `--index`.
+
+### Kiểm thử tiện ích VS Code đủ dùng cho nhánh và lưu tạm
+
+Bản giả API VS Code trước đây không trả lời được hộp thoại nên không kiểm thử
+được lệnh hỏi người dùng, và bộ theo dõi tệp là hàm rỗng nên trạng thái kho không
+được làm mới sau khi ghi tệp. Nay bản giả nhận câu trả lời cho hộp nhập, hộp chọn
+nhanh và hộp xác nhận, đồng thời bắn được sự kiện tệp. Nhờ vậy kiểm thử được các
+lệnh tạo nhánh, chuyển nhánh, xoá nhánh, lưu tạm, áp dụng và lấy lại bản lưu tạm
+— những lệnh trước đó không có kiểm thử nào.
+
+`findTm` cũng sửa lại: trước đó lấy tệp đầu tiên khớp tên trong `out/`, mà thư mục
+đó chứa cả ba nền tảng, nên kiểm thử có thể chạy nhầm tệp của Linux trên máy Mac
+và báo lỗi `ENOEXEC` khó hiểu. Nay chạy thử từng tệp để chọn đúng tệp dùng được.
+`parse.test.ts` và `tm.test.ts` từng có bản sao riêng của cách tìm này, nay dùng
+chung bản trong `harness.ts`.
+
 ### `tm vcs init` tạo sẵn tệp ignore
 
 Lệnh `tm vcs init` giờ tạo tệp `.tmxignore` ở gốc kho nếu chưa có, với bộ mẫu
@@ -55,7 +131,7 @@ thư mục dữ liệu kho, cấu hình toàn cục, và định danh của ti�
 | Cấu hình toàn cục | `~/.config/td/config` | `~/.config/tm/config` |
 | Biến môi trường cấu hình | `TD_CONFIG` | `TM_CONFIG` |
 | Thư mục trạng thái của `tm use` | `~/.td` | `~/.tm` |
-| Tệp build trong `out/` | `devcli-<nền tảng>-<phiên bản>` | `td-devcli-<nền tảng>-<phiên bản>` |
+| Tệp build trong `out/` | `devcli-<nền tảng>-<phiên bản>` | `devcli-tm-<nền tảng>-<phiên bản>` |
 | Lệnh và cấu hình của tiện ích | `td.*` | `tm.*` |
 | Lược đồ nội dung ảo | `td:` | `tm:` |
 | Màu trang trí của tiện ích | `tdDecoration.*` | `tmDecoration.*` |

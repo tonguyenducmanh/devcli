@@ -53,6 +53,27 @@ func ShowFile(r *repo.Repo, rev, rel string) (data []byte, found bool, err error
 	return data, true, nil
 }
 
+// IndexFile đọc nội dung một tệp đang nằm trong vùng chuẩn bị.
+//
+// Dùng cho phía đối diện của một khung so sánh thay đổi trên đĩa. Nội dung ở
+// vùng chuẩn bị phải đọc thẳng từ đây chứ không dựng lại từ khác biệt: tệp đã
+// khớp vùng chuẩn bị thì không còn khác biệt nào để dựng, mà phía gốc vẫn phải
+// là nội dung đã stage chứ không phải chuỗi rỗng.
+//
+// Tệp không có trong vùng chuẩn bị thì trả về found là false, ví dụ tệp mới
+// chưa được thêm vào.
+func IndexFile(r *repo.Repo, rel string) (data []byte, found bool, err error) {
+	entry := r.Index.Get(rel)
+	if entry == nil || entry.Mode.IsTree() {
+		return nil, false, nil
+	}
+	data, err = r.Objects.ReadBlob(entry.Hash)
+	if err != nil {
+		return nil, false, err
+	}
+	return data, true, nil
+}
+
 // CatFile in nội dung của một object theo loại được yêu cầu.
 func CatFile(r *repo.Repo, kind, rev string, verbose bool) error {
 	h, err := resolveCommitish(r, rev)

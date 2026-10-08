@@ -360,10 +360,15 @@ var vcsShowFileCmd = &cobra.Command{
 HEAD. Sau dấu hai gạch ngang là danh sách tệp cần in.
 
 Khác với "tm vcs diff", lệnh này đọc thẳng nội dung đã lưu trong kho nên tệp
-không bị thay đổi ở commit đó vẫn in ra được.`,
+không bị thay đổi ở commit đó vẫn in ra được.
+
+Kèm --index thì điểm xuất phát là vùng chuẩn bị thay vì lịch sử, in ra nội dung
+sẽ được ghi vào commit kế tiếp. Cách này đúng cả khi tệp đã khớp vùng chuẩn bị:
+lúc đó không còn khác biệt nào để dựng lại nội dung, mà vùng chuẩn bị vẫn còn đầy đủ.`,
 	Example: `  tm vcs show-file HEAD -- cmd/root.go
   tm vcs show-file v1.0.0 -- README.md
-  tm vcs show-file abc1234 -- a.txt b.txt`,
+  tm vcs show-file abc1234 -- a.txt b.txt
+  tm vcs show-file --index -- a.txt   nội dung đã stage của a.txt`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -372,6 +377,10 @@ không bị thay đổi ở commit đó vẫn in ra được.`,
 		}
 		// Đường dẫn lọc nằm sau dấu "--".
 		paths, rest := splitPathsAtDash(cmd, args)
+		inIndex, _ := cmd.Flags().GetBool("index")
+		if inIndex && len(rest) > 0 {
+			return exitError("đọc vùng chuẩn bị thì không cần điểm xuất phát, ví dụ: tm vcs show-file --index -- %s", strings.Join(paths, " "))
+		}
 		rev := "HEAD"
 		if len(rest) > 0 {
 			rev = rest[0]
@@ -380,17 +389,33 @@ không bị thay đổi ở commit đó vẫn in ra được.`,
 			return exitError("cần chỉ định tệp sau dấu --, ví dụ: tm vcs show-file HEAD -- a.txt")
 		}
 		for _, p := range paths {
-			data, found, err := ops.ShowFile(r, rev, p)
+			var (
+				data  []byte
+				found bool
+			)
+			if inIndex {
+				data, found, err = ops.IndexFile(r, p)
+			} else {
+				data, found, err = ops.ShowFile(r, rev, p)
+			}
 			if err != nil {
 				return err
 			}
 			if !found {
-				return exitError("%s không có trong %s", p, rev)
+				return exitError("%s không có trong %s", p, atPoint(inIndex, rev))
 			}
 			fmt.Fprint(os.Stdout, string(data))
 		}
 		return nil
 	},
+}
+
+// atPoint mô tả nơi đang đọc, dùng trong thông báo lỗi.
+func atPoint(inIndex bool, rev string) string {
+	if inIndex {
+		return "vùng chuẩn bị"
+	}
+	return rev
 }
 
 // vcsReflogCmd xem nhật ký thay đổi của ref.
@@ -507,6 +532,9 @@ func init() {
 
 	// Cờ riêng cho show.
 	vcsShowCmd.Flags().BoolP("patch", "p", true, "kèm nội dung diff")
+
+	// Cờ riêng cho show-file.
+	vcsShowFileCmd.Flags().Bool("index", false, "đọc nội dung trong vùng chuẩn bị thay vì trong lịch sử")
 
 	// Cờ riêng cho rm.
 	vcsRmCmd.Flags().Bool("cached", false, "chỉ gỡ khỏi theo dõi, giữ file trên đĩa")

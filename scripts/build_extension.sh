@@ -26,9 +26,14 @@ SKIP_BUILD=0
 # dưới đây chỉ để đặt tên tệp cho dễ tìm.
 EXT_VERSION=$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$EXT_DIR/package.json" | head -1)
 
-# Tiền tố tên tệp trong out/. Đổi APP_NAME trong build_binaries.sh thì đổi cả
-# ở đây, hai tệp nằm cùng nền tảng build.
-APP_NAME=td-devcli
+# Tiền tố tên tệp trong out/. Đọc từ build_binaries.sh để không phải khai báo
+# lần thứ hai ở đây, vì hai tệp nằm cùng nền tảng build mà tên tệp ra phải
+# giống nhau.
+APP_NAME=$(sed -n 's/^APP_NAME=//p' "$ROOT_DIR/scripts/build_binaries.sh" | head -1)
+if [ -z "$APP_NAME" ]; then
+    echo "Lỗi: không đọc được APP_NAME từ scripts/build_binaries.sh" >&2
+    exit 1
+fi
 
 # Lệnh đóng gói. Ưu tiên bản cài sẵn trong dự án, không có thì gọi npx.
 VSCE=""

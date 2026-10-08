@@ -67,12 +67,13 @@ export interface TmFileContent {
 }
 
 /**
- * Dấu nhận biết thông báo của tm khi không có lệnh con tương ứng.
+ * Dấu nhận biết thông báo của tm khi lệnh hoặc cờ chưa có trên máy.
  *
  * Cần để phân biệt "tm trên máy cũ hơn tiện ích" với "tệp không có trong
- * commit", vì cả hai đều làm lệnh thoát với mã khác không.
+ * commit", vì cả hai đều làm lệnh thoát với mã khác không. Cờ lạ thì tm báo
+ * "unknown flag" chứ không nói tới lệnh con, nên phải nhận ra cả hai kiểu.
  */
-const UNKNOWN_COMMAND = /không có lệnh nào tên/;
+const UNKNOWN_COMMAND = /không có lệnh nào tên|unknown flag|unknown shorthand flag/;
 
 /**
  * Bọc lệnh `tm vcs`.
@@ -224,8 +225,32 @@ export class Tm {
 	 * người gọi nên rơi về cách dựng nội dung từ khác biệt.
 	 */
 	async showFile(root: string, revision: string, relativePath: string): Promise<TmFileContent> {
+		return this.readFileAt(root, ['show-file', revision, '--', relativePath], relativePath);
+	}
+
+	/**
+	 * `tm vcs show-file --index -- <tệp>`: nội dung tệp trong vùng chuẩn bị.
+	 *
+	 * Phía gốc của khung so sánh thay đổi trên đĩa là nội dung đã stage, và nó
+	 * phải đọc thẳng từ vùng chuẩn bị chứ không dựng lại từ khác biệt: người
+	 * dùng hoàn tác hết thay đổi thì tệp khớp vùng chuẩn bị, không còn khác
+	 * biệt nào để dựng, và phía gốc sẽ rơi về chuỗi rỗng trong khi phía phải
+	 * vẫn có nội dung.
+	 */
+	async indexFile(root: string, relativePath: string): Promise<TmFileContent> {
+		return this.readFileAt(root, ['show-file', '--index', '--', relativePath], relativePath);
+	}
+
+	/**
+	 * Chạy một lệnh in nội dung tệp rồi chuẩn hoá kết quả về cùng một kiểu.
+	 *
+	 * Cần phân biệt "tệp không có ở điểm đó" với "lệnh tm trên máy cũ hơn tiện
+	 * ích": cả hai đều làm lệnh thoát với mã khác không, nhưng chỉ trường hợp
+	 * sau mới cần báo cho người dùng nâng cấp tm.
+	 */
+	private async readFileAt(root: string, args: string[], relativePath: string): Promise<TmFileContent> {
 		try {
-			const result = await this.run(root, ['show-file', revision, '--', relativePath]);
+			const result = await this.run(root, args);
 			return { content: result.stdout, found: true, unsupported: false };
 		} catch (error) {
 			if (error instanceof TmError && UNKNOWN_COMMAND.test(error.result.stderr)) {
@@ -234,7 +259,7 @@ export class Tm {
 			// Tệp không có ở điểm đó là chuyện thường nên không báo, còn lỗi thật
 			// thì ghi ra kênh log để không biến thành phía rỗng trong khung so sánh.
 			if (error instanceof TmError && !/không có trong/.test(error.message)) {
-				this.report?.(`đọc ${relativePath} ở ${revision} không được: ${error.message}`);
+				this.report?.(`đọc ${relativePath} không được: ${error.message}`);
 			}
 			return { content: '', found: false, unsupported: false };
 		}

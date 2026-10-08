@@ -1,41 +1,12 @@
 import * as assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
 
 import { resolveExecutable, Tm, TmError } from '../tm';
 
-/** Gốc kho của tm, thư mục cha của thư mục extension. */
-const REPO_ROOT = path.join(__dirname, '..', '..', '..', '..');
-
-/** Tìm lệnh tm, giống hệt cách kiểm thử phần phân tích tìm. */
-function findTm(): string | undefined {
-	const fromEnv = process.env.TM_BIN;
-	if (fromEnv && existsSync(fromEnv)) {
-		return fromEnv;
-	}
-	try {
-		// Tên tệp do build_all.sh đặt theo cấu hình trong scripts/, nên thử cả
-		// ba tiền tố tên tệp build trong scripts/ cho chắc.
-		const built = readdirSync(path.join(REPO_ROOT, 'out'))
-			.filter(name => /^(td-devcli|devcli|tm)(-|\.)/.test(name))
-			.map(name => path.join(REPO_ROOT, 'out', name))
-			.find(candidate => existsSync(candidate));
-		if (built) {
-			return built;
-		}
-	} catch {
-		// Chưa build thì thử PATH.
-	}
-	try {
-		execFileSync('tm', ['version'], { stdio: 'ignore' });
-		return 'tm';
-	} catch {
-		return undefined;
-	}
-}
+import { findTm } from './harness';
 
 const TM_BIN = findTm();
 const runTm = TM_BIN ? test : test.skip;
@@ -320,7 +291,8 @@ runTm('Tm: changedFiles chỉ liệt kê tên tệp, không lấy nội dung', a
 		write(root, 'a.txt', 'một sửa\n');
 		write(root, 'moi.txt', 'mới\n');
 
-		assert.deepEqual((await tm.changedFiles(root, { revision: 'HEAD' })).sort(), ['a.txt', 'b.txt']);
+		// `tm vcs init` tạo sẵn tệp .tmxignore nên commit đầu tiên có ba tệp.
+		assert.deepEqual((await tm.changedFiles(root, { revision: 'HEAD' })).sort(), ['.tmxignore', 'a.txt', 'b.txt']);
 
 		// Lọc theo danh sách tệp thì chỉ còn tệp được nêu.
 		assert.deepEqual(await tm.changedFiles(root, { revision: 'HEAD', paths: ['a.txt'] }), ['a.txt']);

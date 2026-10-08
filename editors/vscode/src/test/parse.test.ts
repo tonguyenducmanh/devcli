@@ -1,9 +1,11 @@
 import * as assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { test } from 'node:test';
+
+import { findTm } from './harness';
 
 import {
 	parseBranches,
@@ -14,42 +16,12 @@ import {
 	parseTags
 } from '../parse';
 
-/** Gốc kho của tm, thư mục cha của thư mục extension. */
-const REPO_ROOT = path.join(__dirname, '..', '..', '..', '..');
-
 /**
- * Tìm lệnh tm để chạy thật trong kiểm thử.
+ * Lệnh tm dùng để chạy thật trong kiểm thử.
  *
- * Ưu tiên biến môi trường TM_BIN, sau đó tới tệp đã build trong out/ của kho tm,
- * cuối cùng mới tới lệnh `tm` có sẵn trong PATH. Không tìm thấy thì kiểm thử
- * phần phân tích vẫn chạy được, chỉ bỏ qua các kiểm thử cần lệnh thật.
+ * Cách tìm nằm trong harness để mọi kiểm thử dùng chung một cách, và để cách đó
+ * loại được tệp build của nền tảng khác nằm cùng thư mục out/.
  */
-function findTm(): string | undefined {
-	const fromEnv = process.env.TM_BIN;
-	if (fromEnv && existsSync(fromEnv)) {
-		return fromEnv;
-	}
-	try {
-		// Tên tệp do build_all.sh đặt theo cấu hình trong scripts/, nên thử cả
-		// ba tiền tố tên tệp build trong scripts/ cho chắc.
-		const built = readdirSync(path.join(REPO_ROOT, 'out'))
-			.filter(name => /^(td-devcli|devcli|tm)(-|\.)/.test(name))
-			.map(name => path.join(REPO_ROOT, 'out', name))
-			.find(candidate => existsSync(candidate));
-		if (built) {
-			return built;
-		}
-	} catch {
-		// Chưa build thì thử PATH.
-	}
-	try {
-		execFileSync('tm', ['version'], { stdio: 'ignore' });
-		return 'tm';
-	} catch {
-		return undefined;
-	}
-}
-
 const TM_BIN = findTm();
 
 /** Kiểm thử nào cần lệnh tm thật thì bỏ qua khi máy chưa có tm. */
@@ -110,7 +82,13 @@ runTm('status: giữ nguyên đường dẫn có khoảng trắng và dấu ti�
 		mkdirSync(path.join(root, 'thu muc'), { recursive: true });
 		write(root, 'thu muc/tên có dấu.txt', 'x\n');
 		const status = parseStatus(tm(root, 'status'));
-		assert.deepEqual(status.untracked, [{ path: 'thu muc/tên có dấu.txt', status: '?' }]);
+		// Tệp .tmxignore do `tm vcs init` tạo sẵn cũng chưa được theo dõi, và
+		// tên của nó không có dấu hay khoảng trắng nên phải đọc đúng như mọi
+		// tệp khác thay vì bị lọc nhầm.
+		assert.deepEqual(status.untracked, [
+			{ path: '.tmxignore', status: '?' },
+			{ path: 'thu muc/tên có dấu.txt', status: '?' }
+		]);
 	} finally {
 		rmSync(root, { recursive: true, force: true });
 	}

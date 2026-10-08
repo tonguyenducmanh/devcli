@@ -277,10 +277,15 @@ export class Repository implements Disposable {
 	/**
 	 * Nội dung của một phía trong khung so sánh.
 	 *
-	 * Phía trên đĩa thì đọc tệp thật để giữ đúng dấu xuống dòng cuối cùng. Phía
-	 * nằm trong HEAD đọc thẳng từ kho nên không phụ thuộc tệp có bị thay đổi ở
-	 * commit đó hay không. Phía còn lại dựng lại từ khác biệt của tm vì vùng
-	 * chuẩn bị và cây làm việc chỉ tồn tại trên đĩa.
+	 * Phía trên đĩa thì đọc tệp thật để giữ đúng dấu xuống dòng cuối cùng. Hai
+	 * phía còn lại đều đọc thẳng từ nơi chúng nằm: vùng chuẩn bị thì hỏi vùng
+	 * chuẩn bị, HEAD và commit bất kỳ thì hỏi kho.
+	 *
+	 * Không dựng lại nội dung nào từ khác biệt, vì khác biệt chỉ tồn tại khi hai
+	 * bên còn khác nhau. Người dùng hoàn tác hết thay đổi thì tệp khớp lại vùng
+	 * chuẩn bị, khác biệt biến mất, và phía gốc sẽ rơi về chuỗi rỗng trong khi
+	 * phía phải vẫn còn nội dung. Khung so sánh lúc đó hiện sai thành "thay đổi
+	 * từ tệp trống sang tệp mới có nội dung" dù hai bên đã giống nhau.
 	 */
 	async contentOf(relativePath: string, ref: Ref | string, side: Side, token: CancellationToken): Promise<string> {
 		if (ref === Ref.Worktree) {
@@ -289,13 +294,11 @@ export class Repository implements Disposable {
 		if (token.isCancellationRequested) {
 			return '';
 		}
-		if (ref === Ref.Head) {
-			// Tệp chưa có trong HEAD thì phía này rỗng, ví dụ tệp vừa được thêm.
-			return (await this.contentAt(relativePath, Ref.Head)) ?? '';
+		if (ref === Ref.Head || ref === Ref.Index) {
+			// Tệp chưa có ở điểm đó thì phía này rỗng, ví dụ tệp vừa được thêm.
+			return (await this.contentAt(relativePath, ref)) ?? '';
 		}
-		const patch = ref === Ref.Index
-			? await this.patchFor(relativePath, false)
-			: await this.patchForRevision(relativePath, String(ref));
+		const patch = await this.patchForRevision(relativePath, String(ref));
 		if (token.isCancellationRequested || !patch) {
 			return '';
 		}
@@ -309,18 +312,26 @@ export class Repository implements Disposable {
 	 * Nội dung tệp ở HEAD hoặc ở vùng chuẩn bị, undefined khi tệp không có ở đó.
 	 *
 	 * HEAD đọc thẳng từ kho nên đúng với mọi tệp, kể cả tệp mà commit đó không
-	 * đụng tới. Khi lệnh tm trên máy chưa có `vcs show-file` thì rơi về cách dựng
-	 * từ khác biệt đã stage: cách đó chỉ đúng với tệp đang chờ commit, nên tiện
-	 * ích ghi một dòng ra kênh log nhắc nâng cấp tm.
+	 * đụng tới. Vùng chuẩn bị cũng đọc thẳng nên vẫn đúng lúc tệp đã khớp với
+	 * nó, tức là lúc không còn khác biệt nào để dựng.
+	 *
+	 * Khi lệnh tm trên máy chưa có `vcs show-file` thì rơi về cách dựng từ khác
+	 * biệt: cách đó chỉ đúng với tệp đang chờ commit, nên tiện ích ghi một dòng
+	 * ra kênh log nhắc nâng cấp tm.
 	 */
 	async contentAt(relativePath: string, ref: Ref.Head | Ref.Index): Promise<string | undefined> {
 		if (ref === Ref.Index) {
+			const result = await this.tm.indexFile(this.root, relativePath);
+			if (!result.unsupported) {
+				return result.found ? result.content : undefined;
+			}
+			this.warnOldTm('show-file --index');
 			const patch = await this.patchFor(relativePath, false);
-			return patch ? patch.new : '';
+			return patch ? patch.old : '';
 		}
 		const result = await this.tm.showFile(this.root, 'HEAD', relativePath);
 		if (result.unsupported) {
-			this.warnOldTd();
+			this.warnOldTm('show-file');
 			const patch = await this.patchFor(relativePath, true);
 			return patch ? patch.old : undefined;
 		}
@@ -338,14 +349,19 @@ export class Repository implements Disposable {
 		}
 	}
 
-	/** Báo một lần rằng lệnh tm trên máy cũ hơn tiện ích. */
-	private warnedOldTd = false;
-	private warnOldTd(): void {
-		if (this.warnedOldTd) {
+	/**
+	 * Báo một lần cho mỗi lệnh còn thiếu rằng tm trên máy cũ hơn tiện ích.
+	 *
+	 * Ghi riêng theo từng lệnh vì mỗi lệnh thiếu một chỗ: `show-file` cho HEAD,
+	 * `show-file --index` cho vùng chuẩn bị.
+	 */
+	private readonly warnedOldTm = new Set<string>();
+	private warnOldTm(feature: string): void {
+		if (this.warnedOldTm.has(feature)) {
 			return;
 		}
-		this.warnedOldTd = true;
-		this.tm.note('Lệnh tm trên máy chưa có `tm vcs show-file`, nội dung ở HEAD tạm dựng từ khác biệt đã stage. Cập nhật tm để xem đúng nội dung mọi tệp.');
+		this.warnedOldTm.add(feature);
+		this.tm.note(`Lệnh tm trên máy chưa có \`tm vcs ${feature}\`, nội dung tạm dựng từ khác biệt nên chỉ đúng với tệp đang chờ commit. Cập nhật tm để xem đúng nội dung mọi tệp.`);
 	}
 
 	/** Khác biệt của một tệp giữa một commit và phụ huynh của nó. */

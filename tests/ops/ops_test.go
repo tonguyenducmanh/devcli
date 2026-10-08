@@ -74,6 +74,24 @@ func commitAll(t *testing.T, r *repo.Repo, msg string) object.Hash {
 	return h
 }
 
+// stageFile đưa một tệp vào vùng chuẩn bị, giống người dùng gõ add.
+func stageFile(t *testing.T, r *repo.Repo, rel string) {
+	t.Helper()
+	if err := ops.Add(r, ops.AddOptions{Paths: []string{rel}}); err != nil {
+		t.Fatalf("không stage được %s: %v", rel, err)
+	}
+}
+
+// restoreFile đưa lại nội dung đang có trong vùng chuẩn bị về cây làm việc,
+// tức là huỷ sửa đổi trên đĩa. Đây là việc xảy ra khi người dùng bấm nút hoàn
+// tác trên khung so sánh.
+func restoreFile(t *testing.T, r *repo.Repo, rel string) {
+	t.Helper()
+	if err := ops.Restore(r, ops.RestoreOptions{Paths: []string{rel}}); err != nil {
+		t.Fatalf("không khôi phục được %s: %v", rel, err)
+	}
+}
+
 // checkout chuyển nhánh và báo lỗi nếu không thành công.
 func checkout(t *testing.T, r *repo.Repo, branch string) {
 	t.Helper()
@@ -812,6 +830,40 @@ func TestRestoreStagedUnstage(t *testing.T) {
 	}
 }
 
+// TestRestoreStagedUnstageDeletedFile kiểm tra gỡ thay đổi đã xoá trên đĩa.
+//
+// Gỡ thay đổi đã stage nghĩa là đưa vùng chuẩn bị về đúng HEAD, nên tệp đã bị
+// xoá khỏi đĩa phải trở lại vùng chuẩn bị và thành xoá chưa stage. Nếu lệnh lấy
+// nội dung bằng cách stage lại tệp trên đĩa thì tệp đã xoá sẽ biến mất khỏi vùng
+// chuẩn bị, biến thao tác gỡ thành stage thao tác xoá, ngược hẳn ý nghĩa.
+func TestRestoreStagedUnstageDeletedFile(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "xoa.txt", "còn trong kho\n")
+	commitAll(t, r, "c1")
+	removeFile(t, r, "xoa.txt")
+
+	if err := ops.Restore(r, ops.RestoreOptions{Staged: true, Paths: []string{"xoa.txt"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	st, err := r.Status()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := st.IndexStatusOf("xoa.txt"); got != ' ' {
+		t.Fatalf("vùng chuẩn bị phải trở về đúng HEAD nên không còn thay đổi, nhận %q", string(got))
+	}
+	entry, ok := st.Entry("xoa.txt")
+	if !ok || entry.WorkStatus != 'D' {
+		t.Fatalf("tệp đã xoá khỏi đĩa thì phải là xoá chưa stage, nhận %+v", entry)
+	}
+	// Nội dung trong vùng chuẩn bị phải đọc được, đó là nội dung ở HEAD.
+	data, found, err := ops.IndexFile(r, "xoa.txt")
+	if err != nil || !found || string(data) != "còn trong kho\n" {
+		t.Fatalf("vùng chuẩn bị phải chứa nội dung ở HEAD, nhận %q found=%v err=%v", string(data), found, err)
+	}
+}
+
 // TestRestoreDefaultOnlyWorktree kiểm tra lệch chỉ mặc định chỉ đụng cây làm việc.
 //
 // Đây là thao tác "huỷ thay đổi" trong khung Source Control: lấy lại nội dung
@@ -1014,5 +1066,50 @@ func TestShowFileAfterAddAndRemove(t *testing.T) {
 	}
 	if _, found, err := ops.ShowFile(r, "HEAD", "b.txt"); err != nil || found {
 		t.Fatalf("sau khi xoá thì b.txt không còn, nhận found=%v err=%v", found, err)
+	}
+}
+
+// TestIndexFileReadsStagedContent bảo đảm đọc được nội dung trong vùng chuẩn bị.
+//
+// Đây là nơi phía gốc của một khung so sánh thay đổi trên đĩa lấy nội dung. Vùng
+// chuẩn bị phải đọc được cả lúc tệp đã khớp với nó, tức là lúc không còn khác
+// biệt nào để dựng lại nội dung từ đâu cả.
+func TestIndexFileReadsStagedContent(t *testing.T) {
+	r := newRepo(t)
+	write(t, r, "a.txt", "một\nhai\n")
+	commitAll(t, r, "c1")
+
+	data, found, err := ops.IndexFile(r, "a.txt")
+	if err != nil || !found || string(data) != "một\nhai\n" {
+		t.Fatalf("sau khi commit thì vùng chuẩn bị phải có nội dung, nhận %q found=%v err=%v", string(data), found, err)
+	}
+
+	// Sửa trên đĩa nhưng chưa stage: vùng chuẩn bị giữ nội dung cũ.
+	write(t, r, "a.txt", "một\nhai sửa\n")
+	data, found, err = ops.IndexFile(r, "a.txt")
+	if err != nil || !found || string(data) != "một\nhai\n" {
+		t.Fatalf("sửa trên đĩa thì vùng chuẩn bị không được đổi, nhận %q found=%v err=%v", string(data), found, err)
+	}
+
+	// Khôi phục cho tệp khớp lại vùng chuẩn bị, đúng việc người dùng bấm nút
+	// hoàn tác trên khung so sánh. Nội dung vẫn phải đọc được.
+	restoreFile(t, r, "a.txt")
+	data, found, err = ops.IndexFile(r, "a.txt")
+	if err != nil || !found || string(data) != "một\nhai\n" {
+		t.Fatalf("tệp khớp vùng chuẩn bị thì vẫn phải đọc được, nhận %q found=%v err=%v", string(data), found, err)
+	}
+
+	// Stage nội dung mới thì vùng chuẩn bị phải theo kịp.
+	write(t, r, "a.txt", "một\nhai sửa\n")
+	stageFile(t, r, "a.txt")
+	data, found, err = ops.IndexFile(r, "a.txt")
+	if err != nil || !found || string(data) != "một\nhai sửa\n" {
+		t.Fatalf("sau khi stage thì vùng chuẩn bị phải là nội dung mới, nhận %q found=%v err=%v", string(data), found, err)
+	}
+
+	// Tệp mới chưa thêm vào thì không có trong vùng chuẩn bị.
+	write(t, r, "moi.txt", "tệp mới\n")
+	if _, found, err := ops.IndexFile(r, "moi.txt"); err != nil || found {
+		t.Fatalf("tệp chưa thêm vào không được có trong vùng chuẩn bị, nhận found=%v err=%v", found, err)
 	}
 }

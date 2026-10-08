@@ -36,7 +36,8 @@ AUTHOR="Tô Nguyễn Đức Mạnh"
 VERSION=0.1.0
 
 # Tên tệp thực thi, dùng làm tiền tố cho tên file trong out/.
-APP_NAME=td-devcli
+# Nguồn duy nhất cho cả tiện ích VS Code: build_extension.sh đọc biến này.
+APP_NAME=devcli-tm
 
 # Thư mục chứa kết quả build, tính từ thư mục gốc project.
 OUT_DIR=out

@@ -203,6 +203,56 @@ func TestCleanListsBeforeDeleting(t *testing.T) {
 	}
 }
 
+// TestShowFileIndexReadsStagedContent bảo đảm đọc được nội dung trong vùng chuẩn
+// bị, kể cả lúc tệp đã khớp với vùng chuẩn bị và không còn khác biệt nào.
+//
+// Đây là nguồn của phía gốc trong khung so sánh thay đổi trên đĩa của tiện ích
+// VS Code. Đọc bằng `show-file` không có --index thì tệp đã khớp sẽ không còn
+// khác biệt để dựng lại, và phía gốc rơi về chuỗi rỗng.
+func TestShowFileIndexReadsStagedContent(t *testing.T) {
+	root := newRepo(t)
+	writeFile(t, root, "a.txt", "dòng 1\ndòng 2\n")
+	commitAll(t, root, "c1")
+
+	// Sửa trên đĩa rồi khôi phục: tệp khớp lại vùng chuẩn bị.
+	writeFile(t, root, "a.txt", "dòng 1\ndòng 3\n")
+	mustRun(t, "vcs", "restore", "-C", root, "a.txt")
+
+	if got := mustRun(t, "vcs", "show-file", "--index", "-C", root, "--", "a.txt"); got != "dòng 1\ndòng 2\n" {
+		t.Fatalf("vùng chuẩn bị phải trả lại nội dung đã stage, nhận %q", got)
+	}
+
+	// Stage nội dung mới thì phải trả nội dung mới.
+	writeFile(t, root, "a.txt", "dòng 1\ndòng 4\n")
+	mustRun(t, "vcs", "add", "-C", root, "a.txt")
+	if got := mustRun(t, "vcs", "show-file", "--index", "-C", root, "--", "a.txt"); got != "dòng 1\ndòng 4\n" {
+		t.Fatalf("sau khi stage thì phải trả nội dung mới, nhận %q", got)
+	}
+
+	// Vùng chuẩn bị và lịch sử là hai nơi khác nhau, phải cho ra hai kết quả
+	// khác nhau trên cùng một tệp.
+	head := mustRun(t, "vcs", "show-file", "-C", root, "--", "a.txt")
+	if head != "dòng 1\ndòng 2\n" {
+		t.Fatalf("HEAD phải là nội dung đã commit, nhận %q", head)
+	}
+
+	// Tệp chưa thêm vào thì không có trong vùng chuẩn bị, phải báo lỗi chứ
+	// không in ra nội dung rỗng rồi coi như thành công.
+	writeFile(t, root, "moi.txt", "tệp mới\n")
+	out, err := run(t, "vcs", "show-file", "--index", "-C", root, "--", "moi.txt")
+	if err == nil {
+		t.Fatalf("tệp chưa thêm vào phải báo lỗi, nhận %q", out)
+	}
+	if !strings.Contains(err.Error(), "vùng chuẩn bị") {
+		t.Errorf("thông báo lỗi phải nói rõ là vùng chuẩn bị, nhận %q", err.Error())
+	}
+
+	// Đọc vùng chuẩn bị thì không cần điểm xuất phát, có thừa phải báo lỗi.
+	if _, err := run(t, "vcs", "show-file", "--index", "HEAD", "-C", root, "--", "a.txt"); err == nil {
+		t.Error("đọc vùng chuẩn bị mà lại đưa thêm điểm xuất phát thì phải báo lỗi")
+	}
+}
+
 // TestInitCreatesDefaultIgnore bảo đảm init tạo tệp ignore mẫu và không đè lên
 // tệp người dùng đã có.
 func TestInitCreatesDefaultIgnore(t *testing.T) {

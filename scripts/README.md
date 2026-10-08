@@ -144,7 +144,7 @@ khai báo bằng `var` thì `ldflags` mới ghi được. Đừng đổi thành 
 ./scripts/build_extension.sh --package   # chỉ đóng gói, dùng lại kết quả build
 ```
 
-Kết quả là `out/td-devcli-vscode-<phiên bản>.vsix`. Một tệp này cài được trên mọi
+Kết quả là `out/devcli-tm-vscode-<phiên bản>.vsix`. Một tệp này cài được trên mọi
 nền tảng vì nó chỉ chứa JavaScript đã biên dịch. Máy đích cần có lệnh `tm` riêng,
 đặt trong `PATH`, `~/go/bin` hoặc qua cấu hình `tm.path`. Chi tiết ở
 [`editors/vscode/README.md`](../editors/vscode/README.md).

@@ -25,19 +25,19 @@ dịch và một tệp biểu tượng, không có mã gốc theo hệ điều h
 ./scripts/build_extension.sh
 
 # Cài vào VS Code
-code --install-extension out/td-devcli-vscode-0.1.0.vsix
+code --install-extension out/devcli-tm-vscode-0.1.0.vsix
 ```
 
 Trên cùng một máy cài nhiều lần thì cài đè bản mới:
 
 ```bash
-code --install-extension out/td-devcli-vscode-0.1.0.vsix --force
+code --install-extension out/devcli-tm-vscode-0.1.0.vsix --force
 ```
 
 Cài cho một người dùng cụ thể mà không cần quyền quản trị:
 
 ```bash
-code --install-extension out/td-devcli-vscode-0.1.0.vsix --user
+code --install-extension out/devcli-tm-vscode-0.1.0.vsix --user
 ```
 
 ### Đặt lệnh `tm` trên từng nền tảng
@@ -47,10 +47,10 @@ khác. Đặt `tm` trên máy đích rồi mở khung Source Control:
 
 | Nền tảng | Cách đặt |
 | --- | --- |
-| macOS (Apple silicon) | copy `out/td-devcli-mac-arm-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
+| macOS (Apple silicon) | copy `out/devcli-tm-mac-arm-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
 | macOS (Intel) | build với `GOARCH=amd64` |
-| Linux | copy `out/td-devcli-linux-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
-| Windows | copy `out/td-devcli-windows-0.1.0.exe` thành `%USERPROFILE%\go\bin\tm.exe` |
+| Linux | copy `out/devcli-tm-linux-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
+| Windows | copy `out/devcli-tm-windows-0.1.0.exe` thành `%USERPROFILE%\go\bin\tm.exe` |
 | Mọi nền tảng, bỏ qua việc đặt trong PATH | đặt cấu hình `tm.path` trỏ tới tệp thực thi |
 
 Kiểm tra nhanh trong khung Output của tiện ích (lệnh **TD: Show Output**): dòng

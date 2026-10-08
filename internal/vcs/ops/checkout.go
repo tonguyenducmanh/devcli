@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tonguyenducmanh/devcli/internal/vcs/index"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/object"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/repo"
 	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
@@ -164,14 +165,15 @@ func Restore(r *repo.Repo, opts RestoreOptions) error {
 				continue
 			}
 			if updateIndex {
+				// Lấy từ commit thì ghi thẳng entry vào vùng chuẩn bị. Không đi
+				// vòng qua stage tệp trên đĩa, vì tệp đã bị xoá thì không stage
+				// được và lệnh sẽ xoá luôn khỏi vùng chuẩn bị, biến thao tác gỡ
+				// thay đổi thành stage thao tác xoá, ngược hẳn ý nghĩa.
 				r.Index.Remove(e.Path)
-				if err := r.StageFile(e.Path); err != nil {
+				if useCommit {
+					r.Index.Add(index.Entry{Mode: mode, Hash: hash, Name: e.Path})
+				} else if err := r.StageFile(e.Path); err != nil {
 					return err
-				}
-				// Ghi đè hash/chế độ nếu lấy từ commit.
-				if e2 := r.Index.Get(e.Path); e2 != nil && useCommit {
-					e2.Hash = hash
-					e2.Mode = mode
 				}
 			}
 			if updateWorktree {

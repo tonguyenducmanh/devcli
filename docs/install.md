@@ -8,7 +8,7 @@ nằm trong `PATH`. Từ đó gõ `tm` là chạy.
 Bản dựng cho Apple Silicon, kiểm tra bằng `uname -m` cho ra `arm64`.
 
 ```bash
-install -m 755 out/td-devcli-mac-arm-0.1.0 ~/bin/tm
+install -m 755 out/devcli-tm-mac-arm-0.1.0 ~/bin/tm
 
 echo 'export PATH="$PATH:$HOME/bin"' >> ~/.zshrc
 source ~/.zshrc
@@ -18,7 +18,7 @@ tm version
 Muốn cài cho toàn hệ thống thay vì chỉ tài khoản của bạn:
 
 ```bash
-sudo install -m 755 out/td-devcli-mac-arm-0.1.0 /usr/local/bin/tm
+sudo install -m 755 out/devcli-tm-mac-arm-0.1.0 /usr/local/bin/tm
 ```
 
 Nếu sao chép tệp bằng trình duyệt, macOS có thể chặn vì không có chữ ký:
@@ -32,7 +32,7 @@ xattr -d com.apple.quarantine ~/bin/tm
 Bản dựng cho máy 64 bit thông thường, kiểm tra bằng `uname -m` cho ra `x86_64`.
 
 ```bash
-install -m 755 out/td-devcli-linux-0.1.0 ~/.local/bin/tm
+install -m 755 out/devcli-tm-linux-0.1.0 ~/.local/bin/tm
 
 echo 'export PATH="$PATH:$HOME/.local/bin"' >> ~/.bashrc
 source ~/.bashrc
@@ -41,7 +41,7 @@ source ~/.bashrc
 Hoặc cài cho toàn hệ thống:
 
 ```bash
-sudo install -m 755 out/td-devcli-linux-0.1.0 /usr/local/bin/tm
+sudo install -m 755 out/devcli-tm-linux-0.1.0 /usr/local/bin/tm
 ```
 
 Kiểm tra tệp đã quyền chạy chưa:
@@ -57,7 +57,7 @@ Mở PowerShell ở thư mục chứa thư mục `out/`:
 
 ```powershell
 New-Item -ItemType Directory -Force "$env:LOCALAPPDATA\tm"
-Copy-Item out\td-devcli-windows-0.1.0.exe "$env:LOCALAPPDATA\tm\tm.exe"
+Copy-Item out\devcli-tm-windows-0.1.0.exe "$env:LOCALAPPDATA\tm\tm.exe"
 
 # thêm vào Path của người dùng, có hiệu lực vĩnh viễn
 [Environment]::SetEnvironmentVariable(
@@ -87,7 +87,7 @@ việc chạy tệp, xem [Execution Policy](https://learn.microsoft.com/powershe
 Không cần chép vào `PATH` cũng chạy được, gọi thẳng tệp thôi:
 
 ```bash
-./out/td-devcli-mac-arm-0.1.0 vcs status
+./out/devcli-tm-mac-arm-0.1.0 vcs status
 ```
 
 ## Thay bằng bản mới
@@ -97,11 +97,11 @@ Cấu hình nằm ở `~/.config/tm/config` và dữ liệu mỗi dự án nằm
 `.tmx`, cả hai đều không bị ảnh hưởng.
 
 ```bash
-install -m 755 out/td-devcli-linux-1.2.0 ~/.local/bin/tm
+install -m 755 out/devcli-tm-linux-1.2.0 ~/.local/bin/tm
 ```
 
 ```powershell
-Copy-Item -Force out\td-devcli-windows-1.2.0.exe "$env:LOCALAPPDATA\tm\tm.exe"
+Copy-Item -Force out\devcli-tm-windows-1.2.0.exe "$env:LOCALAPPDATA\tm\tm.exe"
 ```
 
 ## Gỡ bỏ

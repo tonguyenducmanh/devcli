@@ -619,8 +619,12 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	/**
 	 * Cặp phía trái và phái phải để so sánh một tệp đang thay đổi.
 	 *
-	 * Tệp đã xoá khỏi đĩa thì phía phải là một tài liệu rỗng, cũng lấy từ vùng
-	 * chuẩn bị để hai phía cùng nguồn.
+	 * Phía phải là chính tệp trên đĩa, để người dùng sửa thẳng trong khung so
+	 * sánh và để nút hoàn tác của VS Code ghi đè được lên tệp thật.
+	 *
+	 * Tệp đã bị xoá khỏi đĩa thì không mở địa chỉ tệp thật được, vì VS Code báo
+	 * lỗi tệp không tồn tại thay vì hiện một phía rỗng. Lúc đó phía phải là tài
+	 * liệu ảo đọc cây làm việc, và đọc tệp đã xoá sẽ ra nội dung rỗng.
 	 */
 	function workingTreeGroup(repository: Repository, relative: string): DiffGroup {
 		const uri = repository.toAbsolutePath(relative);
@@ -641,7 +645,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			path: relative,
 			title: `${relative} (Working Tree)`,
 			original: repository.uriFor(relative, Ref.Index, Side.Old),
-			modified: existsSync(uri.fsPath) ? uri : repository.uriFor(relative, Ref.Index, Side.New)
+			modified: existsSync(uri.fsPath) ? uri : repository.uriFor(relative, Ref.Worktree, Side.New)
 		};
 	}
 
