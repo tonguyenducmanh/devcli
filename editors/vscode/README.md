@@ -1,4 +1,4 @@
-# TD VCS — tiện ích Source Control cho VS Code
+# TM VCS — tiện ích Source Control cho VS Code
 
 Tiện ích đưa `tm` vào khung **Source Control** của VS Code với đúng hình dạng
 của tiện ích git tích hợp sẵn: ô nhập commit, các nhóm thay đổi, thanh trạng
@@ -45,13 +45,13 @@ code --install-extension out/devcli-tm-vscode-0.1.0.vsix --user
 Tệp `.vsix` không chứa lệnh `tm`, vì một binary Go không chạy được trên máy
 khác. Đặt `tm` trên máy đích rồi mở khung Source Control:
 
-| Nền tảng | Cách đặt |
-| --- | --- |
-| macOS (Apple silicon) | copy `out/devcli-tm-mac-arm-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
-| macOS (Intel) | build với `GOARCH=amd64` |
-| Linux | copy `out/devcli-tm-linux-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x` |
-| Windows | copy `out/devcli-tm-windows-0.1.0.exe` thành `%USERPROFILE%\go\bin\tm.exe` |
-| Mọi nền tảng, bỏ qua việc đặt trong PATH | đặt cấu hình `tm.path` trỏ tới tệp thực thi |
+| Nền tảng                                 | Cách đặt                                                                   |
+| ---------------------------------------- | -------------------------------------------------------------------------- |
+| macOS (Apple silicon)                    | copy `out/devcli-tm-mac-arm-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x`     |
+| macOS (Intel)                            | build với `GOARCH=amd64`                                                   |
+| Linux                                    | copy `out/devcli-tm-linux-0.1.0` thành `~/go/bin/tm`, rồi `chmod +x`       |
+| Windows                                  | copy `out/devcli-tm-windows-0.1.0.exe` thành `%USERPROFILE%\go\bin\tm.exe` |
+| Mọi nền tảng, bỏ qua việc đặt trong PATH | đặt cấu hình `tm.path` trỏ tới tệp thực thi                                |
 
 Kiểm tra nhanh trong khung Output của tiện ích (lệnh **TD: Show Output**): dòng
 đầu tiên ghi lệnh tm đang dùng.
@@ -72,18 +72,18 @@ chính kho này làm ví dụ.
 
 ## Những gì tiện ích làm được
 
-| Việc | Cách làm trong khung Source Control |
-| --- | --- |
-| Xem thay đổi | Nhóm **Staged Changes**, **Changes**, **Merge Changes**, **Untracked Changes** |
-| Commit | Gõ nội dung vào ô nhập rồi bấm dấu tích, hoặc `TD: Commit` |
-| Stage, unstage, huỷ thay đổi | Nút cộng/trừ/thùng rác cạnh từng tệp, và trên tiêu đề nhóm |
-| Xem khác biệt | Bấm tên tệp để mở khung so sánh, chọn nhiều tệp để mở khung so sánh nhiều tệp |
-| Xem lịch sử của một tệp | Chuột phải lên tệp trong cây tệp, trình soạn thảo hoặc khung Source Control, rồi **View File History...**; chọn một commit để xem thay đổi của tệp tại commit đó |
-| Xem thay đổi của một commit | Bấm một dòng trong khung **Commits** |
-| Đường ngữ cảnh trong trình soạn thảo | Dấu nháy và dải khác biệt ở rìa tệp, giống git |
-| Chữ viết tắt trên cây thư mục | `M` đã sửa, `A` thêm, `D` xoá, `U` mới hoặc xung đột |
-| Nhánh, tag, bản lưu tạm | Các khung **Branches**, **Commits**, **Stashes**, **Tags** |
-| Thanh trạng thái | Nhánh hiện tại, số commit đi trước/đi sau, số tệp chờ commit, lỗi |
+| Việc                                 | Cách làm trong khung Source Control                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Xem thay đổi                         | Nhóm **Staged Changes**, **Changes**, **Merge Changes**, **Untracked Changes**                                                                                   |
+| Commit                               | Gõ nội dung vào ô nhập rồi bấm dấu tích, hoặc `TD: Commit`                                                                                                       |
+| Stage, unstage, huỷ thay đổi         | Nút cộng/trừ/thùng rác cạnh từng tệp, và trên tiêu đề nhóm                                                                                                       |
+| Xem khác biệt                        | Bấm tên tệp để mở khung so sánh, chọn nhiều tệp để mở khung so sánh nhiều tệp                                                                                    |
+| Xem lịch sử của một tệp              | Chuột phải lên tệp trong cây tệp, trình soạn thảo hoặc khung Source Control, rồi **View File History...**; chọn một commit để xem thay đổi của tệp tại commit đó |
+| Xem thay đổi của một commit          | Bấm một dòng trong khung **Commits**                                                                                                                             |
+| Đường ngữ cảnh trong trình soạn thảo | Dấu nháy và dải khác biệt ở rìa tệp, giống git                                                                                                                   |
+| Chữ viết tắt trên cây thư mục        | `M` đã sửa, `A` thêm, `D` xoá, `U` mới hoặc xung đột                                                                                                             |
+| Nhánh, tag, bản lưu tạm              | Các khung **Branches**, **Commits**, **Stashes**, **Tags**                                                                                                       |
+| Thanh trạng thái                     | Nhánh hiện tại, số commit đi trước/đi sau, số tệp chờ commit, lỗi                                                                                                |
 
 ## Cách tiện ích nói chuyện với tm
 
@@ -111,16 +111,16 @@ Toàn bộ phần dịch output của tm nằm trong `src/parse.ts`. Nếu cây 
 
 ## Lệnh của `tm` mà tiện ích dùng
 
-| Việc | Lệnh |
-| --- | --- |
-| Đọc trạng thái | `tm vcs status` |
-| Khác biệt hai phía | `tm vcs diff [--staged] -U1000000 -- <tệp>` |
-| Danh sách tệp của một commit | `tm vcs diff --name-only <mã băm>` |
-| Nội dung tệp ở HEAD | `tm vcs show-file HEAD -- <tệp>` |
-| Lịch sử | `tm vcs log --oneline -n <số>` |
-| Nhánh, tag, bản lưu tạm | `tm vcs branch -vv`, `tm vcs tag -l`, `tm vcs stash --list` |
-| Stage, unstage, huỷ | `tm vcs add`, `tm vcs restore --staged`, `tm vcs restore` |
-| Xoá tệp chưa theo dõi | `tm vcs clean -f <tệp>` |
+| Việc                         | Lệnh                                                        |
+| ---------------------------- | ----------------------------------------------------------- |
+| Đọc trạng thái               | `tm vcs status`                                             |
+| Khác biệt hai phía           | `tm vcs diff [--staged] -U1000000 -- <tệp>`                 |
+| Danh sách tệp của một commit | `tm vcs diff --name-only <mã băm>`                          |
+| Nội dung tệp ở HEAD          | `tm vcs show-file HEAD -- <tệp>`                            |
+| Lịch sử                      | `tm vcs log --oneline -n <số>`                              |
+| Nhánh, tag, bản lưu tạm      | `tm vcs branch -vv`, `tm vcs tag -l`, `tm vcs stash --list` |
+| Stage, unstage, huỷ          | `tm vcs add`, `tm vcs restore --staged`, `tm vcs restore`   |
+| Xoá tệp chưa theo dõi        | `tm vcs clean -f <tệp>`                                     |
 
 `show-file` cần `tm` 0.1.0 trở lên. Gặp `tm` cũ hơn thì tiện ích ghi một dòng
 ra kênh log và dựng phía HEAD từ khác biệt đã stage như trước, tức là tệp sạch
@@ -141,33 +141,33 @@ Thanh trạng thái vẫn hiện số commit đi trước/đi sau khi nhánh có
 
 ## Cấu trúc mã nguồn
 
-| Tệp | Vai trò |
-| --- | --- |
-| `src/extension.ts` | Khởi động, cấp nội dung ảo cho khung so sánh |
-| `src/model.ts` | Dò kho trong workspace, theo dõi tệp, đặt thanh trạng thái |
-| `src/repository.ts` | Một kho: SourceControl, các nhóm thay đổi, quick diff |
-| `src/tm.ts` | Bọc lệnh `tm vcs`, không đọc `.tmx` bằng tay |
-| `src/parse.ts` | Dịch output tiếng Việt của tm thành dữ liệu có kiểu |
-| `src/commands.ts` | Toàn bộ lệnh |
-| `src/views.ts` | Bốn khung nhánh, commit, stash, tag |
-| `src/decorations.ts` | Chữ viết tắt trên cây thư mục |
-| `src/uri.ts` | Lược đồ `tm:` cho nội dung nằm trong kho |
-| `src/test/harness.ts` | Bản giả API VS Code dùng chung cho kiểm thử |
+| Tệp                   | Vai trò                                                    |
+| --------------------- | ---------------------------------------------------------- |
+| `src/extension.ts`    | Khởi động, cấp nội dung ảo cho khung so sánh               |
+| `src/model.ts`        | Dò kho trong workspace, theo dõi tệp, đặt thanh trạng thái |
+| `src/repository.ts`   | Một kho: SourceControl, các nhóm thay đổi, quick diff      |
+| `src/tm.ts`           | Bọc lệnh `tm vcs`, không đọc `.tmx` bằng tay               |
+| `src/parse.ts`        | Dịch output tiếng Việt của tm thành dữ liệu có kiểu        |
+| `src/commands.ts`     | Toàn bộ lệnh                                               |
+| `src/views.ts`        | Bốn khung nhánh, commit, stash, tag                        |
+| `src/decorations.ts`  | Chữ viết tắt trên cây thư mục                              |
+| `src/uri.ts`          | Lược đồ `tm:` cho nội dung nằm trong kho                   |
+| `src/test/harness.ts` | Bản giả API VS Code dùng chung cho kiểm thử                |
 
 ## Cấu hình
 
-| Khoá | Mặc định | Ý nghĩa |
-| --- | --- | --- |
-| `tm.path` | `tm` | Đường dẫn lệnh tm |
-| `tm.enabled` | `true` | Bật dò kho trong workspace |
-| `tm.autoRefresh` | `true` | Tự làm mới khi tệp trên đĩa đổi |
-| `tm.autorefreshDelay` | `1000` | Chờ bao nhiêu mili giây trước khi làm mới |
-| `tm.decorations.enabled` | `true` | Hiện chữ viết tắt trên cây thư mục |
-| `tm.showCommitInput` | `true` | Hiện ô nhập nội dung commit |
-| `tm.alwaysShowStagedChangesResourceGroup` | `true` | Luôn hiện nhóm Staged Changes |
-| `tm.openDiffOnClick` | `true` | Bấm tệp thì mở khung so sánh thay vì mở tệp |
-| `tm.confirmEmptyCommits` | `true` | Hỏi lại trước khi tạo commit rỗng |
-| `tm.logMaxCount` | `500` | Số commit tối đa ở khung Commits |
+| Khoá                                      | Mặc định | Ý nghĩa                                     |
+| ----------------------------------------- | -------- | ------------------------------------------- |
+| `tm.path`                                 | `tm`     | Đường dẫn lệnh tm                           |
+| `tm.enabled`                              | `true`   | Bật dò kho trong workspace                  |
+| `tm.autoRefresh`                          | `true`   | Tự làm mới khi tệp trên đĩa đổi             |
+| `tm.autorefreshDelay`                     | `1000`   | Chờ bao nhiêu mili giây trước khi làm mới   |
+| `tm.decorations.enabled`                  | `true`   | Hiện chữ viết tắt trên cây thư mục          |
+| `tm.showCommitInput`                      | `true`   | Hiện ô nhập nội dung commit                 |
+| `tm.alwaysShowStagedChangesResourceGroup` | `true`   | Luôn hiện nhóm Staged Changes               |
+| `tm.openDiffOnClick`                      | `true`   | Bấm tệp thì mở khung so sánh thay vì mở tệp |
+| `tm.confirmEmptyCommits`                  | `true`   | Hỏi lại trước khi tạo commit rỗng           |
+| `tm.logMaxCount`                          | `500`    | Số commit tối đa ở khung Commits            |
 
 ## Kiểm thử
 

@@ -1,6 +1,6 @@
 {
   "name": "tm-vcs",
-  "displayName": "TM VCS",
+  "displayName": "To Manh Version Control System",
   "description": "Quản lý phiên bản mã nguồn cục bộ bằng tm trong VS Code",
   "version": "0.1.0",
   "publisher": "tm",

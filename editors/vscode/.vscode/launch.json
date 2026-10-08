@@ -1,18 +1,16 @@
 {
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Chạy tiện ích TD VCS",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"${workspaceFolder}/../.."
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
-			"preLaunchTask": "npm: compile"
-		}
-	]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Chạy tiện ích TM VCS",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/../.."
+      ],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "preLaunchTask": "npm: compile"
+    }
+  ]
 }
