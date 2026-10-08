@@ -86,6 +86,26 @@ test('mỗi khung bên có lời nhắc khi còn trống', () => {
 	}
 });
 
+/**
+ * Mọi view trong khung Source Control phải luôn hiện, không giấu bằng `when`.
+ *
+ * Một view có `when` mà điều kiện chưa đúng lúc VS Code dựng khung thì không
+ * biến mất: nó bị tách sang một khung Source Control riêng. Kết quả là activity
+ * bar hiện hai biểu tượng giống hệt nhau, một cái cho thay đổi tệp và một cái
+ * cho nhánh, commit, stash, tag.
+ *
+ * Khung trống thì không sao, vì `viewsWelcome` đã có lời nhắc cho từng view.
+ */
+test('mọi view trong khung Source Control luôn hiện để không bị tách khung', () => {
+	const pkg = manifest();
+	const hidden = (pkg.contributes.views.scm ?? [])
+		.filter(view => view.when)
+		.map(view => `${view.id} (${view.when})`);
+	if (hidden.length > 0) {
+		throw new Error(`view có "when" sẽ bị tách sang khung Source Control riêng: ${hidden.join(', ')}`);
+	}
+});
+
 test('bấm tệp trong khung Source Control mở khung so sánh', () => {
 	const pkg = manifest();
 	const properties = pkg.contributes.configuration.flatMap(c => Object.entries(c.properties));

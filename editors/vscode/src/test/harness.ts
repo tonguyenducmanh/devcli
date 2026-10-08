@@ -397,7 +397,7 @@ export function manifest(): {
 		commands: { command: string; title?: string; category?: string }[];
 		submenus: { id: string; label: string }[];
 		menus: Record<string, { command?: string; submenu?: string; when?: string; group?: string; alt?: string }[]>;
-		views: Record<string, { id: string; name: string }[]>;
+		views: Record<string, { id: string; name: string; when?: string }[]>;
 		viewsWelcome?: { view: string; contents: string }[];
 		configuration: { properties: Record<string, { default?: unknown }> }[];
 	};

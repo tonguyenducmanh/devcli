@@ -1030,23 +1030,19 @@
       "scm": [
         {
           "id": "tmBranches",
-          "name": "%view.branches%",
-          "when": "tm.openRepositoryCount > 0"
+          "name": "%view.branches%"
         },
         {
           "id": "tmCommits",
-          "name": "%view.commits%",
-          "when": "tm.openRepositoryCount > 0"
+          "name": "%view.commits%"
         },
         {
           "id": "tmStashes",
-          "name": "%view.stashes%",
-          "when": "tm.openRepositoryCount > 0"
+          "name": "%view.stashes%"
         },
         {
           "id": "tmTags",
-          "name": "%view.tags%",
-          "when": "tm.openRepositoryCount > 0"
+          "name": "%view.tags%"
         }
       ]
     },
