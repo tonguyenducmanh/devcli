@@ -73,6 +73,12 @@ Mở một cửa sổ PowerShell mới rồi kiểm tra:
 td version
 ```
 
+Trường hợp đang sử dụng PowerShell trong vscode, chạy lệnh sau để cập nhật path:
+
+```powershell
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+```
+
 Windows không cần cấp quyền thực thi như trên macOS và Linux. Nếu PowerShell chặn
 việc chạy tệp, xem [Execution Policy](https://learn.microsoft.com/powershell/module/microsoft.powershell.security/set-executionpolicy).
 
