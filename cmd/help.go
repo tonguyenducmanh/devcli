@@ -131,7 +131,7 @@ Gõ không kèm tên lệnh thì xem trợ giúp của lệnh gốc.`, AppName),
 			"  " + AppName + " help vcs          xem trợ giúp của nhóm lệnh vcs",
 			"  " + AppName + " help vcs merge    xem trợ giúp của lệnh merge",
 		}, "\n"),
-		// Nhận đường dẫn lệnh, ví dụ `td help vcs merge`.
+		// Nhận đường dẫn lệnh, ví dụ `tm help vcs merge`.
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Không có tên lệnh thì in trợ giúp của lệnh gốc.
@@ -140,7 +140,7 @@ Gõ không kèm tên lệnh thì xem trợ giúp của lệnh gốc.`, AppName),
 			}
 			// Find trả về lệnh khớp gần nhất cùng phần đối số còn thừa, nên
 			// phải kiểm tra phần thừa thì mới biết người dùng có gõ sai tên
-			// không. `td help vcs merge` thì phần thừa rỗng.
+			// không. `tm help vcs merge` thì phần thừa rỗng.
 			target, leftover, err := rootCmd.Find(args)
 			if err != nil {
 				return exitError("không tìm thấy lệnh %q", strings.Join(args, " "))

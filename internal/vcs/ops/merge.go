@@ -62,7 +62,7 @@ func Merge(r *repo.Repo, opts MergeOptions) (*MergeResult, error) {
 		return continueMerge(r)
 	}
 	if r.HasState(MergeHead) {
-		return nil, fmt.Errorf("đang có một lần merge chưa hoàn tất, chạy `td vcs merge --continue` hoặc `--abort`")
+		return nil, fmt.Errorf("đang có một lần merge chưa hoàn tất, chạy `tm vcs merge --continue` hoặc `--abort`")
 	}
 
 	target, err := resolveCommitish(r, opts.Branch)

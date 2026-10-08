@@ -108,7 +108,7 @@ func TestAddAndCommitBasic(t *testing.T) {
 // TestAddStagesDeletedFile bảo đảm `add <đường-dẫn>` ghi nhận được tệp đã xoá.
 //
 // Trước đây nhánh xử lý đường dẫn cụ thể gọi UnstagePath, mà hàm đó khôi phục
-// lại nội dung từ HEAD nên tệp vẫn còn trong index. Kết quả là `td vcs add .`
+// lại nội dung từ HEAD nên tệp vẫn còn trong index. Kết quả là `tm vcs add .`
 // im lặng không làm gì, `status` vẫn hiện "xoá", và `commit` báo không có gì để
 // commit. Ba bước đó nghe hợp lý với nhau, nên rất dễ tưởng là người dùng sai.
 func TestAddStagesDeletedFile(t *testing.T) {

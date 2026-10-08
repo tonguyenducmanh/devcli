@@ -17,20 +17,20 @@ import { parseTdUri } from './uri';
 /**
  * Điểm khởi động của extension.
  *
- * Kích hoạt theo ba bước: dò kho td trong workspace, đăng ký lệnh, rồi cấp nội
- * dung ảo cho các khung so sánh. Bản thân VS Code không cần biết gì về td, nó chỉ
+ * Kích hoạt theo ba bước: dò kho tm trong workspace, đăng ký lệnh, rồi cấp nội
+ * dung ảo cho các khung so sánh. Bản thân VS Code không cần biết gì về tm, nó chỉ
  * thấy một nguồn quản lý phiên bản như bất kỳ extension nguồn quản lý nào khác.
  */
 export function activate(context: ExtensionContext): void {
-	const log = window.createOutputChannel('TD VCS', { log: true });
+	const log = window.createOutputChannel('TM VCS', { log: true });
 	context.subscriptions.push(log);
 
 	const model = new Model(log);
 	context.subscriptions.push(model);
-	log.appendLine(`Sử dụng lệnh td: ${model.command}`);
+	log.appendLine(`Sử dụng lệnh tm: ${model.command}`);
 
 	context.subscriptions.push(...registerCommands(model, log));
-	context.subscriptions.push(new TdContentProvider(model));
+	context.subscriptions.push(new TmContentProvider(model));
 
 	// Dò kho trước khi báo sẵn sàng để khung Source Control có nội dung ngay.
 	void model.discover().then(async () => {
@@ -39,14 +39,14 @@ export function activate(context: ExtensionContext): void {
 		}
 		await model.checkMissing();
 		if (model.all.length === 0) {
-			log.appendLine('Không tìm thấy kho td nào trong workspace.');
+			log.appendLine('Không tìm thấy kho tm nào trong workspace.');
 		}
 	});
 
-	// Cập nhật lại danh sách kho khi người dùng đổi cấu hình td.path.
+	// Cập nhật lại danh sách kho khi người dùng đổi cấu hình tm.path.
 	context.subscriptions.push(workspace.onDidChangeConfiguration(event => {
-		if (event.affectsConfiguration('td.path')) {
-			log.appendLine('Cấu hình td.path đổi, dò kho lại.');
+		if (event.affectsConfiguration('tm.path')) {
+			log.appendLine('Cấu hình tm.path đổi, dò kho lại.');
 			void model.discover(true);
 		}
 	}));
@@ -58,12 +58,12 @@ export function deactivate(): void {
 }
 
 /**
- * Cấp nội dung cho các địa chỉ `td:` mà khung so sánh của VS Code mở ra.
+ * Cấp nội dung cho các địa chỉ `tm:` mà khung so sánh của VS Code mở ra.
  *
  * Đây là phần tương đương của việc git phục vụ nội dung qua lược đồ `git:`:
  * mỗi địa chỉ mang theo kho, đường dẫn, điểm trong lịch sử và phía cần xem.
  */
-class TdContentProvider implements TextDocumentContentProvider {
+class TmContentProvider implements TextDocumentContentProvider {
 	private readonly onDidChangeEmitter = new EventEmitter<Uri>();
 	readonly onDidChange: Event<Uri> = this.onDidChangeEmitter.event;
 
@@ -73,7 +73,7 @@ class TdContentProvider implements TextDocumentContentProvider {
 	private readonly served = new Set<string>();
 
 	constructor(private readonly model: Model) {
-		this.disposables.push(workspace.registerTextDocumentContentProvider('td', this));
+		this.disposables.push(workspace.registerTextDocumentContentProvider('tm', this));
 		this.disposables.push(model.onDidChangeRepository(() => this.fire()));
 	}
 

@@ -8,21 +8,21 @@ cho ai và khi nào cần sinh lại.
 
 ## Dự án là gì
 
-`td` là một ứng dụng dòng lệnh viết bằng Go, dựng cây lệnh bằng
-[spf13/cobra](https://github.com/spf13/cobra). Lệnh gốc là `td`, mỗi nhóm
+`tm` là một ứng dụng dòng lệnh viết bằng Go, dựng cây lệnh bằng
+[spf13/cobra](https://github.com/spf13/cobra). Lệnh gốc là `tm`, mỗi nhóm
 công cụ là một lệnh con.
 
-Nhóm công cụ hiện có: `td vcs` (quản lý phiên bản mã nguồn cục bộ),
-`td config`, `td version`.
+Nhóm công cụ hiện có: `tm vcs` (quản lý phiên bản mã nguồn cục bộ),
+`tm config`, `tm version`.
 
 ## Bất biến kiến trúc
 
 Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm kiểm thử đỏ.
 
 1. **Không gọi chương trình ngoài.** Mã nguồn không được import `os/exec` hay
-   gọi tiến trình khác. Mọi thao tác phải nằm gọn trong tiến trình của td.
+   gọi tiến trình khác. Mọi thao tác phải nằm gọn trong tiến trình của tm.
    Có kiểm thử ở `tests/architecture/` quét toàn bộ mã nguồn để chặn điều này.
-2. **Dữ liệu chỉ nằm trong `.tdx`.** Không đọc hay ghi thư mục dữ liệu của
+2. **Dữ liệu chỉ nằm trong `.tmx`.** Không đọc hay ghi thư mục dữ liệu của
    công cụ khác.
 3. **Phụ thuộc đi trong một chiều.** `object` → `storage`/`index` → `repo`
    → `ops` → `cmd`. Một gói chỉ được biết tới gói ngay dưới nó.
@@ -52,14 +52,14 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | `build_all.sh` | Điểm vào để build, nằm ở gốc kho |
 | `scripts/` | Cấu hình và script build còn lại (xem `scripts/README.md`) |
 | `tests/` | Toàn bộ mã kiểm thử, tách theo vùng nghiệp vụ |
-| `editors/vscode/` | Tiện ích VS Code đưa `td` vào khung Source Control |
+| `editors/vscode/` | Tiện ích VS Code đưa `tm` vào khung Source Control |
 | `docs/agents/` | Tài liệu cho trợ lý lập trình: `AGENTS.md`, `README.md`, `cli/` |
 | `CHANGELOG.md` | Những thay đổi đáng kể của từng đợt, kèm cách kiểm chứng |
 
 ## Mô hình dữ liệu
 
 Mỗi đơn vị dữ liệu gọi là *object*, lưu thành một tệp riêng nén zlib tại
-`.tdx/objects/<2 ký tự đầu>/<38 ký tự sau>`.
+`.tmx/objects/<2 ký tự đầu>/<38 ký tự sau>`.
 
 - Mã băm là SHA1 của chuỗi `"<loại> <kích thước>"` + byte NUL + nội dung.
 - **Blob**: nội dung tệp.
@@ -68,7 +68,7 @@ Mỗi đơn vị dữ liệu gọi là *object*, lưu thành một tệp riêng 
 - **Commit**: các dòng `tree`, `parent`, `author`, `committer`, dòng trống,
   rồi thông điệp.
 - Có ba vùng trạng thái: **HEAD** (con trỏ đang đứng), **vùng chuẩn bị**
-  (`.tdx/index`) và **cây làm việc** (tệp trên đĩa).
+  (`.tmx/index`) và **cây làm việc** (tệp trên đĩa).
 
 Cây nội dung được xây từ vùng chuẩn bị bởi `repo.TreeFromIndex`, dựng đệ quy
 theo `repo.WriteTree`.
@@ -129,7 +129,7 @@ hoặc trùng *chữ viết tắt*, thì cờ của lệnh con được ưu tiê
 bỏ qua trong lệnh đó. Việc này xảy ra **âm thầm, không có thông báo nào**, và
 cùng một chữ viết tắt sẽ mang hai nghĩa khác nhau tuỳ lệnh.
 
-Nên đặt tên cờ theo đúng việc nó làm: `td vcs branch --hash` chứ không phải
+Nên đặt tên cờ theo đúng việc nó làm: `tm vcs branch --hash` chứ không phải
 `--verbose`, vì `-v` đã là cờ toàn cục in thêm thông tin chi tiết.
 
 ## Lệnh thường dùng
@@ -150,7 +150,7 @@ mỗi lần đóng góp.
 
 Số phiên bản nằm ở biến `VERSION` trong phần cấu hình của
 `scripts/build_binaries.sh`, là nguồn duy nhất. Script build đọc biến đó rồi
-gắn vào tệp thực thi bằng cờ ldflags, nên `td version` luôn khớp với tên file
+gắn vào tệp thực thi bằng cờ ldflags, nên `tm version` luôn khớp với tên file
 trong `out/`.
 
 Phát hành bản mới thì sửa đúng một dòng đó rồi chạy:
@@ -190,18 +190,18 @@ Khi sửa một lỗi, thêm kiểm thử tái hiện lỗi đó trước khi s�
 
 ## Tiện ích VS Code
 
-`editors/vscode/` là tiện ích TypeScript đưa `td` vào khung Source Control của
+`editors/vscode/` là tiện ích TypeScript đưa `tm` vào khung Source Control của
 VS Code, viết bằng API `vscode.scm`. Nó không thuộc module Go nên `go build`
 và `go test` không đụng tới, và kiểm thử kiến trúc không quét tới.
 
 Hai điều cần nhớ khi sửa cho khớp với phần còn lại của kho:
 
-- Tiện ích **không** đọc tệp `.tdx` bằng tay, mọi thứ đi qua `td vcs`. Nhờ vậy
+- Tiện ích **không** đọc tệp `.tmx` bằng tay, mọi thứ đi qua `tm vcs`. Nhờ vậy
   định dạng dữ liệu của kho không bị phụ thuộc vào nó.
-- Toàn bộ phần dịch output tiếng Việt của `td` nằm trong `editors/vscode/src/parse.ts`.
-  Đổi câu chữ trong output của `td` thì chỗ đó phải sửa theo.
-- Lệnh `td` luôn được gọi với `-C` đặt trước mọi thứ khác. Đặt `-C` cuối dòng lệnh
-  thì khi lệnh có danh sách tệp sau dấu `--`, td sẽ hiểu `-C` là một đường dẫn.
+- Toàn bộ phần dịch output tiếng Việt của `tm` nằm trong `editors/vscode/src/parse.ts`.
+  Đổi câu chữ trong output của `tm` thì chỗ đó phải sửa theo.
+- Lệnh `tm` luôn được gọi với `-C` đặt trước mọi thứ khác. Đặt `-C` cuối dòng lệnh
+  thì khi lệnh có danh sách tệp sau dấu `--`, tm sẽ hiểu `-C` là một đường dẫn.
 
 Các lệnh của VS Code có kiểm tra tham số theo tên, sai hình dạng là bị từ chối
 ngay với thông báo *Invalid argument*. Hai lệnh hay dùng:

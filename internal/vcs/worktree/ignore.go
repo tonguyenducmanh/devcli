@@ -32,7 +32,7 @@ type ignoreRule struct {
 func NewIgnore(base string) *Ignore { return &Ignore{base: base} }
 
 // IgnoreFileName là tên tệp ignore đặt trong thư mục bất kỳ, kể cả thư mục con.
-const IgnoreFileName = ".tdxignore"
+const IgnoreFileName = ".tmxignore"
 
 // AddFile nạp các quy tắc từ một tệp ignore.
 //

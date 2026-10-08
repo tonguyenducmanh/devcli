@@ -1,13 +1,52 @@
 # Changelog
 
-Ghi lại những thay đổi đáng kể của td theo từng mốc, kèm tệp đã đụng tới, cách
+Ghi lại những thay đổi đáng kể của tm theo từng mốc, kèm tệp đã đụng tới, cách
 kiểm chứng và những gì còn chưa làm. Mục tiêu là người đọc trên máy khác dựng
 lại được bối cảnh mà không cần đọc lịch sử git.
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/), phiên
 bản theo [SemVer](https://semver.org/lang/vi/).
 
-## Chưa phát hành · 2026-10-08
+## Chưa phát hành
+
+### Đổi tên lệnh `td` thành `tm`
+
+Lệnh trên terminal đổi từ `td` sang `tm`. Đổi theo bốn phần: tên lệnh gọi,
+thư mục dữ liệu kho, cấu hình toàn cục, và định danh của tiện ích VS Code.
+
+| Điểm | Cũ | Mới |
+| --- | --- | --- |
+| Lệnh trên terminal | `td` | `tm` |
+| Thư mục dữ liệu mỗi kho | `.tdx` | `.tmx` |
+| Tệp bỏ qua | `.tdxignore` | `.tmxignore` |
+| Cấu hình toàn cục | `~/.config/td/config` | `~/.config/tm/config` |
+| Biến môi trường cấu hình | `TD_CONFIG` | `TM_CONFIG` |
+| Thư mục trạng thái của `tm use` | `~/.td` | `~/.tm` |
+| Tệp build trong `out/` | `devcli-<nền tảng>-<phiên bản>` | `td-devcli-<nền tảng>-<phiên bản>` |
+| Lệnh và cấu hình của tiện ích | `td.*` | `tm.*` |
+| Lược đồ nội dung ảo | `td:` | `tm:` |
+| Màu trang trí của tiện ích | `tdDecoration.*` | `tmDecoration.*` |
+| Biến chỉ định binary cho kiểm thử | `TD_BIN` | `TM_BIN` |
+
+Tệp mã nguồn `editors/vscode/src/td.ts` và `editors/vscode/src/test/td.test.ts`
+đổi tên thành `tm.ts` và `tm.test.ts` cho khớp. Kiểu dữ liệu trong `parse.ts` và
+`uri.ts` cũng đổi tiền tố `Td*` thành `Tm*`.
+
+**Không có đường lùi.** `tm` không đọc kho `.tdx` cũ và không đọc cấu hình ở
+`~/.config/td`. Muốn dùng lại kho đã khởi tạo bằng `td` thì phải `tm vcs init`
+lại rồi commit lại nội dung. Cấu hình cũ chép sang `~/.config/tm/config`.
+
+Tài liệu trong `docs/agents/cli/` được sinh lại nên tên tệp đổi từ `td_vcs_*`
+thành `tm_vcs_*`.
+
+Kiểm chứng:
+
+```bash
+./scripts/check.sh
+cd editors/vscode && npm install && npm run compile && npm test
+```
+
+## 0.1.0 · 2026-10-08
 
 Ngày 2026-10-08, một phiên làm việc kéo dài từ 07:55 đến 08:47 theo giờ máy.
 Các mốc dưới đây là các chặng trong phiên đó, không phải các ngày khác nhau.

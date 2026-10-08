@@ -14,9 +14,9 @@ import {
 	workspace
 } from 'vscode';
 
-import { TdPatch, TdStatus, TdStatusCode } from './parse';
-import { Td } from './td';
-import { Ref, Side, tdUri } from './uri';
+import { TmPatch, TmStatus, TmStatusCode } from './parse';
+import { Tm } from './tm';
+import { Ref, Side, tmUri } from './uri';
 
 /** Nhóm tệp. Tên id trùng với extension git để cách hiển thị là như nhau. */
 export const enum GroupId {
@@ -43,7 +43,7 @@ export const GROUP_LABELS: Record<GroupId, string> = {
 const BINARY_NOTE = '(tệp nhị phân, không hiển thị nội dung)';
 
 /** Chữ viết tắt hiện ở góc tệp trong cây thư mục, giống git. */
-export const BADGES: Record<TdStatusCode, string> = {
+export const BADGES: Record<TmStatusCode, string> = {
 	A: 'A',
 	M: 'M',
 	D: 'D',
@@ -55,11 +55,11 @@ export const BADGES: Record<TdStatusCode, string> = {
 export interface TdResourceState {
 	path: string;
 	group: GroupId;
-	status: TdStatusCode;
+	status: TmStatusCode;
 }
 
 /** Trạng thái rỗng, dùng khi kho chưa đọc được gì. */
-function emptyStatus(): TdStatus {
+function emptyStatus(): TmStatus {
 	return {
 		branch: '',
 		detached: false,
@@ -75,9 +75,9 @@ function emptyStatus(): TdStatus {
 }
 
 /**
- * Một kho td: giữ SourceControl cho VS Code và hỏi td về kho đó.
+ * Một kho tm: giữ SourceControl cho VS Code và hỏi tm về kho đó.
  *
- * Mọi thao tác thay đổi đều chạy qua td rồi đọc lại trạng thái, nên không có
+ * Mọi thao tác thay đổi đều chạy qua tm rồi đọc lại trạng thái, nên không có
  * đường nào sửa dữ liệu kho trực tiếp từ phía extension.
  */
 export class Repository implements Disposable {
@@ -89,11 +89,11 @@ export class Repository implements Disposable {
 	private readonly groups = new Map<GroupId, SourceControlResourceGroup>();
 	private readonly disposables: Disposable[] = [];
 
-	private status: TdStatus = emptyStatus();
+	private status: TmStatus = emptyStatus();
 
 	/** Khác biệt đã dựng, gom theo đường dẫn, mỗi vùng một bản riêng. */
-	private readonly unstagedPatches = new Map<string, TdPatch>();
-	private readonly stagedPatches = new Map<string, TdPatch>();
+	private readonly unstagedPatches = new Map<string, TmPatch>();
+	private readonly stagedPatches = new Map<string, TmPatch>();
 
 	private busy = false;
 	private lastError: string | undefined;
@@ -101,8 +101,8 @@ export class Repository implements Disposable {
 	/** Danh sách tệp đang hiện, phục vụ trang trí cây thư mục và lệnh khác. */
 	private states: TdResourceState[] = [];
 
-	constructor(readonly root: string, private readonly td: Td) {
-		this.sourceControl = scm.createSourceControl('td', 'TD', Uri.file(root));
+	constructor(readonly root: string, private readonly tm: Tm) {
+		this.sourceControl = scm.createSourceControl('tm', 'TM', Uri.file(root));
 		this.disposables.push(this.sourceControl);
 
 		for (const id of [GroupId.Merge, GroupId.Index, GroupId.WorkingTree, GroupId.Untracked]) {
@@ -116,11 +116,11 @@ export class Repository implements Disposable {
 		this.groups.get(GroupId.Untracked)!.hideWhenEmpty = true;
 
 		this.sourceControl.acceptInputCommand = {
-			command: 'td.commit',
+			command: 'tm.commit',
 			title: 'Commit',
 			arguments: [this.sourceControl]
 		};
-		this.sourceControl.quickDiffProvider = new TdQuickDiffProvider(this);
+		this.sourceControl.quickDiffProvider = new TmQuickDiffProvider(this);
 		this.sourceControl.inputBox.placeholder = inputPlaceholder('');
 	}
 
@@ -142,8 +142,8 @@ export class Repository implements Disposable {
 		return this.status.branch || 'No Branch';
 	}
 
-	/** Trạng thái mới nhất đọc từ td. */
-	get current(): TdStatus {
+	/** Trạng thái mới nhất đọc từ tm. */
+	get current(): TmStatus {
 		return this.status;
 	}
 
@@ -167,7 +167,7 @@ export class Repository implements Disposable {
 		return this.states.length;
 	}
 
-	/** Đường dẫn tương đối của một tệp trong kho, dùng khi ghép lệnh td. */
+	/** Đường dẫn tương đối của một tệp trong kho, dùng khi ghép lệnh tm. */
 	toRelativePath(uri: Uri): string {
 		return path.relative(this.root, uri.fsPath).split(path.sep).join('/');
 	}
@@ -178,14 +178,14 @@ export class Repository implements Disposable {
 	}
 
 	/**
-	 * Đọc lại trạng thái từ td rồi cập nhật khung Source Control.
+	 * Đọc lại trạng thái từ tm rồi cập nhật khung Source Control.
 	 *
 	 * Khác biệt đã dựng bị bỏ vì trạng thái có thể đã đổi; chúng sẽ được dựng
 	 * lại khi có ai đó thật sự mở khung so sánh.
 	 */
 	async refresh(): Promise<void> {
 		try {
-			this.status = await this.td.status(this.root);
+			this.status = await this.tm.status(this.root);
 			this.lastError = undefined;
 		} catch (error) {
 			this.lastError = messageOf(error);
@@ -216,7 +216,7 @@ export class Repository implements Disposable {
 				.map(state => this.toResourceState(state));
 		}
 
-		const config = workspace.getConfiguration('td', Uri.file(this.root));
+		const config = workspace.getConfiguration('tm', Uri.file(this.root));
 		this.groups.get(GroupId.Index)!.hideWhenEmpty = !config.get('alwaysShowStagedChangesResourceGroup', true);
 		this.sourceControl.inputBox.visible = config.get('showCommitInput', true);
 		this.sourceControl.inputBox.placeholder = inputPlaceholder(this.headLabel);
@@ -232,8 +232,8 @@ export class Repository implements Disposable {
 			contextValue: contextValueOf(state),
 			command: {
 				// Bấm vào tên tệp thì mở khung so sánh, giống extension git.
-				// Ai muốn mở thẳng tệp thì tắt cấu hình td.openDiffOnClick.
-				command: this.openDiffOnClick() ? 'td.openChange' : 'td.openFile',
+				// Ai muốn mở thẳng tệp thì tắt cấu hình tm.openDiffOnClick.
+				command: this.openDiffOnClick() ? 'tm.openChange' : 'tm.openFile',
 				title: this.openDiffOnClick() ? 'Open Changes' : 'Open File',
 				// Truyền cả kho lẫn tệp: khung Source Control gọi lệnh mà không
 				// kèm gì, còn các lệnh khác gọi với đúng hai đối số này.
@@ -252,22 +252,22 @@ export class Repository implements Disposable {
 
 	/** Cấu hình có bật mở khung so sánh khi bấm tệp trong khung Source Control. */
 	private openDiffOnClick(): boolean {
-		return workspace.getConfiguration('td', Uri.file(this.root)).get<boolean>('openDiffOnClick', true);
+		return workspace.getConfiguration('tm', Uri.file(this.root)).get<boolean>('openDiffOnClick', true);
 	}
 
 	/**
 	 * Lấy khác biệt của một tệp, dựng một lần rồi giữ tới lần làm mới sau.
 	 *
-	 * `td vcs diff` được gọi cho đúng một tệp nên phần ngữ cảnh ôm trọn tệp vẫn
+	 * `tm vcs diff` được gọi cho đúng một tệp nên phần ngữ cảnh ôm trọn tệp vẫn
 	 * nhỏ, kể cả trong kho lớn.
 	 */
-	async patchFor(relativePath: string, staged: boolean): Promise<TdPatch | undefined> {
+	async patchFor(relativePath: string, staged: boolean): Promise<TmPatch | undefined> {
 		const cache = staged ? this.stagedPatches : this.unstagedPatches;
 		const known = cache.get(relativePath);
 		if (known) {
 			return known;
 		}
-		const patches = await this.td.diff(this.root, { staged, paths: [relativePath] });
+		const patches = await this.tm.diff(this.root, { staged, paths: [relativePath] });
 		for (const patch of patches) {
 			cache.set(patch.path, patch);
 		}
@@ -279,7 +279,7 @@ export class Repository implements Disposable {
 	 *
 	 * Phía trên đĩa thì đọc tệp thật để giữ đúng dấu xuống dòng cuối cùng. Phía
 	 * nằm trong HEAD đọc thẳng từ kho nên không phụ thuộc tệp có bị thay đổi ở
-	 * commit đó hay không. Phía còn lại dựng lại từ khác biệt của td vì vùng
+	 * commit đó hay không. Phía còn lại dựng lại từ khác biệt của tm vì vùng
 	 * chuẩn bị và cây làm việc chỉ tồn tại trên đĩa.
 	 */
 	async contentOf(relativePath: string, ref: Ref | string, side: Side, token: CancellationToken): Promise<string> {
@@ -309,16 +309,16 @@ export class Repository implements Disposable {
 	 * Nội dung tệp ở HEAD hoặc ở vùng chuẩn bị, undefined khi tệp không có ở đó.
 	 *
 	 * HEAD đọc thẳng từ kho nên đúng với mọi tệp, kể cả tệp mà commit đó không
-	 * đụng tới. Khi lệnh td trên máy chưa có `vcs show-file` thì rơi về cách dựng
+	 * đụng tới. Khi lệnh tm trên máy chưa có `vcs show-file` thì rơi về cách dựng
 	 * từ khác biệt đã stage: cách đó chỉ đúng với tệp đang chờ commit, nên tiện
-	 * ích ghi một dòng ra kênh log nhắc nâng cấp td.
+	 * ích ghi một dòng ra kênh log nhắc nâng cấp tm.
 	 */
 	async contentAt(relativePath: string, ref: Ref.Head | Ref.Index): Promise<string | undefined> {
 		if (ref === Ref.Index) {
 			const patch = await this.patchFor(relativePath, false);
 			return patch ? patch.new : '';
 		}
-		const result = await this.td.showFile(this.root, 'HEAD', relativePath);
+		const result = await this.tm.showFile(this.root, 'HEAD', relativePath);
 		if (result.unsupported) {
 			this.warnOldTd();
 			const patch = await this.patchFor(relativePath, true);
@@ -338,25 +338,25 @@ export class Repository implements Disposable {
 		}
 	}
 
-	/** Báo một lần rằng lệnh td trên máy cũ hơn tiện ích. */
+	/** Báo một lần rằng lệnh tm trên máy cũ hơn tiện ích. */
 	private warnedOldTd = false;
 	private warnOldTd(): void {
 		if (this.warnedOldTd) {
 			return;
 		}
 		this.warnedOldTd = true;
-		this.td.note('Lệnh td trên máy chưa có `td vcs show-file`, nội dung ở HEAD tạm dựng từ khác biệt đã stage. Cập nhật td để xem đúng nội dung mọi tệp.');
+		this.tm.note('Lệnh tm trên máy chưa có `tm vcs show-file`, nội dung ở HEAD tạm dựng từ khác biệt đã stage. Cập nhật tm để xem đúng nội dung mọi tệp.');
 	}
 
 	/** Khác biệt của một tệp giữa một commit và phụ huynh của nó. */
-	private async patchForRevision(relativePath: string, revision: string): Promise<TdPatch | undefined> {
-		const patches = await this.td.diff(this.root, { revision, paths: [relativePath] });
+	private async patchForRevision(relativePath: string, revision: string): Promise<TmPatch | undefined> {
+		const patches = await this.tm.diff(this.root, { revision, paths: [relativePath] });
 		return patches.find(p => p.path === relativePath);
 	}
 
 	/** Địa chỉ nội dung ảo của một phía. */
 	uriFor(relativePath: string, ref: Ref | string, side: Side): Uri {
-		return tdUri({ repo: this.root, path: relativePath, ref, side });
+		return tmUri({ repo: this.root, path: relativePath, ref, side });
 	}
 
 	/** Chạy một lệnh thay đổi rồi đọc lại trạng thái, báo lỗi khi hỏng. */
@@ -406,8 +406,8 @@ export class Repository implements Disposable {
 	}
 }
 
-/** Đổ danh sách trạng thái của td thành mục của khung Source Control. */
-function toStates(group: GroupId, entries: { path: string; status: TdStatusCode }[]): TdResourceState[] {
+/** Đổ danh sách trạng thái của tm thành mục của khung Source Control. */
+function toStates(group: GroupId, entries: { path: string; status: TmStatusCode }[]): TdResourceState[] {
 	return entries.map(entry => ({ path: entry.path, group, status: entry.status }));
 }
 
@@ -415,19 +415,19 @@ function toStates(group: GroupId, entries: { path: string; status: TdStatusCode 
 export function badgeColor(state: TdResourceState): ThemeColor {
 	switch (state.status) {
 		case 'A':
-			return new ThemeColor('tdDecoration.addedResourceForeground');
+			return new ThemeColor('tmDecoration.addedResourceForeground');
 		case 'U':
-			return new ThemeColor('tdDecoration.conflictingResourceForeground');
+			return new ThemeColor('tmDecoration.conflictingResourceForeground');
 		case 'D':
 			return new ThemeColor(state.group === GroupId.Index
-				? 'tdDecoration.stageDeletedResourceForeground'
-				: 'tdDecoration.deletedResourceForeground');
+				? 'tmDecoration.stageDeletedResourceForeground'
+				: 'tmDecoration.deletedResourceForeground');
 		case '?':
-			return new ThemeColor('tdDecoration.untrackedResourceForeground');
+			return new ThemeColor('tmDecoration.untrackedResourceForeground');
 		default:
 			return new ThemeColor(state.group === GroupId.Index
-				? 'tdDecoration.stageModifiedResourceForeground'
-				: 'tdDecoration.modifiedResourceForeground');
+				? 'tmDecoration.stageModifiedResourceForeground'
+				: 'tmDecoration.modifiedResourceForeground');
 	}
 }
 
@@ -437,9 +437,9 @@ function tooltipOf(state: TdResourceState): string {
 		[GroupId.Merge]: 'Đang giải quyết xung đột',
 		[GroupId.Index]: 'Đã stage',
 		[GroupId.WorkingTree]: 'Đã sửa trên đĩa',
-		[GroupId.Untracked]: 'Chưa được td theo dõi'
+		[GroupId.Untracked]: 'Chưa được tm theo dõi'
 	};
-	const change: Record<TdStatusCode, string> = {
+	const change: Record<TmStatusCode, string> = {
 		A: 'Thêm',
 		M: 'Sửa',
 		D: 'Xoá',
@@ -487,7 +487,7 @@ export function messageOf(error: unknown): string {
  * VS Code dùng địa chỉ trả về để tô vạch ở rìa và dải khác biệt ngay trong
  * tệp đang mở, giống hệt git.
  */
-class TdQuickDiffProvider implements QuickDiffProvider {
+class TmQuickDiffProvider implements QuickDiffProvider {
 	constructor(private readonly repository: Repository) {}
 
 	async provideOriginalResource(uri: Uri, token: CancellationToken): Promise<Uri | undefined> {

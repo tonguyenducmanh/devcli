@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import Module = require('node:module');
 
-/** Gốc kho của td, thư mục cha của thư mục extension. */
+/** Gốc kho của tm, thư mục cha của thư mục extension. */
 const REPO_ROOT = path.join(__dirname, '..', '..', '..', '..');
 
 /** Một lần gọi lệnh của VS Code mà bản giả ghi lại. */
@@ -25,20 +25,20 @@ export interface FakeState {
 	uri(fsPath: string): unknown;
 	/** Lần gọi cuối cùng của một lệnh, hoặc undefined nếu chưa gọi. */
 	lastCall(id: string): RecordedCall | undefined;
-	/** Nội dung ảo mà tiện ích cấp cho các địa chỉ td:, đọc để kiểm thử. */
+	/** Nội dung ảo mà tiện ích cấp cho các địa chỉ tm:, đọc để kiểm thử. */
 	contentOf(uri: unknown): Promise<string>;
 }
 
-export function findTd(): string | undefined {
-	const fromEnv = process.env.TD_BIN;
+export function findTm(): string | undefined {
+	const fromEnv = process.env.TM_BIN;
 	if (fromEnv && existsSync(fromEnv)) {
 		return fromEnv;
 	}
 	try {
 		// Tên tệp do build_all.sh đặt theo cấu hình trong scripts/, nên thử cả
-		// hai tiền tố td lẫn devcli cho chắc.
+		// ba tiền tố tên tệp build trong scripts/ cho chắc.
 		const built = readdirSync(path.join(REPO_ROOT, 'out'))
-			.filter(name => /^(td|devcli)(-|\.)/.test(name))
+			.filter(name => /^(td-devcli|devcli|tm)(-|\.)/.test(name))
 			.map(name => path.join(REPO_ROOT, 'out', name))
 			.find(candidate => existsSync(candidate));
 		if (built) {
@@ -48,8 +48,8 @@ export function findTd(): string | undefined {
 		// Chưa build thì thử PATH.
 	}
 	try {
-		execFileSync('td', ['version'], { stdio: 'ignore' });
-		return 'td';
+		execFileSync('tm', ['version'], { stdio: 'ignore' });
+		return 'tm';
 	} catch {
 		return undefined;
 	}
@@ -125,7 +125,7 @@ export class FakeUri {
  * tham số truyền vào. Mục đích là bắt được lỗi chạy thật trong lúc kích hoạt
  * mà không cần mở VS Code.
  */
-export function fakeVscode(tdPath: string, settings: Record<string, unknown> = {}): { vscode: Record<string, unknown>; state: FakeState } {
+export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {}): { vscode: Record<string, unknown>; state: FakeState } {
 	const uri = (fsPath: string): FakeUri => FakeUri.file(fsPath);
 	const resourceGroups: { id: string; label: string; resourceStates: unknown[]; hideWhenEmpty?: boolean }[] = [];
 	const sourceControls: Record<string, unknown>[] = [];
@@ -179,12 +179,12 @@ export function fakeVscode(tdPath: string, settings: Record<string, unknown> = {
 		},
 		workspace: {
 			workspaceFolders: undefined as unknown,
-			// td.path có giá trị thật, cấu hình khác lấy từ tham số settings,
+			// tm.path có giá trị thật, cấu hình khác lấy từ tham số settings,
 			// không có thì về mặc định.
 			getConfiguration: () => ({
 				get: <T>(key: string, fallback?: T): T => {
 					if (key === 'path') {
-						return tdPath as unknown as T;
+						return tmPath as unknown as T;
 					}
 					return key in settings ? (settings[key] as T) : (fallback as T);
 				}
@@ -325,10 +325,10 @@ export function nls(): Record<string, string> {
 	return JSON.parse(readFileSync(path.join(__dirname, '..', '..', 'package.nls.json'), 'utf8'));
 }
 
-/** Dựng một kho td trên thư mục tạm rồi trả về thư mục gốc của nó. */
-export function makeRepo(tdPath: string, prefix = 'td-test-'): string {
+/** Dựng một kho tm trên thư mục tạm rồi trả về thư mục gốc của nó. */
+export function makeRepo(tmPath: string, prefix = 'tm-test-'): string {
 	const root = mkdtempSync(path.join(tmpdir(), prefix));
-	execFileSync(tdPath, ['vcs', '-C', root, 'init'], { stdio: 'ignore' });
+	execFileSync(tmPath, ['vcs', '-C', root, 'init'], { stdio: 'ignore' });
 	return root;
 }
 
@@ -339,7 +339,7 @@ export function writeRepoFile(root: string, relative: string, content: string): 
 	writeFileSync(full, content, 'utf8');
 }
 
-/** Chạy một lệnh td trong kho và bỏ qua output. */
-export function runTd(tdPath: string, root: string, args: string[]): void {
-	execFileSync(tdPath, ['vcs', '-C', root, ...args], { stdio: 'ignore' });
+/** Chạy một lệnh tm trong kho và bỏ qua output. */
+export function runTm(tmPath: string, root: string, args: string[]): void {
+	execFileSync(tmPath, ['vcs', '-C', root, ...args], { stdio: 'ignore' });
 }

@@ -1,7 +1,7 @@
 // Package index quản lý vùng chuẩn bị (staging area) của kho mã nguồn:
 // tập hợp nội dung tệp sẽ được ghi vào commit kế tiếp.
 //
-// Định dạng file là index phiên bản 2, lưu tại .tdx/index.
+// Định dạng file là index phiên bản 2, lưu tại .tmx/index.
 package index
 
 import (
@@ -135,7 +135,7 @@ func parseMode(m object.FileMode) uint32 {
 
 // formatMode chuyển số nguyên trong file index về dạng văn bản.
 func formatMode(v uint32) object.FileMode {
-	// Chế độ submodule không dùng trong td nên quy về file thường.
+	// Chế độ submodule không dùng trong tm nên quy về file thường.
 	if v == modeGitlink {
 		return object.ModeBlob
 	}

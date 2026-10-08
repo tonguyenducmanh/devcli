@@ -17,7 +17,7 @@ import { badgeColor, BADGES, GroupId, Repository } from './repository';
  * và ở thanh bên trình soạn thảo. Cách làm giống hệt extension git: một nhà cung
  * cấp cho mọi kho, nghe trạng thái của tất cả kho rồi tô lại các tệp vừa đổi.
  */
-export class TdDecorations implements FileDecorationProvider, Disposable {
+export class TmDecorations implements FileDecorationProvider, Disposable {
 	private readonly onDidChangeFileDecorationsEmitter = new EventEmitter<Uri[] | undefined>();
 	readonly onDidChangeFileDecorations: Event<Uri[] | undefined> = this.onDidChangeFileDecorationsEmitter.event;
 
@@ -29,7 +29,7 @@ export class TdDecorations implements FileDecorationProvider, Disposable {
 		this.disposables.push(window.registerFileDecorationProvider(this));
 	}
 
-	/** Bật hay tắt việc vẽ chữ viết tắt, theo cấu hình `td.decorations.enabled`. */
+	/** Bật hay tắt việc vẽ chữ viết tắt, theo cấu hình `tm.decorations.enabled`. */
 	setEnabled(enabled: boolean): void {
 		this.enabled = enabled;
 	}

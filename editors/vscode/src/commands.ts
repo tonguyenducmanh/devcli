@@ -12,8 +12,8 @@ import {
 
 import { Model } from './model';
 import { Repository } from './repository';
-import { parseTdUri, Ref, Side, TD_SCHEME } from './uri';
-import { TdBranch, TdLogEntry, TdStash, TdTag } from './parse';
+import { parseTdUri, Ref, Side, TM_SCHEME } from './uri';
+import { TmBranch, TmLogEntry, TmStash, TmTag } from './parse';
 
 /** Thông tin mà hộp chọn nhanh hiển thị được cho một dòng dữ liệu. */
 interface Picked<T> {
@@ -46,7 +46,7 @@ interface DiffGroup {
  * Source Control, còn gọi từ bảng lệnh thì lấy kho đang hoạt động.
  */
 export function registerCommands(model: Model, log: OutputChannel): Disposable[] {
-	const td = model.cli;
+	const tm = model.cli;
 
 	// ─── Tiện ích nội bộ ─────────────────────────────────────────
 
@@ -120,7 +120,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	 * *Open File* thì phải ra tệp thật trên đĩa.
 	 */
 	function realFileOf(uri: Uri | undefined): Uri | undefined {
-		if (!uri || uri.scheme !== TD_SCHEME) {
+		if (!uri || uri.scheme !== TM_SCHEME) {
 			return uri;
 		}
 		const info = parseTdUri(uri);
@@ -134,14 +134,14 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	function requireRepository(candidate: unknown, action: string): Repository {
 		const repository = repositoryOf(candidate);
 		if (!repository) {
-			void window.showErrorMessage(`Không có kho td nào để ${action}.`);
+			void window.showErrorMessage(`Không có kho tm nào để ${action}.`);
 			throw new MissingRepositoryError();
 		}
 		return repository;
 	}
 
 	/**
-	 * Chạy một thao tác của td rồi báo lỗi nếu hỏng.
+	 * Chạy một thao tác của tm rồi báo lỗi nếu hỏng.
 	 *
 	 * Repository.run đã tự đọc lại trạng thái và hiện thông báo lỗi, nên ở đây
 	 * chỉ ghi vào kênh log để người dùng xem lại được.
@@ -159,9 +159,9 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	}
 
 	/**
-	 * Bước đầu của mọi thao tác thay đổi: kiểm tra kho rồi chạy lệnh td.
+	 * Bước đầu của mọi thao tác thay đổi: kiểm tra kho rồi chạy lệnh tm.
 	 *
-	 * Trong lúc chờ thì báo trên thanh trạng thái, vì một lệnh td trên kho lớn có
+	 * Trong lúc chờ thì báo trên thanh trạng thái, vì một lệnh tm trên kho lớn có
 	 * thể mất hơn một giây và người dùng cần biết là đang chờ gì.
 	 */
 	async function mutate(candidate: unknown, action: string, description: string, operation: (repository: Repository) => Promise<void>): Promise<void> {
@@ -235,25 +235,25 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	 * `excludeCurrent` loại nhánh đang đứng, dùng cho merge và rebase vì gộp
 	 * nhánh vào chính nó là việc vô nghĩa.
 	 */
-	async function pickBranch(repository: Repository, placeHolder: string, excludeCurrent = false): Promise<TdBranch | undefined> {
-		const branches = await td.branches(repository.root);
+	async function pickBranch(repository: Repository, placeHolder: string, excludeCurrent = false): Promise<TmBranch | undefined> {
+		const branches = await tm.branches(repository.root);
 		const usable = excludeCurrent ? branches.filter(b => !b.current) : branches;
 		return pick(usable, branchPick, { placeHolder, empty: 'Kho chưa có nhánh phù hợp.' });
 	}
 
 	/** Hộp chọn commit trong lịch sử. */
-	async function pickCommitEntry(repository: Repository, placeHolder: string): Promise<TdLogEntry | undefined> {
-		return pick(await td.log(repository.root, 200), commitPick, { placeHolder, empty: 'Kho chưa có commit nào.' });
+	async function pickCommitEntry(repository: Repository, placeHolder: string): Promise<TmLogEntry | undefined> {
+		return pick(await tm.log(repository.root, 200), commitPick, { placeHolder, empty: 'Kho chưa có commit nào.' });
 	}
 
 	/** Hộp chọn bản lưu tạm. */
-	async function pickStashEntry(repository: Repository, placeHolder: string): Promise<TdStash | undefined> {
-		return pick(await td.stashes(repository.root), stashPick, { placeHolder, empty: 'Kho chưa có bản lưu tạm nào.' });
+	async function pickStashEntry(repository: Repository, placeHolder: string): Promise<TmStash | undefined> {
+		return pick(await tm.stashes(repository.root), stashPick, { placeHolder, empty: 'Kho chưa có bản lưu tạm nào.' });
 	}
 
 	/** Hộp chọn tag. */
-	async function pickTagEntry(repository: Repository, placeHolder: string): Promise<TdTag | undefined> {
-		return pick(await td.tags(repository.root), tagPick, { placeHolder, empty: 'Kho chưa có tag nào.' });
+	async function pickTagEntry(repository: Repository, placeHolder: string): Promise<TmTag | undefined> {
+		return pick(await tm.tags(repository.root), tagPick, { placeHolder, empty: 'Kho chưa có tag nào.' });
 	}
 
 	// ─── Làm mới và khởi tạo ────────────────────────────────────
@@ -265,7 +265,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	async function init(): Promise<void> {
 		const folders = workspace.workspaceFolders;
 		if (!folders || folders.length === 0) {
-			void window.showErrorMessage('Hãy mở một thư mục trước khi khởi tạo kho td.');
+			void window.showErrorMessage('Hãy mở một thư mục trước khi khởi tạo kho tm.');
 			return;
 		}
 		const folder = folders.length === 1 ? folders[0] : await window.showWorkspaceFolderPick();
@@ -277,7 +277,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await attempt(`khởi tạo kho tại ${folder.uri.fsPath}`, async () => {
-			await td.init(folder.uri.fsPath, branch.trim() || undefined);
+			await tm.init(folder.uri.fsPath, branch.trim() || undefined);
 			await model.discover();
 		});
 	}
@@ -299,7 +299,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không đưa được thay đổi vào vùng chuẩn bị', `stage ${list.join(', ')}`,
-			r => td.stage(r.root, list));
+			r => tm.stage(r.root, list));
 	}
 
 	/** Gỡ một tệp khỏi vùng chuẩn bị, đưa nó về đúng nội dung của HEAD. */
@@ -315,16 +315,16 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không gỡ được thay đổi khỏi vùng chuẩn bị', `unstage ${list.join(', ')}`,
-			r => td.unstage(r.root, list));
+			r => tm.unstage(r.root, list));
 	}
 
 	/** Đưa mọi thay đổi vào vùng chuẩn bị. */
 	async function stageAll(candidate: unknown, trackedOnly = false): Promise<void> {
 		await mutate(candidate, 'đưa mọi thay đổi vào vùng chuẩn bị', 'stage tất cả', async repository => {
 			if (trackedOnly) {
-				await td.stageAllTracked(repository.root);
+				await tm.stageAllTracked(repository.root);
 			} else {
-				await td.stageAll(repository.root);
+				await tm.stageAll(repository.root);
 			}
 		});
 	}
@@ -342,13 +342,13 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không đưa được tệp chưa theo dõi vào vùng chuẩn bị', `stage ${list.length} tệp chưa theo dõi`,
-			r => td.stage(r.root, list));
+			r => tm.stage(r.root, list));
 	}
 
 	/**
 	 * Đánh dấu xung đột đã giải quyết.
 	 *
-	 * Xung đột của td nằm ngay trong vùng chuẩn bị nên đưa tất cả vào đó là xong.
+	 * Xung đột của tm nằm ngay trong vùng chuẩn bị nên đưa tất cả vào đó là xong.
 	 */
 	async function stageAllMerge(candidate: unknown): Promise<void> {
 		await stageAll(candidate);
@@ -366,7 +366,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không gỡ được thay đổi khỏi vùng chuẩn bị', `unstage ${list.length} tệp`,
-			r => td.unstage(r.root, list));
+			r => tm.unstage(r.root, list));
 	}
 
 	// ─── Huỷ thay đổi ───────────────────────────────────────────
@@ -385,7 +385,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không huỷ được thay đổi trên đĩa', `${description} ${list.join(', ')}`,
-			r => td.discard(r.root, list));
+			r => tm.discard(r.root, list));
 	}
 
 	async function revertChange(candidate: unknown, ...values: unknown[]): Promise<void> {
@@ -413,7 +413,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	/**
 	 * Xoá tệp chưa được theo dõi.
 	 *
-	 * td không hỏi lại nên phần xác nhận do giao diện đảm nhiệm, đúng như các
+	 * tm không hỏi lại nên phần xác nhận do giao diện đảm nhiệm, đúng như các
 	 * thao tác huỷ thay đổi khác.
 	 */
 	async function cleanAllUntracked(candidate: unknown, ...values: unknown[]): Promise<void> {
@@ -432,7 +432,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		const answer = await window.showWarningMessage(
-			`Xoá ${targets.length} tệp chưa được td theo dõi? Nội dung của chúng sẽ mất và không cứu được trong kho.`,
+			`Xoá ${targets.length} tệp chưa được tm theo dõi? Nội dung của chúng sẽ mất và không cứu được trong kho.`,
 			{ modal: true },
 			'Xoá'
 		);
@@ -440,7 +440,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không xoá được tệp chưa được theo dõi', `xoá ${targets.length} tệp chưa theo dõi`,
-			r => td.clean(r.root, targets));
+			r => tm.clean(r.root, targets));
 	}
 
 	// ─── Commit ─────────────────────────────────────────────────
@@ -460,7 +460,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			}
 			const typed = await window.showInputBox({
 				prompt: amend ? 'Nội dung commit sau khi sửa lại' : 'Nội dung commit',
-				placeHolder: 'td đòi nội dung commit, không nhận nội dung rỗng',
+				placeHolder: 'tm đòi nội dung commit, không nhận nội dung rỗng',
 				ignoreFocusOut: true,
 				validateInput: value => value.trim().length === 0 ? 'Commit cần có nội dung' : undefined
 			});
@@ -473,12 +473,12 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		const verb = amend ? 'sửa lại commit' : allowEmpty ? 'tạo commit rỗng' : 'commit';
 		await mutate(repository, 'Không ghi được commit', `${verb}: ${headLine(message)}`, async r => {
 			if (all) {
-				await td.stageAll(r.root);
+				await tm.stageAll(r.root);
 			}
 			if (allowEmpty) {
-				await td.commitEmpty(r.root, body);
+				await tm.commitEmpty(r.root, body);
 			} else {
-				await td.commit(r.root, body, amend);
+				await tm.commit(r.root, body, amend);
 			}
 		});
 		repository.clearInput();
@@ -502,7 +502,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	}
 
 	async function commitEmpty(candidate: unknown): Promise<void> {
-		if (workspace.getConfiguration('td').get<boolean>('confirmEmptyCommits', true)) {
+		if (workspace.getConfiguration('tm').get<boolean>('confirmEmptyCommits', true)) {
 			const answer = await window.showWarningMessage(
 				'Tạo commit rỗng? Không tệp nào được ghi vào mốc này.',
 				{ modal: true },
@@ -584,7 +584,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		}
 		// Chỉ xin danh sách tệp thay đổi. Nội dung từng phía đọc sau, đúng lúc
 		// khung so sánh thật sự cần tới, nên commit sửa nhiều tệp vẫn mở nhanh.
-		const paths = await td.changedFiles(repository.root, { revision: hash });
+		const paths = await tm.changedFiles(repository.root, { revision: hash });
 		if (paths.length === 0) {
 			void window.showInformationMessage('Commit này không thay đổi tệp nào.');
 			return;
@@ -687,7 +687,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không chuyển được nhánh', `checkout ${name}`,
-			r => td.switchTo(r.root, name as string));
+			r => tm.switchTo(r.root, name as string));
 	}
 
 	async function createBranch(candidate: unknown, from?: string): Promise<void> {
@@ -706,10 +706,10 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không tạo được nhánh', `tạo nhánh ${name.trim()}`,
-			r => td.createBranch(r.root, name.trim(), from));
+			r => tm.createBranch(r.root, name.trim(), from));
 	}
 
-	/** Tạo nhánh từ một điểm xuất phát được chọn, tương đương `td vcs branch ten <điểm>`. */
+	/** Tạo nhánh từ một điểm xuất phát được chọn, tương đương `tm vcs branch ten <điểm>`. */
 	async function branchFrom(candidate: unknown): Promise<void> {
 		let repository: Repository;
 		try {
@@ -717,7 +717,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		} catch {
 			return;
 		}
-		const entries = await td.log(repository.root, 50);
+		const entries = await tm.log(repository.root, 50);
 		if (entries.length === 0) {
 			void window.showInformationMessage('Kho chưa có commit nào để tạo nhánh.');
 			return;
@@ -749,7 +749,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không xoá được nhánh', `xoá nhánh ${target}`,
-			r => td.deleteBranch(r.root, target as string));
+			r => tm.deleteBranch(r.root, target as string));
 	}
 
 	async function renameBranch(candidate: unknown, name?: string): Promise<void> {
@@ -771,7 +771,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không đổi được tên nhánh', `đổi tên ${from} thành ${to.trim()}`,
-			r => td.renameBranch(r.root, from as string, to.trim()));
+			r => tm.renameBranch(r.root, from as string, to.trim()));
 	}
 
 	async function merge(candidate: unknown, name?: string): Promise<void> {
@@ -788,7 +788,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không hợp nhất được', `merge ${name}`,
-			r => td.merge(r.root, name as string));
+			r => tm.merge(r.root, name as string));
 	}
 
 	async function rebase(candidate: unknown, name?: string): Promise<void> {
@@ -805,7 +805,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không rebase được', `rebase ${name}`,
-			r => td.rebase(r.root, name as string));
+			r => tm.rebase(r.root, name as string));
 	}
 
 	// ─── Thao tác trên một commit cụ thể ────────────────────────
@@ -822,7 +822,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không cherry pick được', `cherry pick ${target}`,
-			r => td.cherryPick(r.root, target));
+			r => tm.cherryPick(r.root, target));
 	}
 
 	async function revert(candidate: unknown, hash?: string): Promise<void> {
@@ -837,7 +837,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không hoàn tác được', `revert ${target}`,
-			r => td.revert(r.root, target));
+			r => tm.revert(r.root, target));
 	}
 
 	// ─── Lưu tạm ────────────────────────────────────────────────
@@ -861,7 +861,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không lưu tạm được thay đổi', `stash${includeUntracked ? ' kèm tệp chưa theo dõi' : ''}`,
-			r => td.stash(r.root, message.trim() || undefined, includeUntracked));
+			r => tm.stash(r.root, message.trim() || undefined, includeUntracked));
 	}
 
 	/** Áp dụng hoặc lấy lại một bản lưu tạm. */
@@ -878,7 +878,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			index = stash?.index ?? 0;
 		}
 		await mutate(repository, 'Không áp dụng được bản lưu tạm', `stash ${pop ? 'pop' : 'apply'} ${index}`,
-			r => td.applyStash(r.root, index as number, pop));
+			r => tm.applyStash(r.root, index as number, pop));
 	}
 
 	async function dropStash(candidate: unknown, given?: number): Promise<void> {
@@ -894,7 +894,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			index = stash?.index ?? 0;
 		}
 		await mutate(repository, 'Không xoá được bản lưu tạm', `stash drop ${index}`,
-			r => td.dropStash(r.root, index as number));
+			r => tm.dropStash(r.root, index as number));
 	}
 
 	async function dropAllStashes(candidate: unknown): Promise<void> {
@@ -909,7 +909,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không xoá được bản lưu tạm', 'xoá toàn bộ bản lưu tạm',
-			r => td.clearStashes(r.root));
+			r => tm.clearStashes(r.root));
 	}
 
 	// ─── Tag ────────────────────────────────────────────────────
@@ -940,16 +940,16 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			const status = r.current;
 			const needDetach = !status.detached && !!status.branch && !status.branch.startsWith(at) && !at.startsWith(status.head);
 			if (!needDetach) {
-				await td.createTag(r.root, name.trim(), note.trim() || undefined);
+				await tm.createTag(r.root, name.trim(), note.trim() || undefined);
 				return;
 			}
-			// td chỉ tạo tag tại HEAD, nên muốn gắn tag ở commit khác thì phải
+			// tm chỉ tạo tag tại HEAD, nên muốn gắn tag ở commit khác thì phải
 			// rời nhánh trong lúc tạo rồi quay lại.
-			await td.detach(r.root, at);
+			await tm.detach(r.root, at);
 			try {
-				await td.createTag(r.root, name.trim(), note.trim() || undefined);
+				await tm.createTag(r.root, name.trim(), note.trim() || undefined);
 			} finally {
-				await td.switchTo(r.root, status.branch);
+				await tm.switchTo(r.root, status.branch);
 			}
 		});
 	}
@@ -966,7 +966,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 			return;
 		}
 		await mutate(repository, 'Không xoá được tag', `xoá tag ${target}`,
-			r => td.deleteTag(r.root, target));
+			r => tm.deleteTag(r.root, target));
 	}
 
 	// ─── Lệnh phụ ───────────────────────────────────────────────
@@ -976,7 +976,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		if (!repository) {
 			return;
 		}
-		const uri = uriOf(second) ?? uriOf(candidate) ?? repository.toAbsolutePath('.tdx');
+		const uri = uriOf(second) ?? uriOf(candidate) ?? repository.toAbsolutePath('.tmx');
 		await commands.executeCommand('revealInExplorer', uri);
 	}
 
@@ -1004,58 +1004,58 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	// ─── Đăng ký ────────────────────────────────────────────────
 
 	const registry: [string, (...args: any[]) => unknown][] = [
-		['td.refresh', refresh],
-		['td.init', init],
-		['td.commit', commit],
-		['td.commitAll', commitAll],
-		['td.commitStaged', commitStaged],
-		['td.commitAmend', commitAmend],
-		['td.commitStagedAmend', commitStagedAmend],
-		['td.commitEmpty', commitEmpty],
-		['td.stage', stage],
-		['td.stageAll', () => stageAll(undefined)],
-		['td.stageAllTracked', () => stageAll(undefined, true)],
-		['td.stageAllUntracked', stageAllUntracked],
-		['td.stageAllMerge', stageAllMerge],
-		['td.unstage', unstage],
-		['td.unstageAll', unstageAll],
-		['td.cleanAll', cleanAllTracked],
-		['td.cleanAllTracked', cleanAllTracked],
-		['td.cleanAllUntracked', cleanAllUntracked],
-		['td.revertChange', revertChange],
-		['td.openFile', openFile],
-		['td.openFile2', openFile],
-		['td.openChange', openChange],
-		['td.openHEADFile', openHEADFile],
-		['td.openCommitChanges', openCommitChanges],
-		['td.checkout', checkout],
-		['td.branch', () => createBranch(undefined)],
-		['td.branchFrom', branchFrom],
-		['td.deleteBranch', deleteBranch],
-		['td.renameBranch', renameBranch],
-		['td.merge', merge],
-		['td.rebase', rebase],
-		['td.cherryPick', cherryPick],
-		['td.revert', revert],
-		['td.stash', () => stash(undefined, false)],
-		['td.stashIncludeUntracked', () => stash(undefined, true)],
-		['td.stashApply', () => applyStash(undefined, false)],
-		['td.stashApplyLatest', () => applyStash(undefined, false, 0)],
-		['td.stashPop', () => applyStash(undefined, true)],
-		['td.stashPopLatest', () => applyStash(undefined, true, 0)],
-		['td.stashDrop', dropStash],
-		['td.stashDropAll', dropAllStashes],
-		['td.tag', createTag],
-		['td.deleteTag', deleteTag],
-		['td.revealInExplorer', revealInExplorer],
-		['td.showOutput', () => log.show(true)],
-		['td.pickBranch', pickBranchCommand],
-		['td.pickCommit', pickCommitCommand],
-		['td.pickTag', pickTagCommand]
+		['tm.refresh', refresh],
+		['tm.init', init],
+		['tm.commit', commit],
+		['tm.commitAll', commitAll],
+		['tm.commitStaged', commitStaged],
+		['tm.commitAmend', commitAmend],
+		['tm.commitStagedAmend', commitStagedAmend],
+		['tm.commitEmpty', commitEmpty],
+		['tm.stage', stage],
+		['tm.stageAll', () => stageAll(undefined)],
+		['tm.stageAllTracked', () => stageAll(undefined, true)],
+		['tm.stageAllUntracked', stageAllUntracked],
+		['tm.stageAllMerge', stageAllMerge],
+		['tm.unstage', unstage],
+		['tm.unstageAll', unstageAll],
+		['tm.cleanAll', cleanAllTracked],
+		['tm.cleanAllTracked', cleanAllTracked],
+		['tm.cleanAllUntracked', cleanAllUntracked],
+		['tm.revertChange', revertChange],
+		['tm.openFile', openFile],
+		['tm.openFile2', openFile],
+		['tm.openChange', openChange],
+		['tm.openHEADFile', openHEADFile],
+		['tm.openCommitChanges', openCommitChanges],
+		['tm.checkout', checkout],
+		['tm.branch', () => createBranch(undefined)],
+		['tm.branchFrom', branchFrom],
+		['tm.deleteBranch', deleteBranch],
+		['tm.renameBranch', renameBranch],
+		['tm.merge', merge],
+		['tm.rebase', rebase],
+		['tm.cherryPick', cherryPick],
+		['tm.revert', revert],
+		['tm.stash', () => stash(undefined, false)],
+		['tm.stashIncludeUntracked', () => stash(undefined, true)],
+		['tm.stashApply', () => applyStash(undefined, false)],
+		['tm.stashApplyLatest', () => applyStash(undefined, false, 0)],
+		['tm.stashPop', () => applyStash(undefined, true)],
+		['tm.stashPopLatest', () => applyStash(undefined, true, 0)],
+		['tm.stashDrop', dropStash],
+		['tm.stashDropAll', dropAllStashes],
+		['tm.tag', createTag],
+		['tm.deleteTag', deleteTag],
+		['tm.revealInExplorer', revealInExplorer],
+		['tm.showOutput', () => log.show(true)],
+		['tm.pickBranch', pickBranchCommand],
+		['tm.pickCommit', pickCommitCommand],
+		['tm.pickTag', pickTagCommand]
 	];
 
 	const disposables = registry.map(([id, handler]) => commands.registerCommand(id, handler));
-	disposables.push(commands.registerCommand('td.pickStash', () => applyStash(undefined, true)));
+	disposables.push(commands.registerCommand('tm.pickStash', () => applyStash(undefined, true)));
 	return disposables;
 }
 
@@ -1063,7 +1063,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 class MissingRepositoryError extends Error {}
 
 /** Chuyển một nhánh thành mục của hộp chọn. */
-function branchPick(branch: TdBranch): Picked<TdBranch> {
+function branchPick(branch: TmBranch): Picked<TmBranch> {
 	const parts = [branch.subject || branch.hash];
 	if (branch.upstream) {
 		parts.push(`đi trước ${branch.ahead}, đi sau ${branch.behind}`);
@@ -1077,7 +1077,7 @@ function branchPick(branch: TdBranch): Picked<TdBranch> {
 }
 
 /** Chuyển một commit thành mục của hộp chọn. */
-function commitPick(entry: TdLogEntry): Picked<TdLogEntry> {
+function commitPick(entry: TmLogEntry): Picked<TmLogEntry> {
 	return {
 		label: entry.summary || '(không có tiêu đề)',
 		description: entry.hash,
@@ -1087,7 +1087,7 @@ function commitPick(entry: TdLogEntry): Picked<TdLogEntry> {
 }
 
 /** Chuyển một bản lưu tạm thành mục của hộp chọn. */
-function stashPick(stash: TdStash): Picked<TdStash> {
+function stashPick(stash: TmStash): Picked<TmStash> {
 	return {
 		label: stash.message || `stash@{${stash.index}}`,
 		description: `stash@{${stash.index}}`,
@@ -1096,7 +1096,7 @@ function stashPick(stash: TdStash): Picked<TdStash> {
 }
 
 /** Chuyển một tag thành mục của hộp chọn. */
-function tagPick(tag: TdTag): Picked<TdTag> {
+function tagPick(tag: TmTag): Picked<TmTag> {
 	return {
 		label: tag.name,
 		description: tag.message || tag.hash,

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build td: sinh tài liệu cho trợ lý lập trình, build tệp thực thi cho mọi nền
+# Build tm: sinh tài liệu cho trợ lý lập trình, build tệp thực thi cho mọi nền
 # tảng khai báo trong scripts/build_binaries.sh, rồi đóng gói tiện ích VS Code.
 #
 # Script này nằm ở thư mục gốc của kho làm điểm vào duy nhất. Cấu hình build và
@@ -19,14 +19,14 @@
 # tệp thực thi mà không sinh tài liệu thì gọi scripts/build_binaries.sh trực tiếp.
 #
 # Bước 3 đóng gói tiện ích VS Code thành một tệp .vsix đa nền tảng. Bước này cần
-# Node.js; máy không có thì nó tự bỏ qua chứ không làm hỏng phần build Go, vì td
+# Node.js; máy không có thì nó tự bỏ qua chứ không làm hỏng phần build Go, vì tm
 # là công cụ Go và không được phụ thuộc vào Node.
 #
 # Kết quả trong out/ có chứa số phiên bản, ví dụ:
-#   out/devcli-mac-arm-0.1.0
-#   out/devcli-linux-0.1.0
-#   out/devcli-windows-0.1.0.exe
-#   out/devcli-vscode-0.1.0.vsix
+#   out/td-devcli-mac-arm-0.1.0
+#   out/td-devcli-linux-0.1.0
+#   out/td-devcli-windows-0.1.0.exe
+#   out/td-devcli-vscode-0.1.0.vsix
 set -e
 
 # Script đang ở gốc kho nên thư mục chứa nó chính là thư mục gốc.

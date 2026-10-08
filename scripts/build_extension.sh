@@ -8,9 +8,9 @@
 #
 # Tệp .vsix không phụ thuộc nền tảng: nó chỉ chứa mã JavaScript đã biên dịch và
 # một tệp biểu tượng. Máy nào cài đều chạy được, khác ở chỗ máy đó phải có lệnh
-# `td` riêng. Xem README trong editors/vscode để biết cách đặt td.path.
+# `tm` riêng. Xem README trong editors/vscode để biết cách đặt tm.path.
 #
-# Script bỏ qua nhẹ nhàng khi máy không có Node: td là công cụ Go, việc build
+# Script bỏ qua nhẹ nhàng khi máy không có Node: tm là công cụ Go, việc build
 # binary không được phụ thuộc vào Node. Khi đó in ra cách cài và thoát với mã 0
 # để build_all.sh vẫn build được phần còn lại.
 set -e
@@ -28,7 +28,7 @@ EXT_VERSION=$(sed -n 's/.*"version": "\([^"]*\)".*/\1/p' "$EXT_DIR/package.json"
 
 # Tiền tố tên tệp trong out/. Đổi APP_NAME trong build_binaries.sh thì đổi cả
 # ở đây, hai tệp nằm cùng nền tảng build.
-APP_NAME=devcli
+APP_NAME=td-devcli
 
 # Lệnh đóng gói. Ưu tiên bản cài sẵn trong dự án, không có thì gọi npx.
 VSCE=""

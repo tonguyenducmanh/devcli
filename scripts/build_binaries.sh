@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build tệp thực thi td cho các nền tảng khai báo trong TARGETS bên dưới.
+# Build tệp thực thi tm cho các nền tảng khai báo trong TARGETS bên dưới.
 #
 # Cách chạy:
 #   ./scripts/build_binaries.sh                  build mọi nền tảng
@@ -21,7 +21,7 @@ ROOT_DIR=$(cd "$(dirname "$0")/.." && pwd)
 
 # Tên gọi lệnh trên terminal. Đổi thành ví dụ "devtool" thì chạy bằng
 # "devtool vcs status". Tên này cũng quyết định dòng Use trong phần trợ giúp.
-CMD_NAME=td
+CMD_NAME=tm
 
 # Nơi phát hành, in ở cuối phần trợ giúp và dùng cho tiêu đề trang man.
 REPO_URL=github.com/tonguyenducmanh/devcli
@@ -32,11 +32,11 @@ AUTHOR="Tô Nguyễn Đức Mạnh"
 # ─── Thông tin build ───────────────────────────────────────────────
 
 # Số phiên bản của ứng dụng. Đổi ở đây mỗi khi phát hành bản mới.
-# Giá trị này xuất hiện trong tên tệp trong out/ và trong kết quả `td version`.
+# Giá trị này xuất hiện trong tên tệp trong out/ và trong kết quả `tm version`.
 VERSION=0.1.0
 
 # Tên tệp thực thi, dùng làm tiền tố cho tên file trong out/.
-APP_NAME=devcli
+APP_NAME=td-devcli
 
 # Thư mục chứa kết quả build, tính từ thư mục gốc project.
 OUT_DIR=out

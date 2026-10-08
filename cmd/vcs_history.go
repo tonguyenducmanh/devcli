@@ -19,15 +19,15 @@ var vcsMergeCmd = &cobra.Command{
 	Long: `Kết hợp lịch sử của một nhánh khác vào nhánh đang đứng.
 
 Khi nhánh đích nằm ngay sau nhánh hiện tại, con trỏ chỉ dịch thẳng sang đó mà
-không tạo mốc mới. Trong trường hợp lệch nhánh, td so từng tệp và hợp nhất nội
+không tạo mốc mới. Trong trường hợp lệch nhánh, tm so từng tệp và hợp nhất nội
 dung ba phía; tệp không thể tự động hợp nhất sẽ được đánh dấu xung đột.
 
 Gặp xung đột thì lệnh dừng lại và ghi lại trạng thái, dùng --continue để hoàn
 tất hoặc --abort để huỷ.`,
-	Example: `  td vcs merge main            hợp nhất nhánh main
-  td vcs merge --no-ff main    luôn tạo commit merge
-  td vcs merge --abort         huỷ lần merge đang dở dang
-  td vcs merge --continue      hoàn tất sau khi giải quyết xung đột`,
+	Example: `  tm vcs merge main            hợp nhất nhánh main
+  tm vcs merge --no-ff main    luôn tạo commit merge
+  tm vcs merge --abort         huỷ lần merge đang dở dang
+  tm vcs merge --continue      hoàn tất sau khi giải quyết xung đột`,
 	Args: maximumArgs(1, "<nhánh|commit>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -77,11 +77,11 @@ func printMergeResult(r *repo.Repo, res *ops.MergeResult) {
 		for _, p := range res.Conflicts {
 			printLine("  %s", p)
 		}
-		printLine("\nGiải quyết xong rồi chạy `td vcs add <tệp>` và `td vcs commit`.")
+		printLine("\nGiải quyết xong rồi chạy `tm vcs add <tệp>` và `tm vcs commit`.")
 	case !res.MergeCommit.IsZero():
 		printLine("Đã tạo commit hợp nhất %s", res.MergeCommit.Short(8))
 	default:
-		printLine("Đã hợp nhất vào vùng stage, chạy `td vcs commit` để ghi lại.")
+		printLine("Đã hợp nhất vào vùng stage, chạy `tm vcs commit` để ghi lại.")
 	}
 }
 
@@ -97,11 +97,11 @@ tại, nên lịch sử trở nên gọn và tuyến tính thay vì nhiều nhá
 
 Có thể rebase một nhánh khác bằng cách truyền cả hai tham số: điểm đích trước,
 tên nhánh sau. Dùng --onto khi muốn điểm đích khác điểm gốc.`,
-	Example: `  td vcs rebase main            đưa commit hiện tại lên trên main
-  td vcs rebase <đích> <nhánh>   rebase một nhánh khác lên trên đích
-  td vcs rebase --onto <đích>   chỉ định điểm đích khác
-  td vcs rebase --continue      tiếp tục sau khi giải quyết xung đột
-  td vcs rebase --abort         quay lại trạng thái trước rebase`,
+	Example: `  tm vcs rebase main            đưa commit hiện tại lên trên main
+  tm vcs rebase <đích> <nhánh>   rebase một nhánh khác lên trên đích
+  tm vcs rebase --onto <đích>   chỉ định điểm đích khác
+  tm vcs rebase --continue      tiếp tục sau khi giải quyết xung đột
+  tm vcs rebase --abort         quay lại trạng thái trước rebase`,
 	Args: maximumArgs(2, "[điểm-đích] [nhánh]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -149,7 +149,7 @@ func printRebaseResult(res *ops.RebaseResult) {
 		for _, p := range res.Conflicts {
 			printLine("  %s", p)
 		}
-		printLine("\nGiải quyết rồi chạy `td vcs rebase --continue`, hoặc `td vcs rebase --abort` để hủy.")
+		printLine("\nGiải quyết rồi chạy `tm vcs rebase --continue`, hoặc `tm vcs rebase --abort` để hủy.")
 		return
 	}
 	if res.Skipped > 0 {
@@ -173,10 +173,10 @@ var vcsCherryPickCmd = &cobra.Command{
 Mỗi commit được áp dụng như một lần hợp nhất ba phía, nên thay đổi được giữ
 nguyên dù nhánh nguồn đã tiến xa. Truyền nhiều mã băm để áp dụng theo đúng
 thứ tự đã cho.`,
-	Example: `  td vcs cherry-pick abc1234
-  td vcs cherry-pick abc1234 def5678
-  td vcs cherry-pick --no-commit abc1234   chỉ áp dụng vào vùng stage
-  td vcs cherry-pick --abort                huỷ khi đang giải quyết xung đột`,
+	Example: `  tm vcs cherry-pick abc1234
+  tm vcs cherry-pick abc1234 def5678
+  tm vcs cherry-pick --no-commit abc1234   chỉ áp dụng vào vùng stage
+  tm vcs cherry-pick --abort                huỷ khi đang giải quyết xung đột`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -243,9 +243,9 @@ var vcsRevertCmd = &cobra.Command{
 
 Lịch sử không bị viết lại nên lệnh này an toàn với nhánh đã chia sẻ. Khi hoàn
 tác nhiều commit, chúng được xử lý theo thứ tự ngược: commit mới nhất trước.`,
-	Example: `  td vcs revert abc1234
-  td vcs revert --no-commit abc1234
-  td vcs revert --abort`,
+	Example: `  tm vcs revert abc1234
+  tm vcs revert --no-commit abc1234
+  tm vcs revert --abort`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -325,7 +325,7 @@ func printPickResult(name string, commits []object.Hash, conflicts []string, ski
 		for _, p := range conflicts {
 			printLine("  %s", p)
 		}
-		printLine("\nGiải quyết xong rồi chạy `td vcs %s --continue`.", name)
+		printLine("\nGiải quyết xong rồi chạy `tm vcs %s --continue`.", name)
 		return
 	}
 	if skipped > 0 {
@@ -362,13 +362,13 @@ Mỗi lần lưu tạo thêm một mục trong danh sách. Dùng -u để cất 
 theo dõi; những tệp này sẽ bị gỡ khỏi đĩa và trở lại khi áp dụng lại.
 
 Số ở đối số chỉ vị trí trong danh sách, tính từ 0 cho mục mới nhất.`,
-	Example: `  td vcs stash                 lưu thay đổi hiện tại
-  td vcs stash -u              kèm cả file chưa được theo dõi
-  td vcs stash list            xem các bản đã lưu
-  td vcs stash apply           áp dụng bản mới nhất, giữ lại trong danh sách
-  td vcs stash pop             áp dụng rồi xóa bản đó
-  td vcs stash drop            xóa một bản
-  td vcs stash clear           xóa toàn bộ`,
+	Example: `  tm vcs stash                 lưu thay đổi hiện tại
+  tm vcs stash -u              kèm cả file chưa được theo dõi
+  tm vcs stash list            xem các bản đã lưu
+  tm vcs stash apply           áp dụng bản mới nhất, giữ lại trong danh sách
+  tm vcs stash pop             áp dụng rồi xóa bản đó
+  tm vcs stash drop            xóa một bản
+  tm vcs stash clear           xóa toàn bộ`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -383,7 +383,7 @@ Số ở đối số chỉ vị trí trong danh sách, tính từ 0 cho mục m�
 		drop, _ := cmd.Flags().GetBool("drop")
 		clear, _ := cmd.Flags().GetBool("clear")
 
-		// Cho phép viết dạng lệnh con: `td vcs stash list`.
+		// Cho phép viết dạng lệnh con: `tm vcs stash list`.
 		if len(args) > 0 {
 			switch args[0] {
 			case "list", "show":

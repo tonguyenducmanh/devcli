@@ -89,12 +89,12 @@ test('mỗi khung bên có lời nhắc khi còn trống', () => {
 test('bấm tệp trong khung Source Control mở khung so sánh', () => {
 	const pkg = manifest();
 	const properties = pkg.contributes.configuration.flatMap(c => Object.entries(c.properties));
-	const openDiff = properties.find(([key]) => key === 'td.openDiffOnClick');
+	const openDiff = properties.find(([key]) => key === 'tm.openDiffOnClick');
 	if (!openDiff) {
-		throw new Error('thiếu cấu hình td.openDiffOnClick');
+		throw new Error('thiếu cấu hình tm.openDiffOnClick');
 	}
 	if (openDiff[1].default !== true) {
-		throw new Error('td.openDiffOnClick phải mặc định là true để bấm tệp ra khung so sánh');
+		throw new Error('tm.openDiffOnClick phải mặc định là true để bấm tệp ra khung so sánh');
 	}
 });
 
@@ -103,13 +103,13 @@ test('nút cạnh tệp chỉ hiện một lệnh mở', () => {
 	const nav = pkg.contributes.menus['scm/resourceState/context']
 		.filter(item => item.group === 'navigation');
 	// Mỗi nhóm chỉ được có một nút cạnh tệp, không phải hai nút cùng chức năng.
-	const openChange = nav.filter(item => item.command === 'td.openChange');
+	const openChange = nav.filter(item => item.command === 'tm.openChange');
 	if (openChange.length !== 1) {
 		throw new Error(`nút mở khung so sánh phải hiện đúng một chỗ, nhận ${openChange.length}`);
 	}
 	// Tệp chưa theo dõi mở thẳng tệp, giống git.
 	for (const item of nav) {
-		if (item.command === 'td.openChange' && (item.when ?? '').includes('untracked')) {
+		if (item.command === 'tm.openChange' && (item.when ?? '').includes('untracked')) {
 			throw new Error('tệp chưa theo dõi không được mở khung so sánh ở nút cạnh tệp');
 		}
 	}

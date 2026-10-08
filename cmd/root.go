@@ -1,4 +1,4 @@
-// Package cmd định nghĩa cây lệnh của td bằng cobra.
+// Package cmd định nghĩa cây lệnh của tm bằng cobra.
 //
 // Cấu trúc lệnh được tổ chức theo nhóm nghiệp vụ. Mỗi nhóm là một lệnh cha
 // chứa các lệnh con của nó, giúp dễ mở rộng thêm công cụ mới trong tương lai
@@ -24,10 +24,10 @@ import (
 //
 // Nguồn cấu hình nằm trong phần cấu hình của scripts/build_binaries.sh.
 var (
-	// AppName là tên gọi lệnh trên terminal, ví dụ "td" trong "td vcs status".
-	AppName = "td"
+	// AppName là tên gọi lệnh trên terminal, ví dụ "tm" trong "tm vcs status".
+	AppName = "tm"
 
-	// Version là phiên bản hiển thị qua lệnh `td version`.
+	// Version là phiên bản hiển thị qua lệnh `tm version`.
 	Version = "0.0.0-dev"
 
 	// Author là tên tác giả, in ở lệnh version và cuối phần trợ giúp.
@@ -131,8 +131,8 @@ func init() {
 	rootCmd.Version = Version
 
 	// Cố ý không đặt cờ toàn cục nào. Mỗi lệnh tự khai báo cờ của riêng nó, và
-	// -v mang nghĩa khác nhau tuỳ lệnh: `td -v` là phiên bản, còn
-	// `td vcs branch -v` là hiện mã băm, đúng như git. Dùng chung một cờ
+	// -v mang nghĩa khác nhau tuỳ lệnh: `tm -v` là phiên bản, còn
+	// `tm vcs branch -v` là hiện mã băm, đúng như git. Dùng chung một cờ
 	// toàn cục sẽ khiến chữ viết tắt bị che trong lệnh con mà không ai hay.
 	//
 	// Tắt màu thì dùng biến môi trường NO_COLOR hoặc TERM=dumb, xem isTerminal.

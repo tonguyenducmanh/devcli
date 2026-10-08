@@ -1,13 +1,13 @@
 # Binary đã biên dịch
 /out/
-td
-td.exe
+tm
+tm.exe
 
 # Báo cáo độ phủ
 coverage.out
 *.test
 
-# Dữ liệu td sinh ra khi thử nghiệm
-.tdx/
+# Dữ liệu tm sinh ra khi thử nghiệm
+.tmx/
 
 .DS_Store

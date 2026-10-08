@@ -8,7 +8,7 @@ import { Uri } from 'vscode';
  * commit bất kỳ) thì không có tệp tương ứng trên đĩa, nên extension cấp nội
  * dung qua lược đồ riêng.
  */
-export const TD_SCHEME = 'td';
+export const TM_SCHEME = 'tm';
 
 /** Các điểm trong lịch sử mà một phía của khung so sánh có thể trỏ tới. */
 export const enum Ref {
@@ -27,7 +27,7 @@ export const enum Side {
 }
 
 /** Thông tin đủ để dựng lại địa chỉ của nội dung ảo. */
-export interface TdRef {
+export interface TmRef {
 	repo: string;
 	path: string;
 	ref: Ref | string;
@@ -41,18 +41,18 @@ export interface TdRef {
  * vì phần đường dẫn phải giữ đúng tên tệp để VS Code tự nhận diện ngôn ngữ và
  * đặt tên tab.
  */
-export function tdUri(info: TdRef): Uri {
+export function tmUri(info: TmRef): Uri {
 	const query = [
 		`repo=${encodeURIComponent(info.repo)}`,
 		`ref=${encodeURIComponent(info.ref)}`,
 		`side=${info.side}`
 	].join('&');
-	return Uri.from({ scheme: TD_SCHEME, path: '/' + info.path, query });
+	return Uri.from({ scheme: TM_SCHEME, path: '/' + info.path, query });
 }
 
 /** Đọc lại thông tin từ một địa chỉ nội dung ảo, trả về undefined nếu không khớp. */
-export function parseTdUri(uri: Uri): TdRef | undefined {
-	if (uri.scheme !== TD_SCHEME) {
+export function parseTdUri(uri: Uri): TmRef | undefined {
+	if (uri.scheme !== TM_SCHEME) {
 		return undefined;
 	}
 	const params = new URLSearchParams(uri.query);

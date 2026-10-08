@@ -24,12 +24,12 @@ Tham số phạm vi nhận một tên nhánh, một mã băm, hoặc hai mã bă
 dấu chấm để so sánh trực tiếp, ba dấu chấm để so sánh từ điểm chung gần nhất.
 
 Sau dấu hai gạch ngang là danh sách tệp cần lọc.`,
-	Example: `  td vcs diff                       đã stage so với cây làm việc
-  td vcs diff --staged              HEAD so với vùng đã stage
-  td vcs diff main                  commit hiện tại so với main
-  td vcs diff main..feature         so sánh hai nhánh
-  td vcs diff main...feature        so sánh từ điểm chung gần nhất
-  td vcs diff --stat HEAD~1         chỉ xem thống kê thay đổi`,
+	Example: `  tm vcs diff                       đã stage so với cây làm việc
+  tm vcs diff --staged              HEAD so với vùng đã stage
+  tm vcs diff main                  commit hiện tại so với main
+  tm vcs diff main..feature         so sánh hai nhánh
+  tm vcs diff main...feature        so sánh từ điểm chung gần nhất
+  tm vcs diff --stat HEAD~1         chỉ xem thống kê thay đổi`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -55,7 +55,7 @@ Sau dấu hai gạch ngang là danh sách tệp cần lọc.`,
 			opts.Revision = args[0]
 		}
 		if len(args) > 1 {
-			return exitError("chỉ chấp nhận một phạm vi, ví dụ: td vcs diff main..feature")
+			return exitError("chỉ chấp nhận một phạm vi, ví dụ: tm vcs diff main..feature")
 		}
 
 		diffs, err := ops.Diff(r, opts)

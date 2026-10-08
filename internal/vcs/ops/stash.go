@@ -12,8 +12,8 @@ const stashRef = "refs/stash"
 
 // Message cố định của các commit phụ trợ tạo nội bộ cho stash.
 const (
-	stashIndexMessage     = "td vcs stash index"
-	stashUntrackedMessage = "td vcs stash untracked"
+	stashIndexMessage     = "tm vcs stash index"
+	stashUntrackedMessage = "tm vcs stash untracked"
 )
 
 // StashEntry là một bản stash đã lưu.
@@ -235,7 +235,7 @@ func StashList(r *repo.Repo) ([]StashEntry, error) {
 	return out, nil
 }
 
-// isStashHelperCommit nhận diện các commit phụ trợ do td tạo ra
+// isStashHelperCommit nhận diện các commit phụ trợ do tm tạo ra
 // khi lưu stash, chúng không phải entry stash mà người dùng thấy.
 func isStashHelperCommit(summary string) bool {
 	switch summary {

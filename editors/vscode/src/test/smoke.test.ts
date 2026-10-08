@@ -4,16 +4,16 @@ import { test } from 'node:test';
 
 import {
 	fakeVscode,
-	findTd,
+	findTm,
 	loadExtension,
 	makeRepo,
 	manifest,
-	runTd,
+	runTm,
 	writeRepoFile
 } from './harness';
 
-const TD_BIN = findTd();
-const runSmoke = TD_BIN ? test : test.skip;
+const TM_BIN = findTm();
+const runSmoke = TM_BIN ? test : test.skip;
 
 /**
  * Một tệp trong SourceControl mà khung so sánh sẽ mở khi bấm vào.
@@ -35,17 +35,17 @@ interface ResourceState {
  * gọi sai API hoặc quên đăng ký lệnh nào đó.
  */
 runSmoke('kích hoạt: dò kho, đọc trạng thái và đăng ký lệnh', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
+	const { vscode, state } = fakeVscode(TM_BIN!);
 
-	const root = makeRepo(TD_BIN!, 'td-smoke-');
+	const root = makeRepo(TM_BIN!, 'tm-smoke-');
 	writeRepoFile(root, 'a.txt', 'một\nhai\n');
 	writeRepoFile(root, 'thu-muc/b.txt', 'x\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	// Rời kho ở trạng thái có thay đổi: một tệp đã stage, một tệp sửa trên đĩa,
 	// một tệp mới chưa theo dõi.
 	writeRepoFile(root, 'a.txt', 'một\nhai sửa\n');
-	runTd(TD_BIN!, root, ['add', 'a.txt']);
+	runTm(TM_BIN!, root, ['add', 'a.txt']);
 	writeRepoFile(root, 'thu-muc/b.txt', 'x\ny\n');
 	writeRepoFile(root, 'moi.txt', 'mới\n');
 
@@ -78,7 +78,7 @@ runSmoke('kích hoạt: dò kho, đọc trạng thái và đăng ký lệnh', as
 			inputBox: { placeholder: string };
 			acceptInputCommand: { command: string } | undefined;
 		};
-		if (source.acceptInputCommand?.command !== 'td.commit') {
+		if (source.acceptInputCommand?.command !== 'tm.commit') {
 			throw new Error('ô nhập commit phải có nút commit');
 		}
 		if (!source.inputBox.placeholder.includes("'main'")) {
@@ -104,7 +104,7 @@ runSmoke('kích hoạt: dò kho, đọc trạng thái và đăng ký lệnh', as
 		// hành vi mặc định của extension git và của tiện ích này.
 		const working = byId.get('workingTree')?.resourceStates as ResourceState[] | undefined;
 		const row = working?.[0];
-		if (row?.command.command !== 'td.openChange') {
+		if (row?.command.command !== 'tm.openChange') {
 			throw new Error(`bấm tệp phải mở khung so sánh, nhận "${row?.command.command}"`);
 		}
 
@@ -132,13 +132,13 @@ runSmoke('kích hoạt: dò kho, đọc trạng thái và đăng ký lệnh', as
  * 'title'* và không mở khung nào.
  */
 runSmoke('mở thay đổi của một tệp: vscode.diff nhận (trái, phải, tiêu đề)', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-diff1-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-diff1-');
 	writeRepoFile(root, 'a.txt', 'một\nhai\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	writeRepoFile(root, 'a.txt', 'một\nhai sửa\n');
-	runTd(TD_BIN!, root, ['add', 'a.txt']);
+	runTm(TM_BIN!, root, ['add', 'a.txt']);
 
 	const workspace = (vscode.workspace as { workspaceFolders: unknown });
 	workspace.workspaceFolders = [{ uri: state.uri(root), name: 'kho', index: 0 }];
@@ -149,7 +149,7 @@ runSmoke('mở thay đổi của một tệp: vscode.diff nhận (trái, phải,
 		extension.activate(context);
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
-		await state.registeredCommands.get('td.openChange')?.(undefined, state.uri(`${root}/a.txt`));
+		await state.registeredCommands.get('tm.openChange')?.(undefined, state.uri(`${root}/a.txt`));
 
 		const call = state.lastCall('vscode.diff');
 		if (!call) {
@@ -162,7 +162,7 @@ runSmoke('mở thay đổi của một tệp: vscode.diff nhận (trái, phải,
 		if (typeof title !== 'string' || !title.includes('a.txt')) {
 			throw new Error(`đối số thứ ba phải là tiêu đề có tên tệp, nhận ${JSON.stringify(title)}`);
 		}
-		if (left.scheme !== 'td' || right.scheme !== 'td') {
+		if (left.scheme !== 'tm' || right.scheme !== 'tm') {
 			throw new Error(`hai phía phải là địa chỉ ảo của tiện ích, nhận ${left.scheme} và ${right.scheme}`);
 		}
 		if (state.lastCall('vscode.changes')) {
@@ -181,12 +181,12 @@ runSmoke('mở thay đổi của một tệp: vscode.diff nhận (trái, phải,
  * 'resourceList'* và không mở gì cả.
  */
 runSmoke('mở nhiều tệp: vscode.changes nhận (tiêu đề, [địa chỉ, gốc, đã sửa])', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-diff2-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-diff2-');
 	writeRepoFile(root, 'a.txt', 'một\n');
 	writeRepoFile(root, 'b.txt', 'hai\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	writeRepoFile(root, 'a.txt', 'một sửa\n');
 	writeRepoFile(root, 'b.txt', 'hai sửa\n');
 
@@ -199,7 +199,7 @@ runSmoke('mở nhiều tệp: vscode.changes nhận (tiêu đề, [địa chỉ,
 		extension.activate(context);
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
-		await state.registeredCommands.get('td.openChange')?.(undefined, [state.uri(`${root}/a.txt`), state.uri(`${root}/b.txt`)]);
+		await state.registeredCommands.get('tm.openChange')?.(undefined, [state.uri(`${root}/a.txt`), state.uri(`${root}/b.txt`)]);
 
 		const call = state.lastCall('vscode.changes');
 		if (!call) {
@@ -217,8 +217,8 @@ runSmoke('mở nhiều tệp: vscode.changes nhận (tiêu đề, [địa chỉ,
 				throw new Error(`mỗi mục phải là bộ ba địa chỉ, nhận ${JSON.stringify(entry)}`);
 			}
 			for (const uri of entry as { scheme?: string }[]) {
-				if (uri?.scheme !== 'file' && uri?.scheme !== 'td') {
-					throw new Error(`mỗi địa chỉ phải là file hoặc td, nhận ${JSON.stringify(uri)}`);
+				if (uri?.scheme !== 'file' && uri?.scheme !== 'tm') {
+					throw new Error(`mỗi địa chỉ phải là file hoặc tm, nhận ${JSON.stringify(uri)}`);
 				}
 			}
 		}
@@ -234,16 +234,16 @@ runSmoke('mở nhiều tệp: vscode.changes nhận (tiêu đề, [địa chỉ,
  * VS Code từ chối và báo lỗi, người dùng không thấy tệp nào được đổi.
  */
 runSmoke('bấm vào một commit: mở đúng các tệp commit đó thay đổi', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-commit-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-commit-');
 	writeRepoFile(root, 'a.txt', 'một\n');
 	writeRepoFile(root, 'b.txt', 'hai\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	writeRepoFile(root, 'a.txt', 'một sửa\n');
 	writeRepoFile(root, 'moi.txt', 'mới\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c2']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c2']);
 	writeRepoFile(root, 'b.txt', 'hai sửa\n');
 
 	const workspace = (vscode.workspace as { workspaceFolders: unknown });
@@ -255,13 +255,13 @@ runSmoke('bấm vào một commit: mở đúng các tệp commit đó thay đổ
 		extension.activate(context);
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
-		// Lấy mã băm của commit c2 bằng lệnh td, tránh phụ thuộc thứ tự hiển thị.
-		const entries = execFileSync(TD_BIN!, ['vcs', '-C', root, 'log', '--oneline', '-n1', 'HEAD~1'])
+		// Lấy mã băm của commit c2 bằng lệnh tm, tránh phụ thuộc thứ tự hiển thị.
+		const entries = execFileSync(TM_BIN!, ['vcs', '-C', root, 'log', '--oneline', '-n1', 'HEAD~1'])
 			.toString()
 			.trim()
 			.split(/\s+/)[0];
 
-		await state.registeredCommands.get('td.openCommitChanges')?.(undefined, entries);
+		await state.registeredCommands.get('tm.openCommitChanges')?.(undefined, entries);
 
 		const call = state.lastCall('vscode.changes');
 		if (!call) {
@@ -282,14 +282,14 @@ runSmoke('bấm vào một commit: mở đúng các tệp commit đó thay đổ
  *
  * Cách dựng lại từ khác biệt chỉ đúng với tệp đang chờ commit. Tệp sạch thì
  * không nằm trong khác biệt nào, nên phía này bị bỏ trống và khung so sánh hiện
- * sai. Lệnh `td vcs show-file` đọc thẳng trong kho nên đúng với mọi tệp.
+ * sai. Lệnh `tm vcs show-file` đọc thẳng trong kho nên đúng với mọi tệp.
  */
 runSmoke('nội dung ở HEAD đọc bằng show-file, kể cả tệp không nằm trong khác biệt', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-head-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-head-');
 	writeRepoFile(root, 'sach.txt', 'không đổi\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 
 	const workspace = (vscode.workspace as { workspaceFolders: unknown });
 	workspace.workspaceFolders = [{ uri: state.uri(root), name: 'kho', index: 0 }];
@@ -301,9 +301,9 @@ runSmoke('nội dung ở HEAD đọc bằng show-file, kể cả tệp không n�
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
 		// Lệnh mở tệp như nó nằm trong HEAD phải ra tài liệu ảo của HEAD.
-		await state.registeredCommands.get('td.openHEADFile')?.(undefined, state.uri(`${root}/sach.txt`));
+		await state.registeredCommands.get('tm.openHEADFile')?.(undefined, state.uri(`${root}/sach.txt`));
 		const opened = state.opened[state.opened.length - 1] as { scheme: string; path: string };
-		if (opened?.scheme !== 'td') {
+		if (opened?.scheme !== 'tm') {
 			throw new Error(`phải mở tài liệu ảo của HEAD, nhận ${JSON.stringify(opened)}`);
 		}
 		const content = await state.contentOf(opened);
@@ -322,11 +322,11 @@ runSmoke('nội dung ở HEAD đọc bằng show-file, kể cả tệp không n�
  * lỗi và khung so sánh hiện thông báo lỗi thay vì hiện tệp đã xoá đi.
  */
 runSmoke('khung so sánh của tệp bị xoá và tệp chưa theo dõi lấy đúng hai phía', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-hai-pha-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-hai-pha-');
 	writeRepoFile(root, 'xoa.txt', 'còn trong kho\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	rmSync(`${root}/xoa.txt`);
 	writeRepoFile(root, 'moi.txt', 'tệp mới\n');
 
@@ -340,10 +340,10 @@ runSmoke('khung so sánh của tệp bị xoá và tệp chưa theo dõi lấy �
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
 		// Tệp bị xoá: phía gốc là nội dung đã stage, phía phải là rỗng.
-		await state.registeredCommands.get('td.openChange')?.(undefined, state.uri(`${root}/xoa.txt`));
+		await state.registeredCommands.get('tm.openChange')?.(undefined, state.uri(`${root}/xoa.txt`));
 		const deleted = state.lastCall('vscode.diff');
 		const [oldSide, newSide] = deleted?.args as [{ scheme: string }, { scheme: string }];
-		if (oldSide.scheme !== 'td' || newSide.scheme !== 'td') {
+		if (oldSide.scheme !== 'tm' || newSide.scheme !== 'tm') {
 			throw new Error('tệp bị xoá vẫn phải so hai phía ảo trong kho');
 		}
 		if (await state.contentOf(oldSide) !== 'còn trong kho\n') {
@@ -354,7 +354,7 @@ runSmoke('khung so sánh của tệp bị xoá và tệp chưa theo dõi lấy �
 		}
 
 		// Tệp chưa theo dõi: phía gốc rỗng, phía phải là chính tệp trên đĩa.
-		await state.registeredCommands.get('td.openChange')?.(undefined, state.uri(`${root}/moi.txt`));
+		await state.registeredCommands.get('tm.openChange')?.(undefined, state.uri(`${root}/moi.txt`));
 		const added = state.lastCall('vscode.diff');
 		const [emptySide, fileSide] = added?.args as [{ scheme: string }, { scheme: string; fsPath: string }];
 		if (fileSide.scheme !== 'file') {
@@ -375,11 +375,11 @@ runSmoke('khung so sánh của tệp bị xoá và tệp chưa theo dõi lấy �
  * nội dung đang xem, người dùng tưởng lệnh không chạy.
  */
 runSmoke('mở tệp từ khung so sánh thì ra tệp thật trên đĩa', async () => {
-	const { vscode, state } = fakeVscode(TD_BIN!);
-	const root = makeRepo(TD_BIN!, 'td-openfile-');
+	const { vscode, state } = fakeVscode(TM_BIN!);
+	const root = makeRepo(TM_BIN!, 'tm-openfile-');
 	writeRepoFile(root, 'a.txt', 'một\n');
-	runTd(TD_BIN!, root, ['add', '.']);
-	runTd(TD_BIN!, root, ['commit', '-m', 'c1']);
+	runTm(TM_BIN!, root, ['add', '.']);
+	runTm(TM_BIN!, root, ['commit', '-m', 'c1']);
 	writeRepoFile(root, 'a.txt', 'một sửa\n');
 
 	const workspace = (vscode.workspace as { workspaceFolders: unknown });
@@ -391,10 +391,10 @@ runSmoke('mở tệp từ khung so sánh thì ra tệp thật trên đĩa', asyn
 		extension.activate(context);
 		await new Promise(resolve => setTimeout(resolve, 1500));
 
-		await state.registeredCommands.get('td.openChange')?.(undefined, state.uri(`${root}/a.txt`));
+		await state.registeredCommands.get('tm.openChange')?.(undefined, state.uri(`${root}/a.txt`));
 		const [, right] = state.lastCall('vscode.diff')?.args as [{ scheme: string }, { scheme: string }];
 
-		await state.registeredCommands.get('td.openFile')?.(undefined, right);
+		await state.registeredCommands.get('tm.openFile')?.(undefined, right);
 		const opened = state.opened[state.opened.length - 1] as { scheme: string; fsPath: string };
 		if (opened?.scheme !== 'file') {
 			throw new Error(`phải mở tệp trên đĩa, nhận ${JSON.stringify(opened)}`);

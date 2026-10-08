@@ -148,7 +148,7 @@ func viếtIgnoreFile(t *testing.T, dir, content string) string {
 	return path
 }
 
-// TestIgnoreNestedFileOnlyAppliesInside bảo đảm .tdxignore trong thư mục con chỉ
+// TestIgnoreNestedFileOnlyAppliesInside bảo đảm .tmxignore trong thư mục con chỉ
 // có tác dụng bên trong thư mục đó.
 //
 // Quy tắc đặt sai phạm vi thì rất khó phát hiện: tệp bị bỏ qua ngoài ý muốn ở
@@ -200,7 +200,7 @@ func TestIgnoreNestedFileCanOverrideParent(t *testing.T) {
 		t.Error("keep.log ở gốc phải bị bỏ qua theo quy tắc ở gốc")
 	}
 	if ig.Matches(root, "sub/keep.log") {
-		t.Error("sub/keep.log phải được giữ lại nhờ dấu ! trong sub/.tdxignore")
+		t.Error("sub/keep.log phải được giữ lại nhờ dấu ! trong sub/.tmxignore")
 	}
 }
 

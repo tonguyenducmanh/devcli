@@ -10,21 +10,21 @@ import (
 // vcsInitCmd khởi tạo kho mã nguồn mới.
 var vcsInitCmd = &cobra.Command{
 	Use:   "init [thư mục]",
-	Short: "Khởi tạo kho mã nguồn td trong thư mục cho trước",
-	Long: `Tạo thư mục .tdx trong thư mục cho trước để bắt đầu theo dõi phiên bản.
+	Short: "Khởi tạo kho mã nguồn tm trong thư mục cho trước",
+	Long: `Tạo thư mục .tmx trong thư mục cho trước để bắt đầu theo dõi phiên bản.
 
 Tham số thư mục không bắt buộc, mặc định là thư mục hiện tại. Lệnh sẽ báo lỗi
 nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.`,
 	Example: `  # Tạo kho trong thư mục hiện tại với nhánh main
-  td vcs init
+  tm vcs init
 
   # Tạo kho trong một thư mục khác với tên nhánh khác
-  td vcs init du-an-cua-toi --initial-branch=develop`,
+  tm vcs init du-an-cua-toi --initial-branch=develop`,
 	Args: maximumArgs(1, "[thư mục]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dir := "."
 		// -C áp dụng cho mọi lệnh nên init cũng phải nghe nó, nếu không thì
-		// `td vcs init -C thu-muc-khac` lại khởi tạo nhầm ở thư mục hiện tại.
+		// `tm vcs init -C thu-muc-khac` lại khởi tạo nhầm ở thư mục hiện tại.
 		if c, err := cmd.Flags().GetString("dir"); err == nil && c != "" {
 			dir = c
 		}
@@ -43,9 +43,9 @@ nếu thư mục đó đã có kho, để tránh ghi đè dữ liệu đang có.
 		if err != nil {
 			return err
 		}
-		printLine("Đã khởi tạo kho td tại %s", r.Root)
+		printLine("Đã khởi tạo kho tm tại %s", r.Root)
 		printLine("Nhánh khởi tạo: %s", branch)
-		printLine("Bước tiếp theo: td vcs add . && td vcs commit -m \"tin nhắn\"")
+		printLine("Bước tiếp theo: tm vcs add . && tm vcs commit -m \"tin nhắn\"")
 		return nil
 	},
 }
@@ -62,10 +62,10 @@ var vcsHashObjectCmd = &cobra.Command{
 	Short: "Tính và in mã băm của nội dung tệp",
 	Long: `Đọc nội dung tệp trên đĩa rồi in mã băm tương ứng.
 
-Lệnh không ghi gì vào kho, chỉ cho biết mã băm mà td sẽ dùng nếu tệp đó được
+Lệnh không ghi gì vào kho, chỉ cho biết mã băm mà tm sẽ dùng nếu tệp đó được
 đưa vào kho. Hai tệp có cùng nội dung sẽ cho cùng một mã băm.`,
-	Example: `  td vcs hash-object main.go
-  td vcs hash-object tệp-một tệp-hai`,
+	Example: `  tm vcs hash-object main.go
+  tm vcs hash-object tệp-một tệp-hai`,
 	Args: minimumArgs(1, "<tệp>..."),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -98,10 +98,10 @@ thật của object thì lệnh báo lỗi. Kèm cờ -v để in chi tiết: v�
 dung đầy đủ, với tree là từng entry kèm chế độ và mã băm, với commit và tag là
 toàn bộ phần thô.`,
 	Example: `  # Xác minh loại và in nội dung
-  td vcs cat-file blob a1b2c3d4
+  tm vcs cat-file blob a1b2c3d4
 
   # In toàn bộ nội dung thô của commit HEAD
-  td vcs cat-file commit HEAD -v`,
+  tm vcs cat-file commit HEAD -v`,
 	Args: exactArgs(2, "<loại> <mã-băm>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -122,8 +122,8 @@ var vcsFsckCmd = &cobra.Command{
   - Mọi tham chiếu và HEAD có trỏ tới một object tồn tại không.
 
 Lệnh trả về mã thoát khác 0 nếu phát hiện vấn đề.`,
-	Example: `  td vcs fsck
-  td vcs -C du-an-khac fsck`,
+	Example: `  tm vcs fsck
+  tm vcs -C du-an-khac fsck`,
 	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)

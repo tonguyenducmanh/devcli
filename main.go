@@ -1,4 +1,4 @@
-// Điểm khởi động của td - command line app cá nhân.
+// Điểm khởi động của tm - command line app cá nhân.
 package main
 
 import (

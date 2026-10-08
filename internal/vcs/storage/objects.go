@@ -13,7 +13,7 @@ import (
 )
 
 // ObjectStore lưu từng object thành một file riêng, nén zlib,
-// nằm theo đường dẫn .tdx/objects/ab/cdef... trong đó ab là hai ký tự
+// nằm theo đường dẫn .tmx/objects/ab/cdef... trong đó ab là hai ký tự
 // đầu của mã băm để phân tán đều các file trên nhiều thư mục.
 type ObjectStore struct {
 	dir string

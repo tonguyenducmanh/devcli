@@ -12,9 +12,9 @@ func newSysCmd() *cobra.Command {
 		GroupID: groupSystem,
 		Short:   "Các tiện ích hệ thống (ls, cat, head, tail)",
 		Long:    `Nhóm lệnh chứa các tiện ích thao tác với tệp tin và hệ thống, mô phỏng lại các lệnh quen thuộc trên Linux.`,
-		Example: `  td sys ls
-  td sys cat file.txt
-  td sys head -n 5 file.txt`,
+		Example: `  tm sys ls
+  tm sys cat file.txt
+  tm sys head -n 5 file.txt`,
 	}
 
 	lsCmd := &cobra.Command{
@@ -22,9 +22,9 @@ func newSysCmd() *cobra.Command {
 		Short: "Liệt kê các tệp tin trong thư mục",
 		Long: `Liệt kê các tệp tin và thư mục con trong thư mục được chỉ định.
 Nếu không truyền thư mục, mặc định sẽ liệt kê thư mục hiện tại.`,
-		Example: `  td sys ls
-  td sys ls -l
-  td sys ls -a /tmp`,
+		Example: `  tm sys ls
+  tm sys ls -l
+  tm sys ls -a /tmp`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			dir := "."
@@ -45,8 +45,8 @@ Nếu không truyền thư mục, mặc định sẽ liệt kê thư mục hiệ
 		Short: "In N dòng đầu tiên của tệp",
 		Long: `Đọc và in ra N dòng đầu tiên của một tệp văn bản.
 Mặc định in 10 dòng đầu tiên.`,
-		Example: `  td sys head file.txt
-  td sys head -n 5 file.txt`,
+		Example: `  tm sys head file.txt
+  tm sys head -n 5 file.txt`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -63,8 +63,8 @@ Mặc định in 10 dòng đầu tiên.`,
 		Short: "In N dòng cuối cùng của tệp",
 		Long: `Đọc và in ra N dòng cuối cùng của một tệp văn bản.
 Mặc định in 10 dòng cuối cùng.`,
-		Example: `  td sys tail file.txt
-  td sys tail -n 5 file.txt`,
+		Example: `  tm sys tail file.txt
+  tm sys tail -n 5 file.txt`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -81,8 +81,8 @@ Mặc định in 10 dòng cuối cùng.`,
 		Short: "In toàn bộ nội dung của tệp",
 		Long: `Đọc và in ra toàn bộ nội dung của một hoặc nhiều tệp văn bản.
 Nếu không truyền tệp nào hoặc truyền '-' hệ thống sẽ đọc từ đầu vào chuẩn (stdin).`,
-		Example: `  td sys cat file.txt
-  td sys cat file1.txt file2.txt`,
+		Example: `  tm sys cat file.txt
+  tm sys cat file1.txt file2.txt`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return sys.Cat(cmd.OutOrStdout(), args)
@@ -95,8 +95,8 @@ Nếu không truyền tệp nào hoặc truyền '-' hệ thống sẽ đọc t�
 		Long: `Tìm và xoá tất cả các thư mục rỗng bên trong thư mục được chỉ định.
 Quá trình này được thực hiện đệ quy (xoá thư mục con rỗng, sau đó nếu thư mục cha rỗng thì xoá tiếp).
 Mặc định sẽ quét thư mục hiện tại.`,
-		Example: `  td sys rmempty
-  td sys rmempty /tmp/test`,
+		Example: `  tm sys rmempty
+  tm sys rmempty /tmp/test`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			dir := "."
@@ -111,7 +111,7 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:     "pwd",
 		Short:   "In đường dẫn thư mục hiện tại",
 		Long:    `In ra đường dẫn tuyệt đối của thư mục làm việc hiện tại.`,
-		Example: `  td sys pwd`,
+		Example: `  tm sys pwd`,
 		Args:    cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return sys.Pwd(cmd.OutOrStdout())
@@ -122,8 +122,8 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:   "mkdir [thư mục...]",
 		Short: "Tạo thư mục mới",
 		Long:  `Tạo một hoặc nhiều thư mục mới. Có thể sử dụng cờ -p để tạo đệ quy các thư mục cha nếu chưa tồn tại.`,
-		Example: `  td sys mkdir testdir
-  td sys mkdir -p a/b/c`,
+		Example: `  tm sys mkdir testdir
+  tm sys mkdir -p a/b/c`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -139,7 +139,7 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:     "touch [tệp...]",
 		Short:   "Tạo tệp trống hoặc cập nhật thời gian",
 		Long:    `Tạo một tệp tin trống nếu chưa tồn tại, hoặc cập nhật thời gian sửa đổi nếu đã tồn tại.`,
-		Example: `  td sys touch file.txt`,
+		Example: `  tm sys touch file.txt`,
 		Args:    arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -153,8 +153,8 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:   "rm [tệp...]",
 		Short: "Xoá tệp hoặc thư mục",
 		Long:  `Xoá một hoặc nhiều tệp. Sử dụng cờ -r để xoá thư mục đệ quy.`,
-		Example: `  td sys rm file.txt
-  td sys rm -rf dir`,
+		Example: `  tm sys rm file.txt
+  tm sys rm -rf dir`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -172,8 +172,8 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:   "cp [nguồn...] [đích]",
 		Short: "Sao chép tệp hoặc thư mục",
 		Long:  `Sao chép các tệp tin hoặc thư mục từ nguồn đến đích.`,
-		Example: `  td sys cp file1.txt file2.txt
-  td sys cp -r dir1 dir2`,
+		Example: `  tm sys cp file1.txt file2.txt
+  tm sys cp -r dir1 dir2`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
@@ -191,8 +191,8 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:   "mv [nguồn...] [đích]",
 		Short: "Di chuyển hoặc đổi tên tệp",
 		Long:  `Di chuyển hoặc đổi tên các tệp tin, thư mục từ nguồn đến đích.`,
-		Example: `  td sys mv file1.txt file2.txt
-  td sys mv file1.txt dir/`,
+		Example: `  tm sys mv file1.txt file2.txt
+  tm sys mv file1.txt dir/`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {
@@ -208,8 +208,8 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:   "wc [tệp...]",
 		Short: "Đếm số dòng, từ, ký tự",
 		Long:  `Đếm và in ra số dòng, số từ và số byte của các tệp tin.`,
-		Example: `  td sys wc file.txt
-  td sys wc -l file.txt`,
+		Example: `  tm sys wc file.txt
+  tm sys wc -l file.txt`,
 		Args: arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -229,7 +229,7 @@ Mặc định sẽ quét thư mục hiện tại.`,
 		Use:     "grep [mẫu] [tệp...]",
 		Short:   "Tìm kiếm văn bản trong tệp",
 		Long:    `Tìm kiếm các chuỗi văn bản khớp với biểu thức chính quy trong các tệp tin.`,
-		Example: `  td sys grep "hello" file.txt`,
+		Example: `  tm sys grep "hello" file.txt`,
 		Args:    arbitraryArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 2 {

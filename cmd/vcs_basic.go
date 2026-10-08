@@ -19,18 +19,18 @@ var vcsStatusCmd = &cobra.Command{
 
   đã stage       nội dung sẽ được ghi vào commit kế tiếp
   chưa stage     đã sửa trên đĩa nhưng chưa đưa vào vùng chuẩn bị
-  chưa theo dõi  tệp mới xuất hiện, td chưa quản lý
+  chưa theo dõi  tệp mới xuất hiện, tm chưa quản lý
 
 Ký hiệu đầu mỗi dòng cho biết thao tác: thêm, sửa, xoá hoặc mới.
 
 Dòng đầu tiên cho biết đang ở nhánh nào, HEAD có đang tách rời không, và nhánh
 đó đi trước hay đi sau nhánh theo dõi bao nhiêu commit.
 
-Tệp nào không xuất hiện ở đây thì đã bị bỏ qua theo .tdxignore hoặc
-.tdx/info/exclude, xem "td vcs --help" để biết cách viết mẫu.`,
-	Example: `  td vcs status
-  td vcs status -C thư-mục-khác
-  td vcs st`,
+Tệp nào không xuất hiện ở đây thì đã bị bỏ qua theo .tmxignore hoặc
+.tmx/info/exclude, xem "tm vcs --help" để biết cách viết mẫu.`,
+	Example: `  tm vcs status
+  tm vcs status -C thư-mục-khác
+  tm vcs st`,
 	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -52,7 +52,7 @@ Tệp nào không xuất hiện ở đây thì đã bị bỏ qua theo .tdxignor
 		} else if st.Branch != "" {
 			printLine("Trên nhánh %s", st.Branch)
 		} else {
-			printLine("Chưa có nhánh nào (chạy `td vcs commit` để tạo)")
+			printLine("Chưa có nhánh nào (chạy `tm vcs commit` để tạo)")
 		}
 		if st.HasUpstream {
 			line := fmt.Sprintf("Theo dõi: đi trước %d, đi sau %d", st.Ahead, st.Behind)
@@ -91,7 +91,7 @@ Tệp nào không xuất hiện ở đây thì đã bị bỏ qua theo .tdxignor
 			for _, p := range st.Conflicts {
 				printLine("  %s  %s", "U", p)
 			}
-			printLine("\nSau khi sửa, chạy `td vcs add <tệp>` rồi `td vcs commit`.")
+			printLine("\nSau khi sửa, chạy `tm vcs add <tệp>` rồi `tm vcs commit`.")
 		}
 
 		if st.IsClean() && len(st.Conflicts) == 0 {
@@ -128,11 +128,11 @@ Không có đối số thì chỉ cập nhật các tệp đã được theo dõ
 đường dẫn cụ thể, một thư mục, hoặc mẫu có dấu * và ?.
 
 Tệp bị xoá khỏi đĩa cũng được gỡ khỏi vùng chuẩn bị. Tệp chưa theo dõi là
-tệp td chưa quản lý, thêm vào .tdxignore nếu muốn bỏ qua vĩnh viễn.`,
-	Example: `  td vcs add .              thêm mọi thay đổi
-  td vcs add main.go        thêm một tệp
-  td vcs add --update .     chỉ cập nhật tệp đã được theo dõi
-  td vcs add "docs/*.md"    thêm theo mẫu đường dẫn`,
+tệp tm chưa quản lý, thêm vào .tmxignore nếu muốn bỏ qua vĩnh viễn.`,
+	Example: `  tm vcs add .              thêm mọi thay đổi
+  tm vcs add main.go        thêm một tệp
+  tm vcs add --update .     chỉ cập nhật tệp đã được theo dõi
+  tm vcs add "docs/*.md"    thêm theo mẫu đường dẫn`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -171,10 +171,10 @@ vừa tạo thay vì tạo mốc mới.
 
 Thông điệp phải truyền bằng cờ -m, lặp lại -m để tách tiêu đề và phần mô tả
 chi tiết thành hai đoạn.`,
-	Example: `  td vcs commit -m "tin nhắn ngắn"
-  td vcs commit -m "tiêu đề" -m "mô tả chi tiết"
-  td vcs commit --amend -m "sửa lại commit vừa tạo"
-  td vcs commit -a          stage mọi thay đổi rồi commit luôn`,
+	Example: `  tm vcs commit -m "tin nhắn ngắn"
+  tm vcs commit -m "tiêu đề" -m "mô tả chi tiết"
+  tm vcs commit --amend -m "sửa lại commit vừa tạo"
+  tm vcs commit -a          stage mọi thay đổi rồi commit luôn`,
 	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -235,11 +235,11 @@ những commit có thay đổi tệp đó mới được hiển thị.
 
 Cột đầu là mã băm ngắn, kèm các tham chiếu đang trỏ tới commit đó; HEAD được
 đánh dấu bằng HEAD -> để phân biệt với các nhánh khác.`,
-	Example: `  td vcs log
-  td vcs log --oneline
-  td vcs log -n 5 --patch
-  td vcs log --all
-  td vcs log -- cmd/            chỉ xem các commit có sửa thư mục cmd/`,
+	Example: `  tm vcs log
+  tm vcs log --oneline
+  tm vcs log -n 5 --patch
+  tm vcs log --all
+  tm vcs log -- cmd/            chỉ xem các commit có sửa thư mục cmd/`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -327,9 +327,9 @@ var vcsShowCmd = &cobra.Command{
 tác giả, thời điểm, nội dung thông điệp và danh sách tệp bị thay đổi.
 
 Mặc định lấy HEAD. Kèm -p để in luôn nội dung khác biệt của từng tệp.`,
-	Example: `  td vcs show
-  td vcs show HEAD~2
-  td vcs show abc1234`,
+	Example: `  tm vcs show
+  tm vcs show HEAD~2
+  tm vcs show abc1234`,
 	Args: maximumArgs(1, "[commit]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -359,11 +359,11 @@ var vcsShowFileCmd = &cobra.Command{
 Điểm xuất phát là một commit, tên nhánh hoặc một tham chiệu khác; mặc định lấy
 HEAD. Sau dấu hai gạch ngang là danh sách tệp cần in.
 
-Khác với "td vcs diff", lệnh này đọc thẳng nội dung đã lưu trong kho nên tệp
+Khác với "tm vcs diff", lệnh này đọc thẳng nội dung đã lưu trong kho nên tệp
 không bị thay đổi ở commit đó vẫn in ra được.`,
-	Example: `  td vcs show-file HEAD -- cmd/root.go
-  td vcs show-file v1.0.0 -- README.md
-  td vcs show-file abc1234 -- a.txt b.txt`,
+	Example: `  tm vcs show-file HEAD -- cmd/root.go
+  tm vcs show-file v1.0.0 -- README.md
+  tm vcs show-file abc1234 -- a.txt b.txt`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -377,7 +377,7 @@ không bị thay đổi ở commit đó vẫn in ra được.`,
 			rev = rest[0]
 		}
 		if len(paths) == 0 {
-			return exitError("cần chỉ định tệp sau dấu --, ví dụ: td vcs show-file HEAD -- a.txt")
+			return exitError("cần chỉ định tệp sau dấu --, ví dụ: tm vcs show-file HEAD -- a.txt")
 		}
 		for _, p := range paths {
 			data, found, err := ops.ShowFile(r, rev, p)
@@ -401,10 +401,10 @@ var vcsReflogCmd = &cobra.Command{
 mã băm mới và lý do. Lệnh in danh sách từ mục mới nhất trở về.
 
 Mục cũ vẫn nằm trong kho nên có thể quay lại bằng cách trỏ một tham chiếu
-tới mã băm tương ứng, ví dụ: td vcs switch abc1234`,
-	Example: `  td vcs reflog
-  td vcs reflog main
-  td vcs reflog refs/tags/v1.0.0`,
+tới mã băm tương ứng, ví dụ: tm vcs switch abc1234`,
+	Example: `  tm vcs reflog
+  tm vcs reflog main
+  tm vcs reflog refs/tags/v1.0.0`,
 	Args: maximumArgs(1, "[ref]"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -446,9 +446,9 @@ Thay đổi được ghi ở lần commit kế tiếp, tệp vẫn còn trong l�
 --cached để chỉ gỡ khỏi vùng chuẩn bị mà giữ nguyên tệp trên đĩa.
 
 Tệp đã xoá có thể đưa lại bằng lệnh restore trước khi commit.`,
-	Example: `  td vcs rm tệp-cũ.txt
-  td vcs rm thư-mục/tệp.txt
-  td vcs rm --cached tệp-vẫn-giữ.txt`,
+	Example: `  tm vcs rm tệp-cũ.txt
+  tm vcs rm thư-mục/tệp.txt
+  tm vcs rm --cached tệp-vẫn-giữ.txt`,
 	Args: minimumArgs(1, "<tệp>..."),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)
@@ -468,8 +468,8 @@ var vcsMvCmd = &cobra.Command{
 bị theo đường dẫn mới.
 
 Thư mục đích không cần tồn tại trước, được tạo tự động.`,
-	Example: `  td vcs mv tên-cũ.txt tên-mới.txt
-  td vcs mv tệp.txt thư-mục/tệp.txt`,
+	Example: `  tm vcs mv tên-cũ.txt tên-mới.txt
+  tm vcs mv tệp.txt thư-mục/tệp.txt`,
 	Args: exactArgs(2, "<nguồn> <đích>"),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)

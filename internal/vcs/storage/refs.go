@@ -14,7 +14,7 @@ import (
 // RefStore quản lý các tham chiếu (refs) dưới dạng file văn bản,
 // mỗi file chứa một mã băm hex hoặc một ref gián tiếp.
 type RefStore struct {
-	dir string // thư mục chứa refs/, ví dụ .tdx
+	dir string // thư mục chứa refs/, ví dụ .tmx
 }
 
 // NewRefStore tạo RefStore từ thư mục gốc repo.

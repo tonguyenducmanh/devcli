@@ -6,26 +6,26 @@ import (
 	"github.com/tonguyenducmanh/devcli/internal/vcs/ops"
 )
 
-// vcsCleanCmd xoá tệp chưa được td theo dõi.
+// vcsCleanCmd xoá tệp chưa được tm theo dõi.
 var vcsCleanCmd = &cobra.Command{
 	Use:     "clean [tệp...]",
 	Aliases: []string{"cln"},
 	Short:   "Xoá tệp chưa được theo dõi",
-	Long: `Xoá khỏi cây làm việc những tệp td chưa từng theo dõi.
+	Long: `Xoá khỏi cây làm việc những tệp tm chưa từng theo dõi.
 
 Tệp đã được đưa vào vùng chuẩn bị thì thuộc về lịch sử nên lệnh này không đụng
-tới, muốn bỏ theo dõi thì dùng ` + "`td vcs rm`" + `. Nhờ vậy lệnh không bao giờ
+tới, muốn bỏ theo dõi thì dùng ` + "`tm vcs rm`" + `. Nhờ vậy lệnh không bao giờ
 xoá mất thứ còn cứu được trong kho.
 
-Đối số là tệp, thư mục hoặc mẫu có dấu * và ?, khớp với cách ` + "`td vcs add`" + `
+Đối số là tệp, thư mục hoặc mẫu có dấu * và ?, khớp với cách ` + "`tm vcs add`" + `
 hiểu đường dẫn. Không có đối số thì áp dụng cho mọi tệp chưa theo dõi.
 
 Lệnh không hỏi lại: không có cờ -f thì chỉ liệt kê những gì sẽ bị xoá, đọc xong
 xác nhận trong danh sách rồi chạy lại với -f mới xoá thật.`,
-	Example: `  td vcs clean              liệt kê các tệp sẽ bị xoá
-  td vcs clean -f           xoá mọi tệp chưa được theo dõi
-  td vcs clean -f build/    xoá tệp chưa theo dõi trong thư mục build
-  td vcs clean -f "*.log"   xoá mọi tệp kết thúc bằng .log`,
+	Example: `  tm vcs clean              liệt kê các tệp sẽ bị xoá
+  tm vcs clean -f           xoá mọi tệp chưa được theo dõi
+  tm vcs clean -f build/    xoá tệp chưa theo dõi trong thư mục build
+  tm vcs clean -f "*.log"   xoá mọi tệp kết thúc bằng .log`,
 	Args: arbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)

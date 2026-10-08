@@ -16,16 +16,16 @@ var useCmd = &cobra.Command{
 	Short:   "Đặt nhóm công cụ mặc định",
 	Long: `Đặt một nhóm công cụ làm mặc định để tiết kiệm thời gian gõ lệnh.
 
-Ví dụ, thay vì lúc nào cũng phải gõ 'td vcs status' hay 'td vcs commit', bạn
-chỉ cần đặt nhóm mặc định là 'vcs' bằng lệnh 'td use vcs'. Từ đó, mọi lệnh gọi
-không thuộc nhóm nào khác (như 'td status', 'td commit') sẽ tự động được
+Ví dụ, thay vì lúc nào cũng phải gõ 'tm vcs status' hay 'tm vcs commit', bạn
+chỉ cần đặt nhóm mặc định là 'vcs' bằng lệnh 'tm use vcs'. Từ đó, mọi lệnh gọi
+không thuộc nhóm nào khác (như 'tm status', 'tm commit') sẽ tự động được
 chuyển hướng sang nhóm 'vcs'.
 
-Để tắt tính năng này và quay về trạng thái bình thường, hãy chạy 'td use'
+Để tắt tính năng này và quay về trạng thái bình thường, hãy chạy 'tm use'
 không kèm theo đối số nào.`,
-	Example: `  td use vcs       đặt nhóm 'vcs' làm mặc định
-  td status        lệnh này giờ sẽ tương đương với 'td vcs status'
-  td use           gỡ bỏ nhóm mặc định, mọi lệnh phải ghi rõ nhóm`,
+	Example: `  tm use vcs       đặt nhóm 'vcs' làm mặc định
+  tm status        lệnh này giờ sẽ tương đương với 'tm vcs status'
+  tm use           gỡ bỏ nhóm mặc định, mọi lệnh phải ghi rõ nhóm`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		p, err := defaultGroupPath()

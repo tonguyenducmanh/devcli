@@ -1,4 +1,4 @@
-// Package repo cung cấp lớp trừu tượng cao cấp cho một kho mã nguồn của td:
+// Package repo cung cấp lớp trừu tượng cao cấp cho một kho mã nguồn của tm:
 // mở repo, đọc/ghi cây, index, ref và trạng thái HEAD.
 package repo
 
@@ -17,8 +17,8 @@ import (
 	"github.com/tonguyenducmanh/devcli/internal/vcs/worktree"
 )
 
-// Tên thư mục lưu trữ dữ liệu của td.
-const DirName = ".tdx"
+// Tên thư mục lưu trữ dữ liệu của tm.
+const DirName = ".tmx"
 
 // Các tên thư mục con.
 const (
@@ -31,7 +31,7 @@ const (
 )
 
 // ErrNotRepo báo lỗi khi thư mục hiện tại không thuộc repo nào.
-var ErrNotRepo = errors.New("không phải repo td (chạy `td vcs init` trước)")
+var ErrNotRepo = errors.New("không phải repo tm (chạy `tm vcs init` trước)")
 
 // ErrNotFound báo lỗi khi không tìm thấy đối tượng được yêu cầu.
 var ErrNotFound = errors.New("không tìm thấy")
@@ -50,7 +50,7 @@ type Repo struct {
 	Ignore  *worktree.Ignore
 }
 
-// Open mở repo từ một đường dẫn, tìm .tdx từ thư mục đó đi lên trên.
+// Open mở repo từ một đường dẫn, tìm .tmx từ thư mục đó đi lên trên.
 func Open(start string) (*Repo, error) {
 	dir, err := filepath.Abs(start)
 	if err != nil {
@@ -82,7 +82,7 @@ func OpenAt(root string) (*Repo, error) {
 	return openAt(abs, gitDir)
 }
 
-// FindRoot trả về thư mục gốc chứa .tdx, hoặc rỗng nếu không có.
+// FindRoot trả về thư mục gốc chứa .tmx, hoặc rỗng nếu không có.
 func FindRoot(start string) string {
 	dir, err := filepath.Abs(start)
 	if err != nil {
@@ -119,12 +119,12 @@ func openAt(root, gitDir string) (*Repo, error) {
 	}
 	r.Index = idx
 
-	// Nạp các quy tắc bỏ qua: .tdx/info/exclude và .tdxignore ở gốc repo.
+	// Nạp các quy tắc bỏ qua: .tmx/info/exclude và .tmxignore ở gốc repo.
 	ig := worktree.NewIgnore(root)
 	if err := ig.AddFile(filepath.Join(gitDir, "info", "exclude")); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
-	if err := ig.AddFile(filepath.Join(root, ".tdxignore")); err != nil && !os.IsNotExist(err) {
+	if err := ig.AddFile(filepath.Join(root, ".tmxignore")); err != nil && !os.IsNotExist(err) {
 		return nil, err
 	}
 	r.Ignore = ig
@@ -158,11 +158,11 @@ func Init(root string, defaultBranch string) (*Repo, error) {
 		return nil, err
 	}
 	// Lưu nhánh mặc định trong config để các lệnh sau dùng lại.
-	r.Config.Set("td.defaultbranch", defaultBranch)
+	r.Config.Set("tm.defaultbranch", defaultBranch)
 	if err := r.Config.Save(); err != nil {
 		return nil, err
 	}
-	// Tạo .tdx/info/exclude rỗng nếu chưa có để người dùng chỉnh sửa.
+	// Tạo .tmx/info/exclude rỗng nếu chưa có để người dùng chỉnh sửa.
 	excludePath := filepath.Join(gitDir, "info", "exclude")
 	if _, err := os.Stat(excludePath); os.IsNotExist(err) {
 		if err := os.WriteFile(excludePath, []byte("# các mẫu file bị bỏ qua, mỗi dòng một mẫu\n"), 0o644); err != nil {
@@ -170,7 +170,7 @@ func Init(root string, defaultBranch string) (*Repo, error) {
 		}
 	}
 	// Ghi reflog ban đầu cho HEAD.
-	if err := r.Refs.AppendReflog(headFile, object.ZeroHash, object.ZeroHash, "td vcs init"); err != nil {
+	if err := r.Refs.AppendReflog(headFile, object.ZeroHash, object.ZeroHash, "tm vcs init"); err != nil {
 		return nil, err
 	}
 	return r, nil
@@ -178,7 +178,7 @@ func Init(root string, defaultBranch string) (*Repo, error) {
 
 // DefaultBranch trả về tên nhánh mặc định đã cấu hình.
 func (r *Repo) DefaultBranch() string {
-	return r.Config.GetString("td.defaultbranch", "main")
+	return r.Config.GetString("tm.defaultbranch", "main")
 }
 
 // Identity trả về thông tin tác giả cho các thao tác ghi.

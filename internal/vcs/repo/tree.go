@@ -344,7 +344,7 @@ func IndexTreeNode(e index.Entry) TreeNode {
 }
 
 // ScanWorktree quét thư mục làm việc và trả về danh sách file không bị bỏ qua.
-// File trong .tdx luôn bị loại khỏi kết quả.
+// File trong .tmx luôn bị loại khỏi kết quả.
 func (r *Repo) ScanWorktree() ([]TreeNode, error) {
 	var out []TreeNode
 	err := filepath.WalkDir(r.Root, func(path string, d os.DirEntry, err error) error {
@@ -359,7 +359,7 @@ func (r *Repo) ScanWorktree() ([]TreeNode, error) {
 			return filepath.SkipDir
 		}
 		if d.IsDir() {
-			// Nạp .tdxignore của thư mục này ngay khi bước vào, trước khi xét
+			// Nạp .tmxignore của thư mục này ngay khi bước vào, trước khi xét
 			// thư mục con bên trong. Nạp lúc duyệt tới tệp thì thứ tự từ vựng
 			// của WalkDir có thể làm một thư mục con nào đó được vào trước khi
 			// quy tắc kịp nạp. Quy tắc sâu hơn nạp sau nên thắng, giống git.
@@ -583,7 +583,7 @@ func (r *Repo) loadIgnoreIn(dir string) {
 // IgnoreFiles trả về các tệp chứa quy tắc bỏ qua, theo đường dẫn tương đối tới
 // gốc kho.
 //
-// Gồm .tdx/info/exclude và mọi tệp .tdxignore từ gốc xuống các thư mục con.
+// Gồm .tmx/info/exclude và mọi tệp .tmxignore từ gốc xuống các thư mục con.
 // Kết quả sắp theo thứ tự thư mục nông trước, để đọc ra quy tắc theo đúng thứ
 // tự quyết định: quy tắc sâu hơn nằm sau nên thắng.
 //
@@ -627,7 +627,7 @@ func (r *Repo) IgnoreFiles() ([]string, error) {
 		return out[i] < out[j]
 	})
 
-	// Tệp exclude của riêng máy để cuối cùng. Nó được nạp trước .tdxignore nên
+	// Tệp exclude của riêng máy để cuối cùng. Nó được nạp trước .tmxignore nên
 	// quy tắc chung của dự án có thể phủ lên nó, đọc ra sau cho đúng ý nghĩa.
 	if _, err := os.Stat(filepath.Join(r.GitDir, "info", "exclude")); err == nil {
 		out = append(out, filepath.ToSlash(filepath.Join(DirName, "info", "exclude")))

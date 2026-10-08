@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 )
 
-// GlobalDir trả về đường dẫn tới thư mục cấu hình toàn cục của người dùng (thường là ~/.td).
+// GlobalDir trả về đường dẫn tới thư mục cấu hình toàn cục của người dùng (thường là ~/.tm).
 // Hàm này được dùng chung cho toàn bộ chương trình để lưu trữ cấu hình, lịch sử và cache.
 func GlobalDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".td"), nil
+	return filepath.Join(home, ".tm"), nil
 }

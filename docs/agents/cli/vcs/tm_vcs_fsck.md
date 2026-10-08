@@ -1,0 +1,40 @@
+## tm vcs fsck
+
+Kiểm tra tính toàn vẹn của kho và các tham chiếu
+
+### Synopsis
+
+Duyệt toàn bộ kho kiểm tra hai điều:
+
+  - Mọi object trong kho có đọc được không (nén zlib không hỏng, header hợp lệ).
+  - Mọi tham chiếu và HEAD có trỏ tới một object tồn tại không.
+
+Lệnh trả về mã thoát khác 0 nếu phát hiện vấn đề.
+
+```
+tm vcs fsck [flags]
+```
+
+### Examples
+
+```
+  tm vcs fsck
+  tm vcs -C du-an-khac fsck
+```
+
+### Options
+
+```
+  -h, --help   hiển thị phần trợ giúp của lệnh này
+```
+
+### Options inherited from parent commands
+
+```
+  -C, --dir string   chạy lệnh tại thư mục khác
+```
+
+### SEE ALSO
+
+* [tm vcs](tm_vcs.md)	 - Quản lý phiên bản mã nguồn cục bộ
+

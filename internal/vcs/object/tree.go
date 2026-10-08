@@ -10,7 +10,7 @@ import (
 // FileMode là quyền/thể loại của một entry trong tree.
 type FileMode string
 
-// Các chế độ file thông dụng mà td ghi nhận trong cây.
+// Các chế độ file thông dụng mà tm ghi nhận trong cây.
 const (
 	ModeBlob    FileMode = "100644" // file thường
 	ModeExec    FileMode = "100755" // file thực thi

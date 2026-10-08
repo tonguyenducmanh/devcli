@@ -50,7 +50,7 @@ biến khai báo thuần:
 
 | Biến | Ý nghĩa |
 | --- | --- |
-| `CMD_NAME` | Tên gọi lệnh trên terminal, ví dụ `td vcs status` |
+| `CMD_NAME` | Tên gọi lệnh trên terminal, ví dụ `tm vcs status` |
 | `REPO_URL` | Nơi phát hành, in ở cuối phần trợ giúp |
 | `AUTHOR` | Tên tác giả, in ở lệnh version và cuối phần trợ giúp |
 | `VERSION` | Số phiên bản của ứng dụng |
@@ -75,7 +75,7 @@ VERSION=1.2.3
 ./build_all.sh
 ```
 
-Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `td version` luôn khớp
+Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `tm version` luôn khớp
 với tên file trong `out/`.
 
 ### Đổi tên lệnh
@@ -144,9 +144,9 @@ khai báo bằng `var` thì `ldflags` mới ghi được. Đừng đổi thành 
 ./scripts/build_extension.sh --package   # chỉ đóng gói, dùng lại kết quả build
 ```
 
-Kết quả là `out/devcli-vscode-<phiên bản>.vsix`. Một tệp này cài được trên mọi
-nền tảng vì nó chỉ chứa JavaScript đã biên dịch. Máy đích cần có lệnh `td` riêng,
-đặt trong `PATH`, `~/go/bin` hoặc qua cấu hình `td.path`. Chi tiết ở
+Kết quả là `out/td-devcli-vscode-<phiên bản>.vsix`. Một tệp này cài được trên mọi
+nền tảng vì nó chỉ chứa JavaScript đã biên dịch. Máy đích cần có lệnh `tm` riêng,
+đặt trong `PATH`, `~/go/bin` hoặc qua cấu hình `tm.path`. Chi tiết ở
 [`editors/vscode/README.md`](../editors/vscode/README.md).
 
 Phiên bản của tiện ích nằm trong `editors/vscode/package.json`, còn tên tệp đầu

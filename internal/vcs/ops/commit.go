@@ -1,4 +1,4 @@
-// Package ops chứa nghiệp vụ cấp cao cho các lệnh version control của td.
+// Package ops chứa nghiệp vụ cấp cao cho các lệnh version control của tm.
 package ops
 
 import (
@@ -136,7 +136,7 @@ func Commit(r *repo.Repo, opts CommitOptions) (object.Hash, error) {
 	if !opts.Amend && !opts.AllowEmpty {
 		if len(st.Staged()) == 0 {
 			if len(st.Unstaged()) > 0 {
-				return object.ZeroHash, fmt.Errorf("không có gì để commit (hãy dùng `td vcs add` để stage thay đổi)")
+				return object.ZeroHash, fmt.Errorf("không có gì để commit (hãy dùng `tm vcs add` để stage thay đổi)")
 			}
 			return object.ZeroHash, fmt.Errorf("không có gì để commit, cây làm việc sạch")
 		}

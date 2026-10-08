@@ -11,8 +11,8 @@ import {
 
 import { Model } from './model';
 import { Repository } from './repository';
-import { Td } from './td';
-import { TdBranch, TdLogEntry, TdStash, TdTag } from './parse';
+import { Tm } from './tm';
+import { TmBranch, TmLogEntry, TmStash, TmTag } from './parse';
 
 /**
  * Phần chung cho bốn view: nhánh, lịch sử commit, bản lưu tạm và tag.
@@ -20,7 +20,7 @@ import { TdBranch, TdLogEntry, TdStash, TdTag } from './parse';
  * Bốn view đều đọc từ kho đang hoạt động và tự tải lại mỗi khi trạng thái kho
  * đổi, giống cách các view của extension git lấy dữ liệu.
  */
-abstract class TdTreeProvider<T> implements TreeDataProvider<T> {
+abstract class TmTreeProvider<T> implements TreeDataProvider<T> {
 	protected readonly emitter = new EventEmitter<T | undefined>();
 	readonly onDidChangeTreeData: Event<T | undefined> = this.emitter.event;
 
@@ -35,7 +35,7 @@ abstract class TdTreeProvider<T> implements TreeDataProvider<T> {
 	}
 
 	/** Nạp dữ liệu cho kho cho trước, trả về undefined nếu không có kho. */
-	protected abstract load(td: Td, root: string): Promise<T[]>;
+	protected abstract load(tm: Tm, root: string): Promise<T[]>;
 
 	/** Dựng một mục của view từ một dòng dữ liệu. */
 	protected abstract toTreeItem(entry: T, repository: Repository): TreeItem;
@@ -83,10 +83,10 @@ abstract class TdTreeProvider<T> implements TreeDataProvider<T> {
 }
 
 /** View Branches: các nhánh cục bộ, nhánh đang đứng luôn ở đầu. */
-export class TdBranchesProvider extends TdTreeProvider<TdBranch> {
+export class TmBranchesProvider extends TmTreeProvider<TmBranch> {
 	constructor(model: Model) {
 		super(model);
-		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi td bốn lần mỗi
+		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi tm bốn lần mỗi
 		// lần có tệp được lưu.
 		model.onDidChangeRepository(repository => {
 			if (repository === this.repository) {
@@ -95,19 +95,19 @@ export class TdBranchesProvider extends TdTreeProvider<TdBranch> {
 		});
 	}
 
-	protected async load(td: Td, root: string): Promise<TdBranch[]> {
-		return td.branches(root);
+	protected async load(tm: Tm, root: string): Promise<TmBranch[]> {
+		return tm.branches(root);
 	}
 
-	protected toTreeItem(entry: TdBranch, repository: Repository): TreeItem {
+	protected toTreeItem(entry: TmBranch, repository: Repository): TreeItem {
 		const item = new TreeItem(entry.name, TreeItemCollapsibleState.None);
 		item.description = entry.subject || entry.hash;
 		item.iconPath = new ThemeIcon(entry.current ? 'git-branch' : 'git-branch');
 		item.contextValue = entry.current ? 'branchCurrent' : 'branch';
 		item.tooltip = branchTooltip(entry);
-		item.resourceUri = repository.toAbsolutePath('.tdx');
+		item.resourceUri = repository.toAbsolutePath('.tmx');
 		item.command = {
-			command: 'td.checkout',
+			command: 'tm.checkout',
 			title: 'Checkout',
 			arguments: [repository, entry.name]
 		};
@@ -116,10 +116,10 @@ export class TdBranchesProvider extends TdTreeProvider<TdBranch> {
 }
 
 /** View Commits: lịch sử từ HEAD đi ngược về. */
-export class TdCommitsProvider extends TdTreeProvider<TdLogEntry> {
+export class TmCommitsProvider extends TmTreeProvider<TmLogEntry> {
 	constructor(model: Model) {
 		super(model);
-		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi td bốn lần mỗi
+		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi tm bốn lần mỗi
 		// lần có tệp được lưu.
 		model.onDidChangeRepository(repository => {
 			if (repository === this.repository) {
@@ -128,12 +128,12 @@ export class TdCommitsProvider extends TdTreeProvider<TdLogEntry> {
 		});
 	}
 
-	protected async load(td: Td, root: string): Promise<TdLogEntry[]> {
-		const max = workspace.getConfiguration('td').get<number>('logMaxCount', 500);
-		return td.log(root, max);
+	protected async load(tm: Tm, root: string): Promise<TmLogEntry[]> {
+		const max = workspace.getConfiguration('tm').get<number>('logMaxCount', 500);
+		return tm.log(root, max);
 	}
 
-	protected toTreeItem(entry: TdLogEntry, repository: Repository): TreeItem {
+	protected toTreeItem(entry: TmLogEntry, repository: Repository): TreeItem {
 		const item = new TreeItem(entry.summary || '(không có tiêu đề)', TreeItemCollapsibleState.None);
 		item.description = entry.refs.length > 0 ? entry.refs.join(', ') : entry.hash;
 		item.id = `${repository.root}:${entry.hash}`;
@@ -141,7 +141,7 @@ export class TdCommitsProvider extends TdTreeProvider<TdLogEntry> {
 		item.contextValue = 'commit';
 		item.tooltip = `${entry.hash}\n\n${entry.summary}`;
 		item.command = {
-			command: 'td.openCommitChanges',
+			command: 'tm.openCommitChanges',
 			title: 'Open Changes',
 			arguments: [repository, entry.hash]
 		};
@@ -150,10 +150,10 @@ export class TdCommitsProvider extends TdTreeProvider<TdLogEntry> {
 }
 
 /** View Stashes: các bản lưu tạm, mục mới nhất ở trên cùng. */
-export class TdStashesProvider extends TdTreeProvider<TdStash> {
+export class TmStashesProvider extends TmTreeProvider<TmStash> {
 	constructor(model: Model) {
 		super(model);
-		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi td bốn lần mỗi
+		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi tm bốn lần mỗi
 		// lần có tệp được lưu.
 		model.onDidChangeRepository(repository => {
 			if (repository === this.repository) {
@@ -162,11 +162,11 @@ export class TdStashesProvider extends TdTreeProvider<TdStash> {
 		});
 	}
 
-	protected async load(td: Td, root: string): Promise<TdStash[]> {
-		return td.stashes(root);
+	protected async load(tm: Tm, root: string): Promise<TmStash[]> {
+		return tm.stashes(root);
 	}
 
-	protected toTreeItem(entry: TdStash, repository: Repository): TreeItem {
+	protected toTreeItem(entry: TmStash, repository: Repository): TreeItem {
 		const item = new TreeItem(entry.message || `stash@{${entry.index}}`, TreeItemCollapsibleState.None);
 		item.description = `stash@{${entry.index}}`;
 		item.id = `${repository.root}:${entry.index}`;
@@ -178,10 +178,10 @@ export class TdStashesProvider extends TdTreeProvider<TdStash> {
 }
 
 /** View Tags: các điểm đánh dấu trong lịch sử. */
-export class TdTagsProvider extends TdTreeProvider<TdTag> {
+export class TmTagsProvider extends TmTreeProvider<TmTag> {
 	constructor(model: Model) {
 		super(model);
-		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi td bốn lần mỗi
+		// Chỉ nạp lại khi chính kho đang xem đổi, tránh gọi tm bốn lần mỗi
 		// lần có tệp được lưu.
 		model.onDidChangeRepository(repository => {
 			if (repository === this.repository) {
@@ -190,11 +190,11 @@ export class TdTagsProvider extends TdTreeProvider<TdTag> {
 		});
 	}
 
-	protected async load(td: Td, root: string): Promise<TdTag[]> {
-		return td.tags(root);
+	protected async load(tm: Tm, root: string): Promise<TmTag[]> {
+		return tm.tags(root);
 	}
 
-	protected toTreeItem(entry: TdTag, repository: Repository): TreeItem {
+	protected toTreeItem(entry: TmTag, repository: Repository): TreeItem {
 		const item = new TreeItem(entry.name, TreeItemCollapsibleState.None);
 		item.description = entry.message || entry.hash;
 		item.id = `${repository.root}:${entry.name}`;
@@ -202,7 +202,7 @@ export class TdTagsProvider extends TdTreeProvider<TdTag> {
 		item.contextValue = 'tag';
 		item.tooltip = `${entry.name} (${entry.hash})`;
 		item.command = {
-			command: 'td.checkout',
+			command: 'tm.checkout',
 			title: 'Checkout',
 			arguments: [repository, entry.name]
 		};
@@ -211,7 +211,7 @@ export class TdTagsProvider extends TdTreeProvider<TdTag> {
 }
 
 /** Lời nhắc của một nhánh trong view Branches. */
-function branchTooltip(entry: TdBranch): string {
+function branchTooltip(entry: TmBranch): string {
 	const lines = [entry.name, entry.subject].filter(Boolean);
 	if (entry.upstream) {
 		lines.push(`theo dõi ${entry.upstream}: đi trước ${entry.ahead}, đi sau ${entry.behind}`);

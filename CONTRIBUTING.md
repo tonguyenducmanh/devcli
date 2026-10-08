@@ -1,4 +1,4 @@
-# Đóng góp cho td
+# Đóng góp cho tm
 
 Cảm ơn bạn quan tâm tới dự án. Tài liệu này nói về **quy trình đóng góp**.
 
@@ -43,5 +43,5 @@ tài liệu lệch với cây lệnh sẽ bị chặn trước khi gửi.
 Ba điều dễ quên, đều đã có trong [`agents/AGENTS.md`](agents/AGENTS.md):
 
 - Chú thích và thông điệp người dùng bằng **tiếng Việt**.
-- Không gọi chương trình ngoài, dữ liệu chỉ nằm trong `.tdx`.
+- Không gọi chương trình ngoài, dữ liệu chỉ nằm trong `.tmx`.
 - `agents/cli/` do công cụ sinh ra, **không sửa tay**.

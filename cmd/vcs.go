@@ -17,7 +17,7 @@ func newVCSCmd() *cobra.Command {
 		Short:   "Quản lý phiên bản mã nguồn cục bộ",
 		Long: `Nhóm lệnh quản lý phiên bản mã nguồn cục bộ.
 
-Toàn bộ dữ liệu của nhóm này nằm trong thư mục .tdx cạnh dự án, gồm lịch
+Toàn bộ dữ liệu của nhóm này nằm trong thư mục .tmx cạnh dự án, gồm lịch
 sử commit, các nhánh, các tag và vùng chuẩn bị.
 
 Mỗi lệnh dưới đây chạy trên kho tìm thấy bằng cách đi lên từ thư mục hiện
@@ -25,8 +25,8 @@ tại. Dùng -C để chỉ định thư mục khác.
 
 BỎ QUA TỆP KHÔNG MUỐN THEO DÕI
 
-td không tự đoán tệp nào là tạm, tệp nào là dữ liệu do trình biên dịch sinh
-ra. Muốn bỏ qua thì ghi mẫu vào tệp .tdxignore ở gốc dự án, mỗi dòng một mẫu:
+tm không tự đoán tệp nào là tạm, tệp nào là dữ liệu do trình biên dịch sinh
+ra. Muốn bỏ qua thì ghi mẫu vào tệp .tmxignore ở gốc dự án, mỗi dòng một mẫu:
 
   *.log           bỏ qua mọi tệp kết thúc bằng .log, ở mọi cấp thư mục
   build           bỏ qua thư mục build, ở mọi cấp
@@ -39,31 +39,31 @@ ra. Muốn bỏ qua thì ghi mẫu vào tệp .tdxignore ở gốc dự án, m�
 Dấu / ở cuối mẫu nói mẫu đó chỉ áp dụng cho thư mục. Dấu * không vượt qua dấu
 /, dấu ** vượt được nhiều cấp. Quy tắc ở dưới thắng quy tắc ở trên.
 
-Muốn quy tắc chỉ áp dụng cho riêng máy này thì ghi vào .tdx/info/exclude, tệp
-đó nằm trong .tdx nên không được commit. Còn .tdxignore nằm ở gốc dự án nên
+Muốn quy tắc chỉ áp dụng cho riêng máy này thì ghi vào .tmx/info/exclude, tệp
+đó nằm trong .tmx nên không được commit. Còn .tmxignore nằm ở gốc dự án nên
 có thể commit để cả nhóm cùng dùng.
 
 Quy tắc cũng đặt được trong thư mục con, khi đó nó chỉ áp dụng bên trong thư mục
 đó chứ không lan sang nơi khác.
 
-Hai tệp này được td đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
+Hai tệp này được tm đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
 không xuất hiện trong status và không được add vào vùng chuẩn bị.
 
-Xem các quy tắc đang có trong kho: td vcs ignore`,
+Xem các quy tắc đang có trong kho: tm vcs ignore`,
 		Example: `  # Khởi tạo kho rồi ghi lại thay đổi đầu tiên
-  td vcs init
-  td vcs add .
-  td vcs commit -m "tin nhắn đầu tiên"
+  tm vcs init
+  tm vcs add .
+  tm vcs commit -m "tin nhắn đầu tiên"
 
   # Xem nhánh hiện tại và lịch sử gọn
-  td vcs status
-  td vcs log --oneline -n 10
+  tm vcs status
+  tm vcs log --oneline -n 10
 
   # Tạo nhánh, làm việc rồi hợp nhất về nhánh chính
-  td vcs switch -c tinh-nang
-  td vcs commit -am "bổ sung tính năng"
-  td vcs switch main
-  td vcs merge tinh-nang`,
+  tm vcs switch -c tinh-nang
+  tm vcs commit -am "bổ sung tính năng"
+  tm vcs switch main
+  tm vcs merge tinh-nang`,
 		// Gọi nhóm lệnh mà không kèm lệnh con thì in danh sách lệnh con,
 		// thay vì in cả trang trợ giúp dài. Cờ -v của nhóm này in thêm tình
 		// trạng kho mã nguồn hiện tại.

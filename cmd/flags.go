@@ -7,9 +7,9 @@ import (
 // Dự án này không dùng cờ toàn cục. Mỗi lệnh tự khai báo cờ của riêng nó, và
 // chữ viết tắt -v mang nghĩa khác nhau tuỳ lệnh, đúng như git:
 //
-//	td -v              thông tin môi trường
-//	td vcs -v          tình trạng kho mã nguồn hiện tại
-//	td vcs branch -v   mã băm và tiêu đề của từng nhánh
+//	tm -v              thông tin môi trường
+//	tm vcs -v          tình trạng kho mã nguồn hiện tại
+//	tm vcs branch -v   mã băm và tiêu đề của từng nhánh
 //
 // Lý do không dùng cờ toàn cục: nếu lệnh con khai báo cờ trùng tên hoặc trùng
 // chữ viết tắt với cờ ở lệnh cha, pflag sẽ âm thầm bỏ qua cờ của lệnh cha.
@@ -31,7 +31,7 @@ func verboseOn(cmd *cobra.Command) bool {
 // addVerboseFlag khai báo cờ -v cho một lệnh.
 //
 // desc phải nói đúng việc lệnh đó làm thêm khi bật cờ, vì với mỗi lệnh một
-// nghĩa. Ví dụ `td vcs branch -v` hiện mã băm, không phải bật ghi log.
+// nghĩa. Ví dụ `tm vcs branch -v` hiện mã băm, không phải bật ghi log.
 func addVerboseFlag(cmd *cobra.Command, desc string) {
 	cmd.Flags().BoolP("verbose", "v", false, desc)
 }

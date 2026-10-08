@@ -31,7 +31,7 @@ Tham chiếu đầy đủ từng lệnh, **sinh tự động từ cây lệnh**.
 Markdown với cấu trúc cố định:
 
 ```
-## td vcs merge          <- tiêu đề
+## tm vcs merge          <- tiêu đề
 ### Synopsis              <- mô tả dài
 ### Examples              <- ví dụ dùng được
 ### Options               <- các cờ của lệnh

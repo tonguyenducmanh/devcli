@@ -141,7 +141,7 @@ func TestFlagDescriptionsAreVietnamese(t *testing.T) {
 
 // TestRootCommandRunsInsteadOfPrintingHelp bảo đảm gõ lệnh gốc không ra trang trợ giúp.
 //
-// `td` không kèm lệnh con nào thì phải làm được việc gì đó hữu ích, đó là in
+// `tm` không kèm lệnh con nào thì phải làm được việc gì đó hữu ích, đó là in
 // phiên bản và danh sách lệnh. Nếu ai đó đổi lệnh gốc thành in trợ giúp thì
 // kiểm thử này đỏ.
 func TestRootCommandRunsInsteadOfPrintingHelp(t *testing.T) {

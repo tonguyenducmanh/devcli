@@ -88,7 +88,7 @@ func resetFlags(root *cobra.Command) {
 	walkAll(root)
 }
 
-// newRepo tạo kho td tạm rồi trả về thư mục gốc của nó.
+// newRepo tạo kho tm tạm rồi trả về thư mục gốc của nó.
 func newRepo(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()

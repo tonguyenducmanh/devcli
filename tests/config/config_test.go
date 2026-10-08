@@ -153,8 +153,8 @@ func TestSkipCommentsAndBlankLines(t *testing.T) {
 }
 
 func TestGlobalPathFollowsEnv(t *testing.T) {
-	// Đường dẫn cấu hình toàn cục phải tôn trọng biến môi trường TD_CONFIG.
-	t.Setenv("TD_CONFIG", "/tmp/khung-kiem-thu/config")
+	// Đường dẫn cấu hình toàn cục phải tôn trọng biến môi trường TM_CONFIG.
+	t.Setenv("TM_CONFIG", "/tmp/khung-kiem-thu/config")
 	got, err := config.GlobalPath()
 	if err != nil {
 		t.Fatal(err)

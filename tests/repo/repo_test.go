@@ -16,9 +16,9 @@ func TestIgnoreFilesListsNested(t *testing.T) {
 	r := newTestRepo(t)
 
 	// Gốc trước, rồi thư mục con, rồi tệp riêng của máy đứng cuối.
-	writeFile(t, r, ".tdxignore", "*.log\n")
-	writeFile(t, r, "sub/.tdxignore", "tmp/\n")
-	writeFile(t, r, "sub/deep/.tdxignore", "scratch.txt\n")
+	writeFile(t, r, ".tmxignore", "*.log\n")
+	writeFile(t, r, "sub/.tmxignore", "tmp/\n")
+	writeFile(t, r, "sub/deep/.tmxignore", "scratch.txt\n")
 
 	files, err := r.IgnoreFiles()
 	if err != nil {
@@ -26,10 +26,10 @@ func TestIgnoreFilesListsNested(t *testing.T) {
 	}
 
 	want := []string{
-		".tdxignore",
-		"sub/.tdxignore",
-		"sub/deep/.tdxignore",
-		".tdx/info/exclude",
+		".tmxignore",
+		"sub/.tmxignore",
+		"sub/deep/.tmxignore",
+		".tmx/info/exclude",
 	}
 	if len(files) != len(want) {
 		t.Fatalf("mong đợi %d tệp, nhận %d: %v", len(want), len(files), files)
@@ -46,15 +46,15 @@ func TestIgnoreFilesListsNested(t *testing.T) {
 func TestIgnoreFilesSkipsIgnoredDirectory(t *testing.T) {
 	r := newTestRepo(t)
 
-	writeFile(t, r, ".tdxignore", "vendor/\n")
-	writeFile(t, r, "vendor/.tdxignore", "*.go\n")
+	writeFile(t, r, ".tmxignore", "vendor/\n")
+	writeFile(t, r, "vendor/.tmxignore", "*.go\n")
 
 	files, err := r.IgnoreFiles()
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, f := range files {
-		if f == "vendor/.tdxignore" {
+		if f == "vendor/.tmxignore" {
 			t.Error("tệp ignore trong thư mục đã bị bỏ qua không nên xuất hiện")
 		}
 	}
@@ -386,7 +386,7 @@ func TestBranchesAndTags(t *testing.T) {
 
 func TestIgnoreRules(t *testing.T) {
 	r := newTestRepo(t)
-	writeFile(t, r, ".tdxignore", "build/\n*.log\n")
+	writeFile(t, r, ".tmxignore", "build/\n*.log\n")
 	// Nạp lại quy tắc vì repo đang mở từ trước khi có file ignore.
 	r2, err := repo.Open(r.Root)
 	if err != nil {
@@ -407,7 +407,7 @@ func TestIgnoreRules(t *testing.T) {
 
 func TestIgnoredFilesStayOutOfIndex(t *testing.T) {
 	r := newTestRepo(t)
-	writeFile(t, r, ".tdxignore", "*.log\n")
+	writeFile(t, r, ".tmxignore", "*.log\n")
 	r2, err := repo.Open(r.Root)
 	if err != nil {
 		t.Fatal(err)

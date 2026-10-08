@@ -3,26 +3,26 @@
 > One command line app you need.
 
 Mọi công cụ dòng lệnh bạn dùng hằng ngày, gói lại dưới **một lệnh duy nhất**.
-Gõ `td`, xem hết danh sách, không cần nhớ tên từng công cụ.
+Gõ `tm`, xem hết danh sách, không cần nhớ tên từng công cụ.
 
 ```bash
-td vcs init            # khởi tạo kho mã nguồn
-td use vcs             # đặt nhóm vcs làm mặc định (sau đó chỉ cần gõ td commit, td status)
-td commit -m "..."     # ghi lại thay đổi (tương đương td vcs commit)
-td config --list       # xem cấu hình
+tm vcs init            # khởi tạo kho mã nguồn
+tm use vcs             # đặt nhóm vcs làm mặc định (sau đó chỉ cần gõ tm commit, tm status)
+tm commit -m "..."     # ghi lại thay đổi (tương đương tm vcs commit)
+tm config --list       # xem cấu hình
 ```
 
 `devcli` viết bằng Go, dựng cây lệnh bằng [cobra](https://github.com/spf13/cobra).
 Mỗi công cụ là một nhóm lệnh con, và mỗi nhóm tự quản lý toàn bộ dữ liệu của
 nó trong thư mục riêng.
 
-**Vì sao tên là devcli mà chạy bằng `td`?** `devcli` là tên dự án và tên tệp
-thực thi. `td` là tên lệnh gọi trên terminal, ngắn để gõ nhanh. Muốn đổi thì
-sửa một dòng trong [`scripts/build_binaries.sh`](scripts/build_binaries.sh).
+**Vì sao tên là devcli mà chạy bằng `tm`?** `devcli` là tên dự án, còn `tm` là
+tên lệnh gọi trên terminal, ngắn để gõ nhanh. Muốn đổi thì sửa một dòng
+`CMD_NAME` trong [`scripts/build_binaries.sh`](scripts/build_binaries.sh).
 
 Hiện tại có 2 nhóm chính:
-- `td vcs`: quản lý phiên bản mã nguồn cục bộ.
-- `td sys`: các tiện ích hệ thống (ls, mkdir, rm, cp, mv, grep, wc...).
+- `tm vcs`: quản lý phiên bản mã nguồn cục bộ.
+- `tm sys`: các tiện ích hệ thống (ls, mkdir, rm, cp, mv, grep, wc...).
 Các nhóm khác sẽ được bổ sung theo cùng khuôn mẫu.
 
 ## Yêu cầu
@@ -41,7 +41,7 @@ Các nhóm khác sẽ được bổ sung theo cùng khuôn mẫu.
 Kết quả nằm trong `out/`. Tệp `.vsix` cài vào VS Code trên mọi nền tảng:
 
 ```bash
-code --install-extension out/devcli-vscode-0.1.0.vsix
+code --install-extension out/td-devcli-vscode-0.1.0.vsix
 ```
 
 ## Tài liệu chi tiết
@@ -54,4 +54,4 @@ Những thay đổi đáng kể của từng đợt nằm trong [`CHANGELOG.md`]
 
 | Thư mục | Vai trò |
 | --- | --- |
-| [`editors/vscode/`](editors/vscode/) | Tiện ích đưa `td` vào khung Source Control của VS Code |
+| [`editors/vscode/`](editors/vscode/) | Tiện ích đưa `tm` vào khung Source Control của VS Code |

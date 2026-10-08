@@ -1,4 +1,4 @@
-// Package config đọc/ghi file cấu hình của td theo định dạng
+// Package config đọc/ghi file cấu hình của tm theo định dạng
 // các mục [tên-mục] và các cặp khoá = giá trị.
 package config
 
@@ -198,9 +198,9 @@ func (c *Config) Save() error {
 	return os.WriteFile(c.path, []byte(b.String()), 0o644)
 }
 
-// GlobalPath trả về vị trí file cấu hình toàn cục của td.
+// GlobalPath trả về vị trí file cấu hình toàn cục của tm.
 func GlobalPath() (string, error) {
-	if v := os.Getenv("TD_CONFIG"); v != "" {
+	if v := os.Getenv("TM_CONFIG"); v != "" {
 		return v, nil
 	}
 	home, err := os.UserHomeDir()
@@ -209,9 +209,9 @@ func GlobalPath() (string, error) {
 	}
 	// Ưu tiên đường dẫn theo XDG nếu có.
 	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
-		return filepath.Join(xdg, "td", "config"), nil
+		return filepath.Join(xdg, "tm", "config"), nil
 	}
-	return filepath.Join(home, ".config", "td", "config"), nil
+	return filepath.Join(home, ".config", "tm", "config"), nil
 }
 
 // Mở cấu hình hệ thống: cấu hình toàn cục đè lên cấu hình trong repo.
@@ -226,7 +226,7 @@ func Open(gitDir string) (*Config, error) {
 
 // ResolveIdentity trả về tên và email tác giả lấy từ cấu hình.
 // Khi thiếu, suy ra từ thông tin tài khoản của hệ điều hành,
-// nếu không có nữa thì dùng giá trị mặc định của td.
+// nếu không có nữa thì dùng giá trị mặc định của tm.
 func (c *Config) ResolveIdentity() (name, email string) {
 	name = c.GetString("user.name", "")
 	email = c.GetString("user.email", "")
@@ -241,10 +241,10 @@ func (c *Config) ResolveIdentity() (name, email string) {
 		}
 	}
 	if name == "" {
-		name = "td"
+		name = "tm"
 	}
 	if email == "" {
-		email = "td@localhost"
+		email = "tm@localhost"
 	}
 	return name, email
 }

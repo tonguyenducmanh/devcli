@@ -11,9 +11,9 @@ tảng khai báo trong `scripts/build_binaries.sh`. Kết quả nằm ở thư m
 tên file chứa kèm số phiên bản:
 
 ```
-out/devcli-mac-arm-0.1.0          macOS trên chip Apple Silicon
-out/devcli-linux-0.1.0            Linux 64 bit
-out/devcli-windows-0.1.0.exe      Windows 64 bit
+out/td-devcli-mac-arm-0.1.0          macOS trên chip Apple Silicon
+out/td-devcli-linux-0.1.0            Linux 64 bit
+out/td-devcli-windows-0.1.0.exe      Windows 64 bit
 ```
 
 Chỉ cần một nền tảng thì nêu tên:
@@ -38,13 +38,13 @@ toàn bộ dự án. Đổi phiên bản thì sửa dòng đó rồi build lại
 VERSION=1.2.3
 ```
 
-Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `td version` luôn cho
+Phiên bản được gắn vào tệp thực thi lúc biên dịch, nên `tm version` luôn cho
 biết đúng bản đang chạy, khớp với tên file trong `out/`.
 
 ### Build bằng lệnh go thuần
 
 ```bash
-go build -o td .    # cho máy đang chạy
+go build -o tm .    # cho máy đang chạy
 go install .        # cài vào $GOPATH/bin
 ```
 

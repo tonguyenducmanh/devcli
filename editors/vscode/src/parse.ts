@@ -1,23 +1,23 @@
 /**
- * Cách hiểu output của lệnh `td`.
+ * Cách hiểu output của lệnh `tm`.
  *
- * td in thông tin cho người đọc bằng tiếng Việt, không phải cho kịch bản đọc.
+ * tm in thông tin cho người đọc bằng tiếng Việt, không phải cho kịch bản đọc.
  * Extension vì thế phải dịch từng dòng output thành dữ liệu có kiểu rõ ràng.
- * Toàn bộ phần dịch nằm gọn trong tệp này để khi cây lệnh của td đổi thì chỉ
+ * Toàn bộ phần dịch nằm gọn trong tệp này để khi cây lệnh của tm đổi thì chỉ
  * chỗ này phải sửa.
  */
 
-/** Ký hiệu trạng thái của một tệp, theo đúng byte mà td dùng. */
-export type TdStatusCode = 'A' | 'M' | 'D' | 'U' | '?';
+/** Ký hiệu trạng thái của một tệp, theo đúng byte mà tm dùng. */
+export type TmStatusCode = 'A' | 'M' | 'D' | 'U' | '?';
 
-/** Một tệp trong output của `td vcs status`. */
-export interface TdStatusEntry {
+/** Một tệp trong output của `tm vcs status`. */
+export interface TmStatusEntry {
 	path: string;
-	status: TdStatusCode;
+	status: TmStatusCode;
 }
 
-/** Toàn bộ trạng thái của một kho, đọc từ `td vcs status`. */
-export interface TdStatus {
+/** Toàn bộ trạng thái của một kho, đọc từ `tm vcs status`. */
+export interface TmStatus {
 	/** Tên nhánh đang đứng, rỗng khi HEAD đang tách rời hoặc chưa có nhánh. */
 	branch: string;
 	/** true khi HEAD không gắn với nhánh nào. */
@@ -28,14 +28,14 @@ export interface TdStatus {
 	hasUpstream: boolean;
 	ahead: number;
 	behind: number;
-	staged: TdStatusEntry[];
-	unstaged: TdStatusEntry[];
-	untracked: TdStatusEntry[];
-	conflicts: TdStatusEntry[];
+	staged: TmStatusEntry[];
+	unstaged: TmStatusEntry[];
+	untracked: TmStatusEntry[];
+	conflicts: TmStatusEntry[];
 }
 
-/** Nội dung hai phía của một tệp, dựng lại từ diff của td. */
-export interface TdPatch {
+/** Nội dung hai phía của một tệp, dựng lại từ diff của tm. */
+export interface TmPatch {
 	path: string;
 	status: 'A' | 'M' | 'D';
 	binary: boolean;
@@ -47,15 +47,15 @@ export interface TdPatch {
 	deleted: number;
 }
 
-/** Một dòng của `td vcs log --oneline`. */
-export interface TdLogEntry {
+/** Một dòng của `tm vcs log --oneline`. */
+export interface TmLogEntry {
 	hash: string;
 	summary: string;
 	refs: string[];
 }
 
-/** Một nhánh trong output của `td vcs branch`. */
-export interface TdBranch {
+/** Một nhánh trong output của `tm vcs branch`. */
+export interface TmBranch {
 	name: string;
 	current: boolean;
 	hash: string;
@@ -65,16 +65,16 @@ export interface TdBranch {
 	behind: number;
 }
 
-/** Một tag trong output của `td vcs tag`. */
-export interface TdTag {
+/** Một tag trong output của `tm vcs tag`. */
+export interface TmTag {
 	name: string;
 	hash: string;
 	annotated: boolean;
 	message: string;
 }
 
-/** Một mục trong output của `td vcs stash --list`. */
-export interface TdStash {
+/** Một mục trong output của `tm vcs stash --list`. */
+export interface TmStash {
 	/** Vị trí trong danh sách, 0 là mới nhất. */
 	index: number;
 	message: string;
@@ -83,29 +83,29 @@ export interface TdStash {
 /**
  * Dấu nhận biết đầu dòng tiêu đề của một tệp trong output diff.
  *
- * Nhãn được td in dài đều nhau rồi thêm dấu hai chấm, ví dụ `Sửa     : a.txt`.
+ * Nhãn được tm in dài đều nhau rồi thêm dấu hai chấm, ví dụ `Sửa     : a.txt`.
  */
 const FILE_HEADER = /^(Thêm|Sửa|Xoá)\s*:\s?(.*)$/;
 
 /** Đầu dòng của một hunk, ví dụ `@@ -1,3 +1,4 @@`. */
 const HUNK_HEADER = /^@@ -(\d+),(\d+) \+(\d+),(\d+) @@/;
 
-/** Dòng báo tệp nhị phân, td không in nội dung cho loại tệp này. */
+/** Dòng báo tệp nhị phân, tm không in nội dung cho loại tệp này. */
 const BINARY_LINE = '(file nhị phân, không hiển thị nội dung)';
 
-/** Các nhóm tệp trong output của `td vcs status`. */
+/** Các nhóm tệp trong output của `tm vcs status`. */
 const SECTION_STAGED = 'Thay đổi đã stage:';
 const SECTION_UNSTAGED = 'Thay đổi chưa stage:';
 const SECTION_UNTRACKED = 'File chưa được theo dõi:';
 const SECTION_CONFLICTS = 'Xung đột cần giải quyết:';
 
-/** Từ khoá tiếng Việt mà td dùng cho ký hiệu trạng thái. */
-const STATUS_WORDS: Record<string, TdStatusCode> = {
+/** Từ khoá tiếng Việt mà tm dùng cho ký hiệu trạng thái. */
+const STATUS_WORDS: Record<string, TmStatusCode> = {
 	'thêm': 'A',
 	'sửa': 'M',
 	'xoá': 'D',
 	'?': '?',
-	// Trong nhóm "chưa stage" td cũng liệt kê tệp chưa theo dõi, ghi là "mới".
+	// Trong nhóm "chưa stage" tm cũng liệt kê tệp chưa theo dõi, ghi là "mới".
 	// Nhóm chưa theo dõi có mục riêng nên mục trùng ở đây bị bỏ qua.
 	'mới': '?',
 	'U': 'U'
@@ -120,14 +120,14 @@ const LINE_UPSTREAM = /^Theo dõi: đi trước (\d+), đi sau (\d+)$/;
 const LINE_SYNCED = /^Đã đồng bộ với nhánh theo dõi$/;
 
 /**
- * Đọc output của `td vcs status`.
+ * Đọc output của `tm vcs status`.
  *
  * Tệp chưa được theo dõi xuất hiện ở cả nhóm chưa stage lẫn nhóm chưa theo
  * dõi. Nhóm chưa stage bỏ qua chúng để mỗi tệp chỉ xuất hiện một lần, đúng
  * như khung Source Control của VS Code.
  */
-export function parseStatus(stdout: string): TdStatus {
-	const status: TdStatus = {
+export function parseStatus(stdout: string): TmStatus {
+	const status: TmStatus = {
 		branch: '',
 		detached: false,
 		head: '',
@@ -194,7 +194,7 @@ export function parseStatus(stdout: string): TdStatus {
 			status.behind = Number(upstream[2]);
 			continue;
 		}
-		// Nhánh có theo dõi mà đang ngang bằng thì td in dạng khác.
+		// Nhánh có theo dõi mà đang ngang bằng thì tm in dạng khác.
 		if (LINE_SYNCED.test(trimmed)) {
 			status.hasUpstream = true;
 			continue;
@@ -236,7 +236,7 @@ export function parseStatus(stdout: string): TdStatus {
  * Đường dẫn có thể chứa cả khoảng trắng nên phần còn lại của dòng được giữ
  * nguyên thay vì cắt theo từ.
  */
-function parseStatusEntry(line: string): TdStatusEntry | undefined {
+function parseStatusEntry(line: string): TmStatusEntry | undefined {
 	if (!/^\s+\S/.test(line)) {
 		return undefined;
 	}
@@ -255,15 +255,15 @@ function parseStatusEntry(line: string): TdStatusEntry | undefined {
 }
 
 /**
- * Đọc output của `td vcs diff` và dựng lại nội dung hai phía cho từng tệp.
+ * Đọc output của `tm vcs diff` và dựng lại nội dung hai phía cho từng tệp.
  *
  * Extension cần nội dung đầy đủ của cả hai phía chứ không chỉ phần thay đổi,
  * vì VS Code tự tính vạch hiệu khi mở khung so sánh. Vì vậy lệnh diff luôn
  * được gọi với số dòng ngữ cảnh rất lớn, khiến hunk ôm trọn tệp.
  */
-export function parsePatches(stdout: string): TdPatch[] {
-	const patches: TdPatch[] = [];
-	let current: TdPatch | undefined;
+export function parsePatches(stdout: string): TmPatch[] {
+	const patches: TmPatch[] = [];
+	let current: TmPatch | undefined;
 	let inHunk = false;
 
 	const flush = () => {
@@ -336,7 +336,7 @@ export function parsePatches(stdout: string): TdPatch[] {
 }
 
 /**
- * Đọc output của `td vcs diff --name-only`.
+ * Đọc output của `tm vcs diff --name-only`.
  *
  * Lệnh in mỗi tệp thay đổi trên một dòng, không kèm tiền tố. Dòng nào không
  * phải đường dẫn thì bỏ qua, vì lệnh có thể in thêm dòng trống ở cuối.
@@ -353,13 +353,13 @@ export function parseChangedPaths(stdout: string): string[] {
 }
 
 /**
- * Đọc output của `td vcs log --oneline`.
+ * Đọc output của `tm vcs log --oneline`.
  *
  * Mỗi dòng có dạng `<mã băm> <tiêu đề> (<các tham chiếu>)`, phần tham chiếu
  * là tuỳ chọn nên phải nhận ra bằng cách nhìn dấu ngoặc ở cuối dòng.
  */
-export function parseLogOneline(stdout: string): TdLogEntry[] {
-	const entries: TdLogEntry[] = [];
+export function parseLogOneline(stdout: string): TmLogEntry[] {
+	const entries: TmLogEntry[] = [];
 	for (const raw of stdout.split('\n')) {
 		const line = raw.replace(/\r$/, '').trim();
 		if (!line || line === 'Chưa có commit nào.') {
@@ -388,13 +388,13 @@ export function parseLogOneline(stdout: string): TdLogEntry[] {
 }
 
 /**
- * Đọc output của `td vcs branch -vv`.
+ * Đọc output của `tm vcs branch -vv`.
  *
  * Dòng có dạng `* tên  mã-băm  tiêu đề  [nhánh theo dõi: đi trước x, đi sau y]`,
  * trong đó dấu `*` chỉ nhánh đang đứng và mọi thứ sau tên đều tuỳ chọn.
  */
-export function parseBranches(stdout: string): TdBranch[] {
-	const branches: TdBranch[] = [];
+export function parseBranches(stdout: string): TmBranch[] {
+	const branches: TmBranch[] = [];
 	// [tên-nhánh: đi trước N, đi sau M] ở cuối dòng khi nhánh có nhánh theo dõi.
 	const tracking = /\[\s*([^:\]]+):\s*đi trước (\d+),\s*đi sau (\d+)\s*\]\s*$/;
 
@@ -405,7 +405,7 @@ export function parseBranches(stdout: string): TdBranch[] {
 		}
 		const current = line.startsWith('* ');
 		if (!current && !/^\s\s\S/.test(line)) {
-			// Cảnh báo của td khi không có nhánh nào khớp.
+			// Cảnh báo của tm khi không có nhánh nào khớp.
 			continue;
 		}
 
@@ -440,13 +440,13 @@ export function parseBranches(stdout: string): TdBranch[] {
 }
 
 /**
- * Đọc output của `td vcs tag`.
+ * Đọc output của `tm vcs tag`.
  *
  * Dòng có dạng `ten  mã-băm`, kèm `(có chú thích) và nội dung` nếu là tag có
  * chú thích.
  */
-export function parseTags(stdout: string): TdTag[] {
-	const tags: TdTag[] = [];
+export function parseTags(stdout: string): TmTag[] {
+	const tags: TmTag[] = [];
 	for (const raw of stdout.split('\n')) {
 		const line = raw.replace(/\r$/, '').trim();
 		if (!line) {
@@ -468,12 +468,12 @@ export function parseTags(stdout: string): TdTag[] {
 }
 
 /**
- * Đọc output của `td vcs stash --list`.
+ * Đọc output của `tm vcs stash --list`.
  *
  * Dòng có dạng `stash@{0}: On stash: mô tả`.
  */
-export function parseStashes(stdout: string): TdStash[] {
-	const stashes: TdStash[] = [];
+export function parseStashes(stdout: string): TmStash[] {
+	const stashes: TmStash[] = [];
 	const pattern = /^stash@\{(\d+)\}:\s*(.*)$/;
 	for (const raw of stdout.split('\n')) {
 		const line = raw.replace(/\r$/, '').trim();
@@ -485,7 +485,7 @@ export function parseStashes(stdout: string): TdStash[] {
 			continue;
 		}
 		let message = match[2];
-		// td thêm tiền tố "On stash: " vào mọi mục nên bỏ đi cho gọn.
+		// tm thêm tiền tố "On stash: " vào mọi mục nên bỏ đi cho gọn.
 		message = message.replace(/^On stash:\s*/, '');
 		stashes.push({ index: Number(match[1]), message });
 	}

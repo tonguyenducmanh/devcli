@@ -24,14 +24,14 @@ type CleanResult struct {
 	Skipped []string
 }
 
-// Clean xoá tệp chưa được td theo dõi khỏi cây làm việc.
+// Clean xoá tệp chưa được tm theo dõi khỏi cây làm việc.
 //
 // Chỉ tệp chưa từng được đưa vào vùng chuẩn bị mới bị xoá. Tệp đã được theo dõi
 // thì thuộc về lịch sử nên lệnh này không đụng tới, muốn bỏ theo dõi thì dùng
-// `td vcs rm`. Nhờ vậy lệnh không bao giờ làm mất thứ còn cứu được trong kho.
+// `tm vcs rm`. Nhờ vậy lệnh không bao giờ làm mất thứ còn cứu được trong kho.
 //
 // Không có đối số thì xoá mọi tệp chưa theo dõi. Đối số là tệp, thư mục hoặc mẫu
-// có dấu * và ?, khớp với cách `td vcs add` hiểu đường dẫn.
+// có dấu * và ?, khớp với cách `tm vcs add` hiểu đường dẫn.
 func Clean(r *repo.Repo, opts CleanOptions) ([]CleanResult, error) {
 	st, err := r.Status()
 	if err != nil {

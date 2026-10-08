@@ -164,7 +164,7 @@ func (r *Repo) LogAllRefs(opts LogOptions) ([]LogEntry, error) {
 }
 
 // RefsContaining liệt kê các nhánh và tag chứa một commit.
-// Ref nội bộ của td như refs/stash không được đưa vào danh sách này.
+// Ref nội bộ của tm như refs/stash không được đưa vào danh sách này.
 func (r *Repo) RefsContaining(h object.Hash) ([]string, error) {
 	refs, err := r.Refs.List("refs/")
 	if err != nil {
@@ -192,7 +192,7 @@ func (r *Repo) RefsContaining(h object.Hash) ([]string, error) {
 }
 
 // isPublicRef báo xem ref có hiển thị cho người dùng hay không.
-// refs/stash là ref riêng của td nên bị ẩn khỏi trang trí của lịch sử.
+// refs/stash là ref riêng của tm nên bị ẩn khỏi trang trí của lịch sử.
 func isPublicRef(ref string) bool {
 	return ref != "refs/stash"
 }

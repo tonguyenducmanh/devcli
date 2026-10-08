@@ -10,16 +10,16 @@ import {
 	workspace
 } from 'vscode';
 
-import { TdDecorations } from './decorations';
+import { TmDecorations } from './decorations';
 import { Repository } from './repository';
-import { findRepositoryRoot, resolveExecutable, Td } from './td';
-import { TdBranchesProvider, TdCommitsProvider, TdStashesProvider, TdTagsProvider } from './views';
+import { findRepositoryRoot, resolveExecutable, Tm } from './tm';
+import { TmBranchesProvider, TmCommitsProvider, TmStashesProvider, TmTagsProvider } from './views';
 
-/** Thư mục out/ của kho td, nơi build_all.sh đặt tệp thực thi. */
+/** Thư mục out/ của kho tm, nơi build_all.sh đặt tệp thực thi. */
 const REPO_OUT = path.join(__dirname, '..', '..', '..', 'out');
 
 /**
- * Quản lý các kho td trong workspace.
+ * Quản lý các kho tm trong workspace.
  *
  * Model là nơi duy nhất biết kho nào đang mở, khi nào cần đọc lại trạng thái và
  * các view dùng chung sẽ lấy dữ liệu từ đâu. Mỗi kho là một `Repository`.
@@ -32,13 +32,13 @@ export class Model implements Disposable {
 	/** Bắn khi kho nào đó có trạng thái mới. */
 	readonly onDidChangeRepository = this.onDidChangeRepositoryEmitter.event;
 
-	private readonly decorations: TdDecorations;
-	private readonly branches: TdBranchesProvider;
-	private readonly commits: TdCommitsProvider;
-	private readonly stashes: TdStashesProvider;
-	private readonly tags: TdTagsProvider;
+	private readonly decorations: TmDecorations;
+	private readonly branches: TmBranchesProvider;
+	private readonly commits: TmCommitsProvider;
+	private readonly stashes: TmStashesProvider;
+	private readonly tags: TmTagsProvider;
 
-	private readonly td: Td;
+	private readonly tm: Tm;
 	private refreshing = false;
 	private refreshQueued = false;
 
@@ -48,32 +48,32 @@ export class Model implements Disposable {
 	/** Số kho đang mở, phục vụ điều kiện when trong package.json. */
 	private openRepositoryCount = 0;
 
-	/** Lệnh td không tìm thấy trên máy hay không. */
+	/** Lệnh tm không tìm thấy trên máy hay không. */
 	private missing = false;
 
 	constructor(
-		/** Kênh log dùng chung, để người dùng thấy lệnh td đã chạy. */
+		/** Kênh log dùng chung, để người dùng thấy lệnh tm đã chạy. */
 		private readonly log: OutputChannel
 	) {
-		const config = workspace.getConfiguration('td');
-		this.td = new Td(
+		const config = workspace.getConfiguration('tm');
+		this.tm = new Tm(
 			resolveExecutable(config.get<string>('path', ''), [path.join(REPO_OUT, '..')]),
 			line => this.log.appendLine(line)
 		);
 
-		this.decorations = new TdDecorations(() => this.all);
+		this.decorations = new TmDecorations(() => this.all);
 		this.disposables.push(this.decorations);
 		this.decorations.setEnabled(config.get<boolean>('decorations.enabled', true));
 
-		this.branches = new TdBranchesProvider(this);
-		this.commits = new TdCommitsProvider(this);
-		this.stashes = new TdStashesProvider(this);
-		this.tags = new TdTagsProvider(this);
+		this.branches = new TmBranchesProvider(this);
+		this.commits = new TmCommitsProvider(this);
+		this.stashes = new TmStashesProvider(this);
+		this.tags = new TmTagsProvider(this);
 		this.disposables.push(
-			window.registerTreeDataProvider('tdBranches', this.branches),
-			window.registerTreeDataProvider('tdCommits', this.commits),
-			window.registerTreeDataProvider('tdStashes', this.stashes),
-			window.registerTreeDataProvider('tdTags', this.tags)
+			window.registerTreeDataProvider('tmBranches', this.branches),
+			window.registerTreeDataProvider('tmCommits', this.commits),
+			window.registerTreeDataProvider('tmStashes', this.stashes),
+			window.registerTreeDataProvider('tmTags', this.tags)
 		);
 
 		// Mọi kho đều báo về cùng một Model, nên các view chỉ cần theo dõi kho
@@ -82,9 +82,9 @@ export class Model implements Disposable {
 			workspace.onDidChangeWorkspaceFolders(() => void this.discover()),
 			workspace.onDidChangeConfiguration(event => {
 				this.applyDecorationSetting();
-				// Đổi cấu hình td thì dò lại kho: vừa để áp dụng cấu hình mới,
+				// Đổi cấu hình tm thì dò lại kho: vừa để áp dụng cấu hình mới,
 				// vừa làm mới trạng thái ngay một lần cho khỏi phải chờ đổi tệp.
-				if (event.affectsConfiguration('td')) {
+				if (event.affectsConfiguration('tm')) {
 					void this.discover(true);
 				}
 			})
@@ -100,14 +100,14 @@ export class Model implements Disposable {
 		return [...this.repositories.values()];
 	}
 
-	/** Lệnh td dùng cho mọi kho. */
-	get cli(): Td {
-		return this.td;
+	/** Lệnh tm dùng cho mọi kho. */
+	get cli(): Tm {
+		return this.tm;
 	}
 
-	/** Tệp thực thi td đang dùng, hiện ra trong kênh log. */
+	/** Tệp thực thi tm đang dùng, hiện ra trong kênh log. */
 	get command(): string {
-		return this.td.command;
+		return this.tm.command;
 	}
 
 	/** Kho đang hoạt động: kho chứa tệp đang mở, nếu không thì kho đầu tiên. */
@@ -155,12 +155,12 @@ export class Model implements Disposable {
 	/**
 	 * Dò kho trong workspace rồi mở hoặc đóng cho khớp.
 	 *
-	 * Dùng cách đi lên từng thư mục con thay vì gọi `td vcs status` ở mọi nơi
+	 * Dùng cách đi lên từng thư mục con thay vì gọi `tm vcs status` ở mọi nơi
 	 * nên việc dò kho không tốn tiến trình nào và trạng thái Source Control có
 	 * ngay khi cửa sổ mở ra.
 	 */
 	async discover(force = false): Promise<void> {
-		if (!workspace.getConfiguration('td').get<boolean>('enabled', true)) {
+		if (!workspace.getConfiguration('tm').get<boolean>('enabled', true)) {
 			return;
 		}
 		const folders = workspace.workspaceFolders ?? [];
@@ -202,7 +202,7 @@ export class Model implements Disposable {
 
 	/** Mở một kho và bắt đầu theo dõi trạng thái của nó. */
 	private async open(root: string): Promise<void> {
-		const repository = new Repository(root, this.td);
+		const repository = new Repository(root, this.tm);
 		this.repositories.set(root, repository);
 		this.activeRoot = this.activeRoot ?? root;
 		// Mọi lần trạng thái kho đổi đều phải vẽ lại chữ viết tắt và thanh trạng
@@ -234,7 +234,7 @@ export class Model implements Disposable {
 			return;
 		}
 		this.openRepositoryCount = this.repositories.size;
-		void commands.executeCommand('setContext', 'td.openRepositoryCount', this.openRepositoryCount);
+		void commands.executeCommand('setContext', 'tm.openRepositoryCount', this.openRepositoryCount);
 	}
 
 	/** Đọc lại trạng thái một kho. */
@@ -259,9 +259,9 @@ export class Model implements Disposable {
 		}
 	}
 
-	/** Nối cờ `td.decorations.enabled` vào phần vẽ chữ viết tắt. */
+	/** Nối cờ `tm.decorations.enabled` vào phần vẽ chữ viết tắt. */
 	private applyDecorationSetting(): void {
-		this.decorations.setEnabled(workspace.getConfiguration('td').get<boolean>('decorations.enabled', true));
+		this.decorations.setEnabled(workspace.getConfiguration('tm').get<boolean>('decorations.enabled', true));
 		this.decorations.refresh();
 	}
 
@@ -271,28 +271,28 @@ export class Model implements Disposable {
 			const commands: { command: string; title: string; tooltip: string }[] = [];
 			const head = repository.headLabel;
 			commands.push({
-				command: 'td.checkout',
+				command: 'tm.checkout',
 				title: `${repository.isBusy ? '$(loading~spin) ' : ''}$(git-branch) ${head}`,
 				tooltip: `${head}, ${repository.isBusy ? 'đang xử lý' : 'chuyển nhánh hoặc tag'}`
 			});
 			const status = repository.current;
 			if (status.hasUpstream && (status.ahead > 0 || status.behind > 0)) {
 				commands.push({
-					command: 'td.showOutput',
+					command: 'tm.showOutput',
 					title: `$(arrow-down) ${status.behind} $(arrow-up) ${status.ahead}`,
 					tooltip: 'Nhánh đang đi trước hoặc đi sau nhánh theo dõi'
 				});
 			}
 			if (repository.changeCount > 0) {
 				commands.push({
-					command: 'td.commit',
+					command: 'tm.commit',
 					title: `$(check) ${repository.changeCount}`,
 					tooltip: `${repository.changeCount} tệp đang chờ commit`
 				});
 			}
 			if (repository.error) {
 				commands.push({
-					command: 'td.showOutput',
+					command: 'tm.showOutput',
 					title: '$(error)',
 					tooltip: repository.error
 				});
@@ -305,18 +305,18 @@ export class Model implements Disposable {
 	 * Theo dõi mọi thay đổi tệp trong workspace để làm mới trạng thái.
 	 *
 	 * Bộ theo dõi đặt một lần cho cả workspace chứ không đặt theo từng kho, vì
-	 * kho có thể mới xuất hiện sau đó (người dùng chạy `td vcs init` trong
+	 * kho có thể mới xuất hiện sau đó (người dùng chạy `tm vcs init` trong
 	 * terminal). Mỗi lần có thay đổi, hàm dò lại kho rồi đọc lại trạng thái, vừa
 	 * mở kho mới vừa làm mới kho cũ.
 	 *
 	 * Các lần ghi liên tiếp được gộp lại thành một, nên lưu một tệp không tạo
-	 * ra nhiều lần gọi td.
+	 * ra nhiều lần gọi tm.
 	 */
 	private watchWorkspace(): Disposable {
 		let timer: NodeJS.Timeout | undefined;
-		const delay = () => workspace.getConfiguration('td').get<number>('autorefreshDelay', 1000);
+		const delay = () => workspace.getConfiguration('tm').get<number>('autorefreshDelay', 1000);
 		const schedule = () => {
-			if (!workspace.getConfiguration('td').get<boolean>('autoRefresh', true)) {
+			if (!workspace.getConfiguration('tm').get<boolean>('autoRefresh', true)) {
 				return;
 			}
 			if (timer) {
@@ -335,15 +335,15 @@ export class Model implements Disposable {
 		worktree.onDidCreate(schedule);
 		worktree.onDidChange(schedule);
 		worktree.onDidDelete(schedule);
-		// Dữ liệu trong .tdx cũng vậy, ví dụ khi có tiến trình khác ghi vào kho.
-		const data = workspace.createFileSystemWatcher('**/.tdx/**');
+		// Dữ liệu trong .tmx cũng vậy, ví dụ khi có tiến trình khác ghi vào kho.
+		const data = workspace.createFileSystemWatcher('**/.tmx/**');
 		watchers.push(data);
 		data.onDidCreate(schedule);
 		data.onDidChange(schedule);
 		data.onDidDelete(schedule);
 
 		const reconfigure = workspace.onDidChangeConfiguration(event => {
-			if (event.affectsConfiguration('td.autoRefresh') || event.affectsConfiguration('td.autorefreshDelay')) {
+			if (event.affectsConfiguration('tm.autoRefresh') || event.affectsConfiguration('tm.autorefreshDelay')) {
 				void this.discover(true);
 			}
 		});
@@ -360,7 +360,7 @@ export class Model implements Disposable {
 	}
 
 	/**
-	 * Kiểm tra xem máy đã có lệnh td chưa.
+	 * Kiểm tra xem máy đã có lệnh tm chưa.
 	 *
 	 * Khi không có, khung Source Control hiện lời nhắc cài đặt thay vì trống
 	 * trơn, đúng như extension git làm khi thiếu git.
@@ -370,23 +370,23 @@ export class Model implements Disposable {
 			this.setMissing(false);
 			return;
 		}
-		const missing = !(await this.td.available());
+		const missing = !(await this.tm.available());
 		this.setMissing(missing);
 		if (missing) {
-			this.log.appendLine(`không chạy được lệnh "${this.td.command}", xem td.path trong cấu hình`);
+			this.log.appendLine(`không chạy được lệnh "${this.tm.command}", xem tm.path trong cấu hình`);
 			void window.showWarningMessage(
-				`Không tìm thấy lệnh td (đang thử "${this.td.command}"). Cài td hoặc đặt đường dẫn ở cấu hình td.path.`
+				`Không tìm thấy lệnh tm (đang thử "${this.tm.command}"). Cài tm hoặc đặt đường dẫn ở cấu hình tm.path.`
 			);
 		}
 	}
 
-	/** Ghi cờ td.missing cho các điều kiện when trong package.json. */
+	/** Ghi cờ tm.missing cho các điều kiện when trong package.json. */
 	private setMissing(value: boolean): void {
 		if (this.missing === value) {
 			return;
 		}
 		this.missing = value;
-		void commands.executeCommand('setContext', 'td.missing', value);
+		void commands.executeCommand('setContext', 'tm.missing', value);
 	}
 
 	dispose(): void {

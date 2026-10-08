@@ -1,4 +1,4 @@
-// Command docgen sinh tài liệu tham chiếu cho toàn bộ cây lệnh của td.
+// Command docgen sinh tài liệu tham chiếu cho toàn bộ cây lệnh của tm.
 //
 // Mặc định sinh Markdown: mỗi lệnh một tệp gồm phần mô tả, cú pháp, các cờ
 // và các ví dụ. Đây là dạng đầu vào thuận tiện để trợ lý lập trình đọc và
@@ -122,7 +122,7 @@ func genMarkdownTree(cmd *cobra.Command, baseDir string) error {
 	linkHandler := func(name string) string {
 		nameParts := strings.SplitN(name, "_", 3)
 		var targetGroup string
-		if len(nameParts) >= 2 && name != "td.md" {
+		if len(nameParts) >= 2 && name != "tm.md" {
 			targetGroup = strings.TrimSuffix(nameParts[1], ".md")
 		}
 

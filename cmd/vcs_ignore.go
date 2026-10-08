@@ -26,10 +26,10 @@ Nếu kho chưa có quy tắc nào thì lệnh in luôn phần trợ giúp này.
 
 Tệp ignore nằm ở đâu:
 
-  .tdxignore         ở gốc dự án hoặc trong bất kỳ thư mục con nào. Quy tắc chỉ
+  .tmxignore         ở gốc dự án hoặc trong bất kỳ thư mục con nào. Quy tắc chỉ
                      áp dụng bên trong thư mục chứa nó, và không lan sang thư mục
                      khác. Nên commit tệp này để cả nhóm cùng dùng.
-  .tdx/info/exclude  riêng cho máy này, nằm trong .tdx nên không được commit.
+  .tmx/info/exclude  riêng cho máy này, nằm trong .tmx nên không được commit.
 
 Cách viết mẫu:
 
@@ -44,10 +44,10 @@ Cách viết mẫu:
 Dấu / ở cuối mẫu nói mẫu đó chỉ áp dụng cho thư mục. Dấu * không vượt qua dấu
 /, dấu ** vượt được nhiều cấp. Quy tắc ở dưới thắng quy tắc ở trên.
 
-Hai tệp này được td đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
+Hai tệp này được tm đọc tự động, không cần khai báo ở đâu. Tệp bị bỏ qua sẽ
 không xuất hiện trong status và không được add vào vùng chuẩn bị.`,
-	Example: `  td vcs ignore          in các quy tắc bỏ qua đang có
-  td vcs ignore --help   xem cách viết mẫu bỏ qua tệp và thư mục`,
+	Example: `  tm vcs ignore          in các quy tắc bỏ qua đang có
+  tm vcs ignore --help   xem cách viết mẫu bỏ qua tệp và thư mục`,
 	Args: noArgsArg,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		r, err := openRepo(cmd)

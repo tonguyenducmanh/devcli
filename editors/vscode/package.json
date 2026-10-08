@@ -1,9 +1,9 @@
 {
-  "name": "td-vcs",
-  "displayName": "TD VCS",
-  "description": "Quản lý phiên bản mã nguồn cục bộ bằng td trong VS Code",
+  "name": "tm-vcs",
+  "displayName": "TM VCS",
+  "description": "Quản lý phiên bản mã nguồn cục bộ bằng tm trong VS Code",
   "version": "0.1.0",
-  "publisher": "td",
+  "publisher": "tm",
   "license": "MIT",
   "icon": "resources/icon.png",
   "engines": {
@@ -13,7 +13,7 @@
     "SCM Providers"
   ],
   "keywords": [
-    "td",
+    "tm",
     "vcs",
     "git",
     "source control"
@@ -25,1003 +25,1003 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": "limited",
-      "description": "td chỉ chạy trên kho đã có sẵn trong workspace, không chạy mã do kho cung cấp."
+      "description": "tm chỉ chạy trên kho đã có sẵn trong workspace, không chạy mã do kho cung cấp."
     },
     "virtualWorkspaces": {
       "supported": false,
-      "description": "td cần đọc cây làm việc trên đĩa nên không dùng được trong workspace ảo."
+      "description": "tm cần đọc cây làm việc trên đĩa nên không dùng được trong workspace ảo."
     }
   },
   "contributes": {
     "commands": [
       {
-        "command": "td.refresh",
+        "command": "tm.refresh",
         "title": "%command.refresh%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(refresh)"
       },
       {
-        "command": "td.init",
+        "command": "tm.init",
         "title": "%command.init%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(repo)"
       },
       {
-        "command": "td.commit",
+        "command": "tm.commit",
         "title": "%command.commit%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(check)"
       },
       {
-        "command": "td.commitStaged",
+        "command": "tm.commitStaged",
         "title": "%command.commitStaged%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.commitAmend",
+        "command": "tm.commitAmend",
         "title": "%command.commitAmend%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.commitStagedAmend",
+        "command": "tm.commitStagedAmend",
         "title": "%command.commitStagedAmend%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.commitEmpty",
+        "command": "tm.commitEmpty",
         "title": "%command.commitEmpty%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stage",
+        "command": "tm.stage",
         "title": "%command.stage%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(add)"
       },
       {
-        "command": "td.stageAll",
+        "command": "tm.stageAll",
         "title": "%command.stageAll%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(add)"
       },
       {
-        "command": "td.stageAllTracked",
+        "command": "tm.stageAllTracked",
         "title": "%command.stageAllTracked%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(add)"
       },
       {
-        "command": "td.stageAllUntracked",
+        "command": "tm.stageAllUntracked",
         "title": "%command.stageAllUntracked%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(add)"
       },
       {
-        "command": "td.stageAllMerge",
+        "command": "tm.stageAllMerge",
         "title": "%command.stageAllMerge%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(add)"
       },
       {
-        "command": "td.unstage",
+        "command": "tm.unstage",
         "title": "%command.unstage%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(remove)"
       },
       {
-        "command": "td.unstageAll",
+        "command": "tm.unstageAll",
         "title": "%command.unstageAll%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(remove)"
       },
       {
-        "command": "td.cleanAll",
+        "command": "tm.cleanAll",
         "title": "%command.cleanAll%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(discard)"
       },
       {
-        "command": "td.cleanAllTracked",
+        "command": "tm.cleanAllTracked",
         "title": "%command.cleanAllTracked%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(discard)"
       },
       {
-        "command": "td.cleanAllUntracked",
+        "command": "tm.cleanAllUntracked",
         "title": "%command.cleanAllUntracked%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(discard)"
       },
       {
-        "command": "td.revertChange",
+        "command": "tm.revertChange",
         "title": "%command.revertChange%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(discard)"
       },
       {
-        "command": "td.openFile",
+        "command": "tm.openFile",
         "title": "%command.openFile%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "td.openFile2",
+        "command": "tm.openFile2",
         "title": "%command.openFile%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "td.openChange",
+        "command": "tm.openChange",
         "title": "%command.openChange%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(compare-changes)"
       },
       {
-        "command": "td.openHEADFile",
+        "command": "tm.openHEADFile",
         "title": "%command.openHEADFile%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.checkout",
+        "command": "tm.checkout",
         "title": "%command.checkout%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.branch",
+        "command": "tm.branch",
         "title": "%command.branch%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(git-branch)"
       },
       {
-        "command": "td.branchFrom",
+        "command": "tm.branchFrom",
         "title": "%command.branchFrom%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.deleteBranch",
+        "command": "tm.deleteBranch",
         "title": "%command.deleteBranch%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.renameBranch",
+        "command": "tm.renameBranch",
         "title": "%command.renameBranch%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.merge",
+        "command": "tm.merge",
         "title": "%command.merge%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.rebase",
+        "command": "tm.rebase",
         "title": "%command.rebase%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.cherryPick",
+        "command": "tm.cherryPick",
         "title": "%command.cherryPick%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.revert",
+        "command": "tm.revert",
         "title": "%command.revert%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stash",
+        "command": "tm.stash",
         "title": "%command.stash%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashIncludeUntracked",
+        "command": "tm.stashIncludeUntracked",
         "title": "%command.stashIncludeUntracked%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashApply",
+        "command": "tm.stashApply",
         "title": "%command.stashApply%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashApplyLatest",
+        "command": "tm.stashApplyLatest",
         "title": "%command.stashApplyLatest%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashPop",
+        "command": "tm.stashPop",
         "title": "%command.stashPop%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashPopLatest",
+        "command": "tm.stashPopLatest",
         "title": "%command.stashPopLatest%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashDrop",
+        "command": "tm.stashDrop",
         "title": "%command.stashDrop%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.stashDropAll",
+        "command": "tm.stashDropAll",
         "title": "%command.stashDropAll%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.tag",
+        "command": "tm.tag",
         "title": "%command.tag%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.deleteTag",
+        "command": "tm.deleteTag",
         "title": "%command.deleteTag%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.revealInExplorer",
+        "command": "tm.revealInExplorer",
         "title": "%command.revealInExplorer%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.showOutput",
+        "command": "tm.showOutput",
         "title": "%command.showOutput%",
-        "category": "TD"
+        "category": "TM"
       },
       {
-        "command": "td.pickCommit",
+        "command": "tm.pickCommit",
         "title": "%command.pickCommit%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(history)"
       },
       {
-        "command": "td.pickBranch",
+        "command": "tm.pickBranch",
         "title": "%command.pickBranch%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(git-branch)"
       },
       {
-        "command": "td.pickStash",
+        "command": "tm.pickStash",
         "title": "%command.pickStash%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(git-stash)"
       },
       {
-        "command": "td.pickTag",
+        "command": "tm.pickTag",
         "title": "%command.pickTag%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(tag)"
       },
       {
-        "command": "td.commitAll",
+        "command": "tm.commitAll",
         "title": "%command.commitAll%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(check)"
       },
       {
-        "command": "td.openCommitChanges",
+        "command": "tm.openCommitChanges",
         "title": "%command.openCommitChanges%",
-        "category": "TD",
+        "category": "TM",
         "icon": "$(compare-changes)"
       }
     ],
     "submenus": [
       {
-        "id": "td.commit",
+        "id": "tm.commit",
         "label": "%submenu.commit%"
       },
       {
-        "id": "td.changes",
+        "id": "tm.changes",
         "label": "%submenu.changes%"
       },
       {
-        "id": "td.branch",
+        "id": "tm.branch",
         "label": "%submenu.branch%"
       },
       {
-        "id": "td.stash",
+        "id": "tm.stash",
         "label": "%submenu.stash%"
       },
       {
-        "id": "td.tags",
+        "id": "tm.tags",
         "label": "%submenu.tags%"
       }
     ],
     "menus": {
       "scm/title": [
         {
-          "command": "td.commit",
+          "command": "tm.commit",
           "group": "navigation",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.refresh",
+          "command": "tm.refresh",
           "group": "navigation",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "submenu": "td.commit",
+          "submenu": "tm.commit",
           "group": "2_main@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "submenu": "td.changes",
+          "submenu": "tm.changes",
           "group": "2_main@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "submenu": "td.branch",
+          "submenu": "tm.branch",
           "group": "2_main@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "submenu": "td.stash",
+          "submenu": "tm.stash",
           "group": "2_main@4",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "submenu": "td.tags",
+          "submenu": "tm.tags",
           "group": "2_main@5",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.showOutput",
+          "command": "tm.showOutput",
           "group": "3_footer",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
-      "td.commit": [
+      "tm.commit": [
         {
-          "command": "td.commit",
+          "command": "tm.commit",
           "group": "1_commit@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitAll",
+          "command": "tm.commitAll",
           "group": "1_commit@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitStaged",
+          "command": "tm.commitStaged",
           "group": "1_commit@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitAmend",
+          "command": "tm.commitAmend",
           "group": "2_amend@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitStagedAmend",
+          "command": "tm.commitStagedAmend",
           "group": "2_amend@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitEmpty",
+          "command": "tm.commitEmpty",
           "group": "3_empty@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
-      "td.changes": [
+      "tm.changes": [
         {
-          "command": "td.stageAll",
+          "command": "tm.stageAll",
           "group": "1_stage@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllTracked",
+          "command": "tm.stageAllTracked",
           "group": "1_stage@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllUntracked",
+          "command": "tm.stageAllUntracked",
           "group": "1_stage@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllMerge",
+          "command": "tm.stageAllMerge",
           "group": "1_stage@4",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.unstageAll",
+          "command": "tm.unstageAll",
           "group": "2_unstage@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAll",
+          "command": "tm.cleanAll",
           "group": "3_discard@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAllTracked",
+          "command": "tm.cleanAllTracked",
           "group": "3_discard@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAllUntracked",
+          "command": "tm.cleanAllUntracked",
           "group": "3_discard@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
-      "td.branch": [
+      "tm.branch": [
         {
-          "command": "td.checkout",
+          "command": "tm.checkout",
           "group": "1_branch@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.branch",
+          "command": "tm.branch",
           "group": "1_branch@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.branchFrom",
+          "command": "tm.branchFrom",
           "group": "1_branch@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.renameBranch",
+          "command": "tm.renameBranch",
           "group": "2_edit@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.deleteBranch",
+          "command": "tm.deleteBranch",
           "group": "2_edit@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.merge",
+          "command": "tm.merge",
           "group": "3_history@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.rebase",
+          "command": "tm.rebase",
           "group": "3_history@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.pickBranch",
+          "command": "tm.pickBranch",
           "group": "4_other@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
-      "td.stash": [
+      "tm.stash": [
         {
-          "command": "td.stash",
+          "command": "tm.stash",
           "group": "1_save@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashIncludeUntracked",
+          "command": "tm.stashIncludeUntracked",
           "group": "1_save@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashPop",
+          "command": "tm.stashPop",
           "group": "2_restore@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashPopLatest",
+          "command": "tm.stashPopLatest",
           "group": "2_restore@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashApply",
+          "command": "tm.stashApply",
           "group": "2_restore@3",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashApplyLatest",
+          "command": "tm.stashApplyLatest",
           "group": "2_restore@4",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashDrop",
+          "command": "tm.stashDrop",
           "group": "3_drop@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashDropAll",
+          "command": "tm.stashDropAll",
           "group": "3_drop@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
-      "td.tags": [
+      "tm.tags": [
         {
-          "command": "td.tag",
+          "command": "tm.tag",
           "group": "1_tag@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.deleteTag",
+          "command": "tm.deleteTag",
           "group": "1_tag@2",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.pickTag",
+          "command": "tm.pickTag",
           "group": "2_other@1",
-          "when": "scmProvider == td"
+          "when": "scmProvider == tm"
         }
       ],
       "scm/resourceGroup/context": [
         {
-          "command": "td.unstageAll",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.unstageAll",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "1_modification"
         },
         {
-          "command": "td.unstageAll",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.unstageAll",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "inline@2"
         },
         {
-          "command": "td.cleanAll",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.cleanAll",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "1_modification"
         },
         {
-          "command": "td.stageAll",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.stageAll",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "1_modification"
         },
         {
-          "command": "td.cleanAll",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.cleanAll",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "inline@2"
         },
         {
-          "command": "td.stageAll",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.stageAll",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "inline@2"
         },
         {
-          "command": "td.cleanAllUntracked",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.cleanAllUntracked",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "1_modification"
         },
         {
-          "command": "td.stageAllUntracked",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.stageAllUntracked",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "1_modification"
         },
         {
-          "command": "td.cleanAllUntracked",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.cleanAllUntracked",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "inline@2"
         },
         {
-          "command": "td.stageAllUntracked",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.stageAllUntracked",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "inline@2"
         },
         {
-          "command": "td.stageAllMerge",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.stageAllMerge",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "1_modification"
         },
         {
-          "command": "td.stageAllMerge",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.stageAllMerge",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "inline@2"
         }
       ],
       "scm/resourceState/context": [
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td && scmResourceGroup =~ /^(index|workingTree)$/",
+          "command": "tm.openChange",
+          "when": "scmProvider == tm && scmResourceGroup =~ /^(index|workingTree)$/",
           "group": "navigation"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.openFile",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "navigation"
         },
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.openChange",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "1_open@1"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.openFile",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "1_open@2"
         },
         {
-          "command": "td.openHEADFile",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.openHEADFile",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "1_open@3"
         },
         {
-          "command": "td.unstage",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.unstage",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "2_modification@1"
         },
         {
-          "command": "td.unstage",
-          "when": "scmProvider == td && scmResourceGroup == index",
+          "command": "tm.unstage",
+          "when": "scmProvider == tm && scmResourceGroup == index",
           "group": "inline@2"
         },
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.openChange",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "1_open@1"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.openFile",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "1_open@2"
         },
         {
-          "command": "td.openHEADFile",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.openHEADFile",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "1_open@3"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "2_modification@1"
         },
         {
-          "command": "td.revertChange",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.revertChange",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "2_modification@2"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "inline@2"
         },
         {
-          "command": "td.revertChange",
-          "when": "scmProvider == td && scmResourceGroup == workingTree",
+          "command": "tm.revertChange",
+          "when": "scmProvider == tm && scmResourceGroup == workingTree",
           "group": "inline@2"
         },
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.openChange",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "1_open@1"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.openFile",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "1_open@2"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "2_modification@1"
         },
         {
-          "command": "td.revertChange",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.revertChange",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "2_modification@2"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "inline@2"
         },
         {
-          "command": "td.revertChange",
-          "when": "scmProvider == td && scmResourceGroup == untracked",
+          "command": "tm.revertChange",
+          "when": "scmProvider == tm && scmResourceGroup == untracked",
           "group": "inline@2"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "2_modification@1"
         },
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.openChange",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "1_open@1"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.openFile",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "1_open@2"
         },
         {
-          "command": "td.stage",
-          "when": "scmProvider == td && scmResourceGroup == merge",
+          "command": "tm.stage",
+          "when": "scmProvider == tm && scmResourceGroup == merge",
           "group": "inline@2"
         },
         {
-          "command": "td.revealInExplorer",
-          "when": "scmProvider == td && scmResourceGroup =~ /^(index|workingTree|untracked|merge)$/",
+          "command": "tm.revealInExplorer",
+          "when": "scmProvider == tm && scmResourceGroup =~ /^(index|workingTree|untracked|merge)$/",
           "group": "3_view@1"
         }
       ],
       "editor/title": [
         {
-          "command": "td.openFile",
+          "command": "tm.openFile",
           "group": "navigation",
-          "when": "scmProvider == td && isInDiffEditor && resourceScheme == td"
+          "when": "scmProvider == tm && isInDiffEditor && resourceScheme == tm"
         },
         {
-          "command": "td.openChange",
+          "command": "tm.openChange",
           "group": "navigation",
-          "when": "scmProvider == td && !isInDiffEditor && resourceScheme == file && scmActiveResourceHasChanges"
+          "when": "scmProvider == tm && !isInDiffEditor && resourceScheme == file && scmActiveResourceHasChanges"
         }
       ],
       "view/title": [
         {
-          "command": "td.refresh",
+          "command": "tm.refresh",
           "group": "navigation",
-          "when": "view == tdBranches || view == tdCommits || view == tdStashes || view == tdTags"
+          "when": "view == tmBranches || view == tmCommits || view == tmStashes || view == tmTags"
         },
         {
-          "command": "td.branch",
+          "command": "tm.branch",
           "group": "navigation",
-          "when": "view == tdBranches"
+          "when": "view == tmBranches"
         },
         {
-          "command": "td.stash",
+          "command": "tm.stash",
           "group": "navigation",
-          "when": "view == tdStashes"
+          "when": "view == tmStashes"
         },
         {
-          "command": "td.tag",
+          "command": "tm.tag",
           "group": "navigation",
-          "when": "view == tdTags"
+          "when": "view == tmTags"
         },
         {
-          "command": "td.pickCommit",
+          "command": "tm.pickCommit",
           "group": "navigation@1",
-          "when": "view == tdCommits"
+          "when": "view == tmCommits"
         }
       ],
       "view/item/context": [
         {
-          "command": "td.checkout",
+          "command": "tm.checkout",
           "group": "1_modification@1",
-          "when": "view == tdBranches && viewItem =~ /^branch/",
-          "alt": "td.merge"
+          "when": "view == tmBranches && viewItem =~ /^branch/",
+          "alt": "tm.merge"
         },
         {
-          "command": "td.merge",
+          "command": "tm.merge",
           "group": "1_modification@2",
-          "when": "view == tdBranches && viewItem =~ /^branch/"
+          "when": "view == tmBranches && viewItem =~ /^branch/"
         },
         {
-          "command": "td.rebase",
+          "command": "tm.rebase",
           "group": "1_modification@3",
-          "when": "view == tdBranches && viewItem =~ /^branch/"
+          "when": "view == tmBranches && viewItem =~ /^branch/"
         },
         {
-          "command": "td.renameBranch",
+          "command": "tm.renameBranch",
           "group": "2_modify@1",
-          "when": "view == tdBranches && viewItem =~ /^branch/"
+          "when": "view == tmBranches && viewItem =~ /^branch/"
         },
         {
-          "command": "td.deleteBranch",
+          "command": "tm.deleteBranch",
           "group": "2_modify@2",
-          "when": "view == tdBranches && viewItem =~ /^branch/"
+          "when": "view == tmBranches && viewItem =~ /^branch/"
         },
         {
-          "command": "td.openCommitChanges",
+          "command": "tm.openCommitChanges",
           "group": "1_modification@1",
-          "when": "view == tdCommits && viewItem == commit"
+          "when": "view == tmCommits && viewItem == commit"
         },
         {
-          "command": "td.checkout",
+          "command": "tm.checkout",
           "group": "1_modification@2",
-          "when": "view == tdCommits && viewItem == commit"
+          "when": "view == tmCommits && viewItem == commit"
         },
         {
-          "command": "td.revert",
+          "command": "tm.revert",
           "group": "1_modification@3",
-          "when": "view == tdCommits && viewItem == commit"
+          "when": "view == tmCommits && viewItem == commit"
         },
         {
-          "command": "td.cherryPick",
+          "command": "tm.cherryPick",
           "group": "1_modification@4",
-          "when": "view == tdCommits && viewItem == commit"
+          "when": "view == tmCommits && viewItem == commit"
         },
         {
-          "command": "td.tag",
+          "command": "tm.tag",
           "group": "2_new@1",
-          "when": "view == tdCommits && viewItem == commit"
+          "when": "view == tmCommits && viewItem == commit"
         },
         {
-          "command": "td.stashPop",
+          "command": "tm.stashPop",
           "group": "1_modification@1",
-          "when": "view == tdStashes && viewItem == stash"
+          "when": "view == tmStashes && viewItem == stash"
         },
         {
-          "command": "td.stashApply",
+          "command": "tm.stashApply",
           "group": "1_modification@2",
-          "when": "view == tdStashes && viewItem == stash"
+          "when": "view == tmStashes && viewItem == stash"
         },
         {
-          "command": "td.stashDrop",
+          "command": "tm.stashDrop",
           "group": "2_drop@1",
-          "when": "view == tdStashes && viewItem == stash"
+          "when": "view == tmStashes && viewItem == stash"
         },
         {
-          "command": "td.deleteTag",
+          "command": "tm.deleteTag",
           "group": "1_modification@1",
-          "when": "view == tdTags && viewItem == tag"
+          "when": "view == tmTags && viewItem == tag"
         },
         {
-          "command": "td.checkout",
+          "command": "tm.checkout",
           "group": "1_modification@2",
-          "when": "view == tdTags && viewItem == tag"
+          "when": "view == tmTags && viewItem == tag"
         }
       ],
       "commandPalette": [
         {
-          "command": "td.stage",
-          "when": "scmProvider == td"
+          "command": "tm.stage",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAll",
-          "when": "scmProvider == td"
+          "command": "tm.stageAll",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllTracked",
-          "when": "scmProvider == td"
+          "command": "tm.stageAllTracked",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllUntracked",
-          "when": "scmProvider == td"
+          "command": "tm.stageAllUntracked",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stageAllMerge",
-          "when": "scmProvider == td"
+          "command": "tm.stageAllMerge",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.unstage",
-          "when": "scmProvider == td"
+          "command": "tm.unstage",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.unstageAll",
-          "when": "scmProvider == td"
+          "command": "tm.unstageAll",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.revertChange",
-          "when": "scmProvider == td"
+          "command": "tm.revertChange",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAll",
-          "when": "scmProvider == td"
+          "command": "tm.cleanAll",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAllTracked",
-          "when": "scmProvider == td"
+          "command": "tm.cleanAllTracked",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cleanAllUntracked",
-          "when": "scmProvider == td"
+          "command": "tm.cleanAllUntracked",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.openFile",
-          "when": "scmProvider == td"
+          "command": "tm.openFile",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.openFile2",
+          "command": "tm.openFile2",
           "when": "false"
         },
         {
-          "command": "td.openChange",
-          "when": "scmProvider == td"
+          "command": "tm.openChange",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.openHEADFile",
-          "when": "scmProvider == td"
+          "command": "tm.openHEADFile",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.revealInExplorer",
-          "when": "scmProvider == td"
+          "command": "tm.revealInExplorer",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.branch",
-          "when": "scmProvider == td"
+          "command": "tm.branch",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.branchFrom",
-          "when": "scmProvider == td"
+          "command": "tm.branchFrom",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.checkout",
-          "when": "scmProvider == td"
+          "command": "tm.checkout",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitStaged",
-          "when": "scmProvider == td"
+          "command": "tm.commitStaged",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitAmend",
-          "when": "scmProvider == td"
+          "command": "tm.commitAmend",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitStagedAmend",
-          "when": "scmProvider == td"
+          "command": "tm.commitStagedAmend",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.commitEmpty",
-          "when": "scmProvider == td"
+          "command": "tm.commitEmpty",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.merge",
-          "when": "scmProvider == td"
+          "command": "tm.merge",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.rebase",
-          "when": "scmProvider == td"
+          "command": "tm.rebase",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.cherryPick",
-          "when": "scmProvider == td"
+          "command": "tm.cherryPick",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.revert",
-          "when": "scmProvider == td"
+          "command": "tm.revert",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stash",
-          "when": "scmProvider == td"
+          "command": "tm.stash",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashIncludeUntracked",
-          "when": "scmProvider == td"
+          "command": "tm.stashIncludeUntracked",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashApply",
-          "when": "scmProvider == td"
+          "command": "tm.stashApply",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashApplyLatest",
-          "when": "scmProvider == td"
+          "command": "tm.stashApplyLatest",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashPop",
-          "when": "scmProvider == td"
+          "command": "tm.stashPop",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashPopLatest",
-          "when": "scmProvider == td"
+          "command": "tm.stashPopLatest",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashDrop",
-          "when": "scmProvider == td"
+          "command": "tm.stashDrop",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.stashDropAll",
-          "when": "scmProvider == td"
+          "command": "tm.stashDropAll",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.tag",
-          "when": "scmProvider == td"
+          "command": "tm.tag",
+          "when": "scmProvider == tm"
         },
         {
-          "command": "td.deleteTag",
-          "when": "scmProvider == td"
+          "command": "tm.deleteTag",
+          "when": "scmProvider == tm"
         }
       ]
     },
     "views": {
       "scm": [
         {
-          "id": "tdBranches",
+          "id": "tmBranches",
           "name": "%view.branches%",
-          "when": "td.openRepositoryCount > 0"
+          "when": "tm.openRepositoryCount > 0"
         },
         {
-          "id": "tdCommits",
+          "id": "tmCommits",
           "name": "%view.commits%",
-          "when": "td.openRepositoryCount > 0"
+          "when": "tm.openRepositoryCount > 0"
         },
         {
-          "id": "tdStashes",
+          "id": "tmStashes",
           "name": "%view.stashes%",
-          "when": "td.openRepositoryCount > 0"
+          "when": "tm.openRepositoryCount > 0"
         },
         {
-          "id": "tdTags",
+          "id": "tmTags",
           "name": "%view.tags%",
-          "when": "td.openRepositoryCount > 0"
+          "when": "tm.openRepositoryCount > 0"
         }
       ]
     },
@@ -1029,82 +1029,82 @@
       {
         "view": "scm",
         "contents": "%view.welcome.noRepository%",
-        "when": "!td.missing && !td.openRepositoryCount"
+        "when": "!tm.missing && !tm.openRepositoryCount"
       },
       {
         "view": "scm",
         "contents": "%view.welcome.missingTd%",
-        "when": "td.missing"
+        "when": "tm.missing"
       },
       {
-        "view": "tdBranches",
+        "view": "tmBranches",
         "contents": "%view.welcome.noBranches%"
       },
       {
-        "view": "tdCommits",
+        "view": "tmCommits",
         "contents": "%view.welcome.noCommits%"
       },
       {
-        "view": "tdStashes",
+        "view": "tmStashes",
         "contents": "%view.welcome.noStashes%"
       },
       {
-        "view": "tdTags",
+        "view": "tmTags",
         "contents": "%view.welcome.noTags%"
       }
     ],
     "configuration": [
       {
-        "title": "TD",
+        "title": "TM",
         "properties": {
-          "td.path": {
+          "tm.path": {
             "type": "string",
-            "default": "td",
-            "markdownDescription": "Đường dẫn tới tệp thực thi `td`. Để trống nghĩa là tự tìm trong `PATH`, `~/go/bin`, `~/bin` và các thư mục hệ thống."
+            "default": "tm",
+            "markdownDescription": "Đường dẫn tới tệp thực thi `tm`. Để trống nghĩa là tự tìm trong `PATH`, `~/go/bin`, `~/bin` và các thư mục hệ thống."
           },
-          "td.enabled": {
+          "tm.enabled": {
             "type": "boolean",
             "default": true,
-            "description": "Bật tìm kho td trong workspace."
+            "description": "Bật tìm kho tm trong workspace."
           },
-          "td.autoRefresh": {
+          "tm.autoRefresh": {
             "type": "boolean",
             "default": true,
             "description": "Tự làm mới trạng thái khi tệp trên đĩa thay đổi."
           },
-          "td.autorefreshDelay": {
+          "tm.autorefreshDelay": {
             "type": "number",
             "default": 1000,
             "minimum": 0,
             "maximum": 60000,
             "description": "Số mili giây chờ trước khi làm mới sau lần thay đổi tệp cuối cùng."
           },
-          "td.decorations.enabled": {
+          "tm.decorations.enabled": {
             "type": "boolean",
             "default": true,
             "description": "Hiện chữ viết tắt M/A/D/U trên tên tệp trong cây thư mục và trình soạn thảo."
           },
-          "td.showCommitInput": {
+          "tm.showCommitInput": {
             "type": "boolean",
             "default": true,
             "description": "Hiện ô nhập nội dung commit trong khung Source Control."
           },
-          "td.alwaysShowStagedChangesResourceGroup": {
+          "tm.alwaysShowStagedChangesResourceGroup": {
             "type": "boolean",
             "default": true,
             "description": "Luôn hiện nhóm Staged Changes dù không có tệp nào."
           },
-          "td.openDiffOnClick": {
+          "tm.openDiffOnClick": {
             "type": "boolean",
             "default": true,
             "description": "Bấm vào tệp trong khung Source Control thì mở khung so sánh thay vì mở thẳng tệp. Tắt đi để bấm là mở tệp."
           },
-          "td.confirmEmptyCommits": {
+          "tm.confirmEmptyCommits": {
             "type": "boolean",
             "default": true,
             "description": "Hỏi lại trước khi tạo commit rỗng."
           },
-          "td.logMaxCount": {
+          "tm.logMaxCount": {
             "type": "number",
             "default": 500,
             "minimum": 10,
@@ -1115,7 +1115,7 @@
     ],
     "colors": [
       {
-        "id": "tdDecoration.addedResourceForeground",
+        "id": "tmDecoration.addedResourceForeground",
         "description": "%colors.added%",
         "defaults": {
           "light": "#587c0c",
@@ -1125,7 +1125,7 @@
         }
       },
       {
-        "id": "tdDecoration.modifiedResourceForeground",
+        "id": "tmDecoration.modifiedResourceForeground",
         "description": "%colors.modified%",
         "defaults": {
           "light": "#895503",
@@ -1135,7 +1135,7 @@
         }
       },
       {
-        "id": "tdDecoration.deletedResourceForeground",
+        "id": "tmDecoration.deletedResourceForeground",
         "description": "%colors.deleted%",
         "defaults": {
           "light": "#ad0707",
@@ -1145,7 +1145,7 @@
         }
       },
       {
-        "id": "tdDecoration.renamedResourceForeground",
+        "id": "tmDecoration.renamedResourceForeground",
         "description": "%colors.renamed%",
         "defaults": {
           "light": "#007100",
@@ -1155,7 +1155,7 @@
         }
       },
       {
-        "id": "tdDecoration.untrackedResourceForeground",
+        "id": "tmDecoration.untrackedResourceForeground",
         "description": "%colors.untracked%",
         "defaults": {
           "light": "#007100",
@@ -1165,7 +1165,7 @@
         }
       },
       {
-        "id": "tdDecoration.ignoredResourceForeground",
+        "id": "tmDecoration.ignoredResourceForeground",
         "description": "%colors.ignored%",
         "defaults": {
           "light": "#8E8E90",
@@ -1175,7 +1175,7 @@
         }
       },
       {
-        "id": "tdDecoration.stageModifiedResourceForeground",
+        "id": "tmDecoration.stageModifiedResourceForeground",
         "description": "%colors.stageModified%",
         "defaults": {
           "light": "#895503",
@@ -1185,7 +1185,7 @@
         }
       },
       {
-        "id": "tdDecoration.stageDeletedResourceForeground",
+        "id": "tmDecoration.stageDeletedResourceForeground",
         "description": "%colors.stageDeleted%",
         "defaults": {
           "light": "#ad0707",
@@ -1195,7 +1195,7 @@
         }
       },
       {
-        "id": "tdDecoration.conflictingResourceForeground",
+        "id": "tmDecoration.conflictingResourceForeground",
         "description": "%colors.conflict%",
         "defaults": {
           "light": "#ad0707",
@@ -1205,7 +1205,7 @@
         }
       },
       {
-        "id": "tdDecoration.submoduleResourceForeground",
+        "id": "tmDecoration.submoduleResourceForeground",
         "description": "%colors.submodule%",
         "defaults": {
           "light": "#1258a7",

@@ -55,7 +55,7 @@ func goFiles(t *testing.T) []string {
 		if d.IsDir() {
 			// Bỏ qua thư mục sinh tự động và thư mục quản lý phiên bản.
 			switch d.Name() {
-			case ".git", ".tdx", "vendor":
+			case ".git", ".tmx", "vendor":
 				return filepath.SkipDir
 			}
 			return nil
@@ -77,7 +77,7 @@ func goFiles(t *testing.T) []string {
 
 // TestNoExternalCommands bảo đảm mã nguồn không chạy tiến trình ngoài.
 //
-// td tự chứa toàn bộ chức năng của mình. Nếu một tương lai nào đó thêm
+// tm tự chứa toàn bộ chức năng của mình. Nếu một tương lai nào đó thêm
 // exec.Command vào đây thì kho mã sẽ phụ thuộc vào công cụ được cài trên máy,
 // việc đóng gói và kiểm thử cũng trở nên bấp bênh. Vì vậy tận gốc cấm hẳn.
 func TestNoExternalCommands(t *testing.T) {
@@ -170,14 +170,14 @@ func TestNoCrossLayerImports(t *testing.T) {
 	}
 }
 
-// TestBinaryRunsWithoutExternalCommands biên dịch rồi chạy td với PATH rỗng.
+// TestBinaryRunsWithoutExternalCommands biên dịch rồi chạy tm với PATH rỗng.
 //
 // Nếu bản nhị phân vẫn chạy được khi không có bất kỳ chương trình nào khác
 // trên máy thì nó thật sự tự trị. Đây là kiểm chứng thực thi cho lời hứa của
 // TestNoExternalCommands.
 func TestBinaryRunsWithoutExternalCommands(t *testing.T) {
 	root := moduleRoot(t)
-	bin := filepath.Join(t.TempDir(), "td")
+	bin := filepath.Join(t.TempDir(), "tm")
 
 	// Dùng chính go của phiên chạy kiểm thử để biên dịch.
 	goBin, err := exec.LookPath("go")
@@ -199,7 +199,7 @@ func TestBinaryRunsWithoutExternalCommands(t *testing.T) {
 	if err != nil {
 		t.Fatalf("chạy với PATH rỗng thất bại: %v\n%s", err, out)
 	}
-	if !strings.Contains(string(out), "td phiên bản") {
+	if !strings.Contains(string(out), "tm phiên bản") {
 		t.Fatalf("kết quả không mong đợi: %s", out)
 	}
 }
