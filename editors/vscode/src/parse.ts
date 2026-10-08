@@ -52,6 +52,12 @@ export interface TmLogEntry {
 	hash: string;
 	summary: string;
 	refs: string[];
+	/** Tên tác giả, chỉ có khi đọc log đầy đủ chứ không phải bản --oneline. */
+	author?: string;
+	/** Địa chỉ thư của tác giả, cùng điều kiện với `author`. */
+	email?: string;
+	/** Thời điểm commit theo dạng `YYYY-MM-DD HH:MM:SS`, cùng điều kiện với `author`. */
+	when?: string;
 }
 
 /** Một nhánh trong output của `tm vcs branch`. */
@@ -383,6 +389,84 @@ export function parseLogOneline(stdout: string): TmLogEntry[] {
 			}
 		}
 		entries.push({ hash, summary: rest, refs });
+	}
+	return entries;
+}
+
+/**
+ * Đọc output của `tm vcs log` bản đầy đủ, có tác giả và thời điểm.
+ *
+ * Mỗi commit in nhiều dòng: dòng `commit <mã băm> (<các tham chiếu>)`, rồi dòng
+ * tác giả, dòng ngày, dòng trống, và thông điệp thụt vào bốn khoảng trắng.
+ *
+ * Chỉ giữ dòng thông điệp đầu tiên vì đó là tiêu đề, phần còn lại là mô tả dài
+ * mà hộp chọn nhanh không hiện. Dòng thống kê tệp thay đổi ở cuối không thụt lềnày
+ * nên không lẫn vào tiêu đề.
+ */
+export function parseLogDetailed(stdout: string): TmLogEntry[] {
+	const entries: TmLogEntry[] = [];
+	let current: TmLogEntry | undefined;
+	let inMessage = false;
+
+	for (const raw of stdout.split('\n')) {
+		const line = raw.replace(/\r$/, '');
+
+		// Dòng mở đầu commit mới, phần tham chiếu trong ngoặc là tuỳ chọn.
+		if (line.startsWith('commit ')) {
+			const head = line.slice('commit '.length).trim();
+			const space = head.indexOf(' ');
+			const hash = space < 0 ? head : head.slice(0, space);
+			let refs: string[] = [];
+			if (head.endsWith(')')) {
+				const open = head.lastIndexOf('(');
+				if (open > 0) {
+					refs = head.slice(open + 1, -1).split(',').map(s => s.trim()).filter(s => !!s);
+				}
+			}
+			current = { hash, summary: '', refs };
+			entries.push(current);
+			inMessage = false;
+			continue;
+		}
+
+		if (!current) {
+			continue;
+		}
+		// Thông báo của tm khi không có commit nào.
+		if (line.trim() === 'Chưa có commit nào.') {
+			entries.length = 0;
+			current = undefined;
+			continue;
+		}
+		if (line.startsWith('Tác giả:')) {
+			const rest = line.slice('Tác giả:'.length).trim();
+			// Địa chỉ thư nằm trong ngoặc ở cuối, tên tác giả ở phần còn lại.
+			const open = rest.lastIndexOf('<');
+			if (rest.endsWith('>') && open > 0) {
+				current.email = rest.slice(open + 1, -1).trim();
+				current.author = rest.slice(0, open).trim();
+			} else {
+				current.author = rest;
+			}
+			continue;
+		}
+		if (line.startsWith('Ngày:')) {
+			current.when = line.slice('Ngày:'.length).trim();
+			continue;
+		}
+		if (!line.trim()) {
+			inMessage = true;
+			continue;
+		}
+		// Dòng đầu tiên của khối thông điệp là tiêu đề. Dòng nào không còn thụt
+		// lề bốn khoảng trắng thì khối thông điệp đã kết thúc, ví dụ dòng thống
+		// kê tệp thay đổi.
+		if (inMessage && !current.summary && line.startsWith('    ')) {
+			current.summary = line.slice(4).trim();
+		} else if (!inMessage && !current.summary && !/^\s+\S/.test(line)) {
+			inMessage = true;
+			current.summary = line.trim();
+		}
 	}
 	return entries;
 }

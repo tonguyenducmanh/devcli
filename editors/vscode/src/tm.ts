@@ -6,6 +6,7 @@ import * as path from 'node:path';
 import {
 	parseBranches,
 	parseChangedPaths,
+	parseLogDetailed,
 	parseLogOneline,
 	parsePatches,
 	parseStashes,
@@ -275,6 +276,21 @@ export class Tm {
 			args.push('--', ...paths);
 		}
 		return parseLogOneline(await this.text(root, args));
+	}
+
+	/**
+	 * `tm vcs log -n<N> -- <tệp>`: lịch sử của một tệp, có tác giả và thời điểm.
+	 *
+	 * Bản đầy đủ thay vì `--oneline` vì danh sách lịch sử mà không có ngày thì
+	 * người dùng khó phân biệt hai commit gần đây. Lọc theo đường dẫn là việc
+	 * `log` làm sẵn, nên tệp và cả thư mục đều dùng chung.
+	 */
+	async fileHistory(root: string, relativePath: string, maxCount: number): Promise<TmLogEntry[]> {
+		const args = ['log', `-n${maxCount}`];
+		if (relativePath) {
+			args.push('--', relativePath);
+		}
+		return parseLogDetailed(await this.text(root, args));
 	}
 
 	/** `tm vcs branch -vv` */

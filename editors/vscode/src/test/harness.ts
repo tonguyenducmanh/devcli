@@ -21,6 +21,8 @@ export interface FakeState {
 	calls: RecordedCall[];
 	/** Nội dung các tài liệu đã mở, theo thứ tự mở. */
 	opened: unknown[];
+	/** Danh sách mục từng đưa vào hộp chọn nhanh, mỗi lần gọi một danh sách. */
+	picks: unknown[][];
 	shown: string[];
 	uri(fsPath: string): unknown;
 	/** Lần gọi cuối cùng của một lệnh, hoặc undefined nếu chưa gọi. */
@@ -180,6 +182,7 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 	const calls: RecordedCall[] = [];
 	const opened: unknown[] = [];
 	const shown: string[] = [];
+	const picks: unknown[][] = [];
 	const answers: DialogAnswers = { input: [], pick: [], warning: [], information: [] };
 
 	// Mỗi bộ theo dõi tệp nhớ listener để kiểm thử bắn sự kiện như lúc chạy thật.
@@ -289,7 +292,12 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 				return Promise.resolve(undefined);
 			},
 			showInputBox: () => Promise.resolve(nextAnswer(answers.input)),
-			showQuickPick: () => Promise.resolve(nextAnswer(answers.pick)),
+			showQuickPick: (items: unknown) => {
+				// Ghi lại danh sách mục để kiểm thử soi được tiện ích đưa ra
+				// những gì, chứ không chỉ thấy mục nào được chọn.
+				picks.push(Array.isArray(items) ? items : [items]);
+				return Promise.resolve(nextAnswer(answers.pick));
+			},
 			showWorkspaceFolderPick: () => Promise.resolve(undefined),
 			showTextDocument: (target: unknown) => {
 				opened.push(target);
@@ -317,6 +325,7 @@ export function fakeVscode(tmPath: string, settings: Record<string, unknown> = {
 		registeredCommands,
 		calls,
 		opened,
+		picks,
 		shown,
 		uri,
 		lastCall: id => [...calls].reverse().find(call => call.id === id),

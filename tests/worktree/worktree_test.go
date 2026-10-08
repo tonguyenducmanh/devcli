@@ -135,8 +135,8 @@ func TestSameContents(t *testing.T) {
 	}
 }
 
-// viếtIgnoreFile ghi nội dung vào một tệp ignore rồi trả về đường dẫn.
-func viếtIgnoreFile(t *testing.T, dir, content string) string {
+// writeIgnoreFile ghi nội dung vào một tệp ignore rồi trả về đường dẫn.
+func writeIgnoreFile(t *testing.T, dir, content string) string {
 	t.Helper()
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
@@ -157,11 +157,11 @@ func TestIgnoreNestedFileOnlyAppliesInside(t *testing.T) {
 	root := t.TempDir()
 	ig := worktree.NewIgnore(root)
 
-	if err := ig.AddFile(viếtIgnoreFile(t, root, "*.log\n")); err != nil {
+	if err := ig.AddFile(writeIgnoreFile(t, root, "*.log\n")); err != nil {
 		t.Fatal(err)
 	}
 	sub := filepath.Join(root, "sub")
-	if err := ig.AddFile(viếtIgnoreFile(t, sub, "only-here.txt\n")); err != nil {
+	if err := ig.AddFile(writeIgnoreFile(t, sub, "only-here.txt\n")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -189,10 +189,10 @@ func TestIgnoreNestedFileCanOverrideParent(t *testing.T) {
 	root := t.TempDir()
 	ig := worktree.NewIgnore(root)
 
-	if err := ig.AddFile(viếtIgnoreFile(t, root, "*.log\n")); err != nil {
+	if err := ig.AddFile(writeIgnoreFile(t, root, "*.log\n")); err != nil {
 		t.Fatal(err)
 	}
-	if err := ig.AddFile(viếtIgnoreFile(t, filepath.Join(root, "sub"), "!keep.log\n")); err != nil {
+	if err := ig.AddFile(writeIgnoreFile(t, filepath.Join(root, "sub"), "!keep.log\n")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -212,7 +212,7 @@ func TestIgnoreNestedFileCanOverrideParent(t *testing.T) {
 func TestIgnoreReloadSameFileDoesNotDuplicate(t *testing.T) {
 	root := t.TempDir()
 	ig := worktree.NewIgnore(root)
-	path := viếtIgnoreFile(t, root, "*.log\nbuild/\n")
+	path := writeIgnoreFile(t, root, "*.log\nbuild/\n")
 
 	for i := 0; i < 5; i++ {
 		if err := ig.AddFile(path); err != nil {

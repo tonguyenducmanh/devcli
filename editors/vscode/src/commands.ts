@@ -27,6 +27,14 @@ interface Picked<T> {
 	value: T;
 }
 
+/**
+ * Số commit tối đa lấy cho một danh sách lịch sử.
+ *
+ * Đủ cho mọi tệp có thực trong một kho làm việc; tệp có lịch sử dài hơn thì người
+ * dùng vẫn có thể lọc bằng từ khoá trong hộp chọn nhanh.
+ */
+const HISTORY_LIMIT = 200;
+
 /** Một cặp phía để so sánh, kèm nhãn hiện trên khung so sánh. */
 interface DiffGroup {
 	/** Đường dẫn tương đối trong kho, dùng làm địa chỉ hiển thị của mục. */
@@ -598,6 +606,62 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 	}
 
 	/**
+ * Lịch sử commit của một tệp, rồi mở khung so sánh tại commit người dùng chọn.
+ *
+ * Lệnh được gọi từ nhiều nơi nên phải hiểu mọi dạng đối số: khung Source Control
+ * truyền vào resource state, cây tệp và trình soạn thảo truyền vào địa chỉ.
+ * Không có đối số nào thì lấy tệp đang mở, để gọi từ bảng lệnh cũng được.
+ */
+	async function fileHistory(candidate: unknown, second?: unknown): Promise<void> {
+		const uri = uriOf(second) ?? uriOf(candidate) ?? window.activeTextEditor?.document.uri;
+		if (!uri || uri.scheme !== 'file') {
+			void window.showInformationMessage('Hãy mở một tệp trong kho tm rồi xem lịch sử của tệp đó.');
+			return;
+		}
+		const repository = model.find(uri.fsPath);
+		const relative = repository ? repository.toRelativePath(uri) : '';
+		if (!repository || !relative || relative.startsWith('..')) {
+			void window.showInformationMessage(`${uri.fsPath} không nằm trong kho tm nào đang mở.`);
+			return;
+		}
+
+		const entries = await tm.fileHistory(repository.root, relative, HISTORY_LIMIT);
+		if (entries.length === 0) {
+			// Tệp chưa từng được commit thì không có lịch sử nào để xem. Nguyên nhân
+			// khác nhau cần nói rõ để người dùng biết phải làm gì tiếp.
+			const untracked = repository.current.untracked.some(e => e.path === relative)
+				|| repository.current.untracked.some(e => e.path.startsWith(`${relative}/`));
+			void window.showInformationMessage(untracked
+				? `${relative} chưa được theo dõi nên chưa có lịch sử commit.`
+				: `Chưa có commit nào sửa ${relative}.`);
+			return;
+		}
+
+		const chosen = await pick(entries, historyPick, {
+			placeHolder: `Lịch sử của ${relative} — chọn một commit để xem thay đổi`
+		});
+		if (!chosen) {
+			return;
+		}
+
+		// Mở đúng phần mà tệp này thay đổi trong commit đó, tức là so với phụ
+		// huynh của commit. Lịch sử lấy theo đường dẫn nên thường khớp, nhưng
+		// commit đầu tiên hay commit do merge tạo ra thì có thể không, và mở
+		// hai phía rỗng còn tệ hơn là báo rõ.
+		const changes = await tm.diff(repository.root, { revision: chosen.hash, paths: [relative] });
+		if (changes.length === 0) {
+			void window.showInformationMessage(`Không tìm thấy thay đổi của ${relative} trong commit này.`);
+			return;
+		}
+		await openDiffGroups(repository, [{
+			path: relative,
+			title: `${relative} (${chosen.hash})`,
+			original: repository.uriFor(relative, chosen.hash, Side.Old),
+			modified: repository.uriFor(relative, chosen.hash, Side.New)
+		}]);
+	}
+
+	/**
 	 * Mở khung so sánh cho các tệp đang chọn trong khung Source Control.
 	 *
 	 * Chọn hai phía theo đúng ý nghĩa, giống git: đã stage hết thì so HEAD với
@@ -1032,6 +1096,7 @@ export function registerCommands(model: Model, log: OutputChannel): Disposable[]
 		['tm.openChange', openChange],
 		['tm.openHEADFile', openHEADFile],
 		['tm.openCommitChanges', openCommitChanges],
+		['tm.fileHistory', fileHistory],
 		['tm.checkout', checkout],
 		['tm.branch', () => createBranch(undefined)],
 		['tm.branchFrom', branchFrom],
@@ -1086,6 +1151,23 @@ function commitPick(entry: TmLogEntry): Picked<TmLogEntry> {
 		label: entry.summary || '(không có tiêu đề)',
 		description: entry.hash,
 		detail: entry.refs.length > 0 ? entry.refs.join(', ') : undefined,
+		value: entry
+	};
+}
+
+/**
+ * Chuyển một commit trong lịch sử tệp thành mục của hộp chọn.
+ *
+ * Khác `commitPick` ở chỗ đưa ngày và tác giả lên dòng phụ. Danh sách lịch sử là
+ * nơi người dùng dò ngược thời gian, nên chỉ có mã băm thì không đủ để biết mình
+ * đang ở đâu.
+ */
+function historyPick(entry: TmLogEntry): Picked<TmLogEntry> {
+	const parts = [entry.when, entry.author].filter((part): part is string => !!part);
+	return {
+		label: entry.summary || '(không có tiêu đề)',
+		description: entry.hash,
+		detail: parts.length > 0 ? parts.join(' · ') : (entry.refs.length > 0 ? entry.refs.join(', ') : undefined),
 		value: entry
 	};
 }

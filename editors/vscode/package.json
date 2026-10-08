@@ -302,6 +302,12 @@
         "title": "%command.openCommitChanges%",
         "category": "TM",
         "icon": "$(compare-changes)"
+      },
+      {
+        "command": "tm.fileHistory",
+        "title": "%command.fileHistory%",
+        "category": "TM",
+        "icon": "$(history)"
       }
     ],
     "submenus": [
@@ -731,6 +737,11 @@
           "command": "tm.revealInExplorer",
           "when": "scmProvider == tm && scmResourceGroup =~ /^(index|workingTree|untracked|merge)$/",
           "group": "3_view@1"
+        },
+        {
+          "command": "tm.fileHistory",
+          "when": "scmProvider == tm && scmResourceGroup =~ /^(index|workingTree|untracked|merge)$/",
+          "group": "3_view@2"
         }
       ],
       "editor/title": [
@@ -743,6 +754,20 @@
           "command": "tm.openChange",
           "group": "navigation",
           "when": "scmProvider == tm && !isInDiffEditor && resourceScheme == file && scmActiveResourceHasChanges"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "tm.fileHistory",
+          "group": "1_view@1",
+          "when": "tm.openRepositoryCount > 0 && resourceScheme == file"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "tm.fileHistory",
+          "group": "7_modification@1",
+          "when": "tm.openRepositoryCount > 0"
         }
       ],
       "view/title": [

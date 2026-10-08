@@ -26,8 +26,11 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
    công cụ khác.
 3. **Phụ thuộc đi trong một chiều.** `object` → `storage`/`index` → `repo`
    → `ops` → `cmd`. Một gói chỉ được biết tới gói ngay dưới nó.
-4. **Mọi thông điệp người dùng bằng tiếng Việt**, kể cả phần mô tả trong
-   `Short`, `Long`, `Example` và các bộ kiểm tra số đối số.
+4. **Cái gì thuần mã nguồn thì bằng tiếng Anh, cái gì người dùng đọc thì bằng
+   tiếng Việt.** Tên hàm, biến, kiểu dữ liệu, hằng số, tệp và thư mục là tiếng Anh.
+   Chú thích và mọi thông điệp tới người dùng là tiếng Việt, kể cả phần mô tả
+   trong `Short`, `Long`, `Example` và các bộ kiểm tra số đối số. Chi tiết ở
+   [Quy tắc viết mã](#quy-tắc-viết-mã).
 
 ## Bản đồ mã nguồn
 
@@ -35,8 +38,8 @@ Bốn quy tắc này được kiểm chứng bằng kiểm thử, vi phạm làm
 | --- | --- |
 | `main.go` | Điểm khởi động, chỉ gọi `cmd.Execute()` |
 | `cmd/root.go` | Lệnh gốc, cờ toàn cục, biến toàn cục, đăng ký nhóm công cụ |
-| `cmd/help.go` | Khuôn trợ giúp tiếng Việt, lệnh `help`, danh sách lệnh |
-| `cmd/output.go` | In ấn, màu ANSI, bộ kiểm tra số đối số tiếng Việt |
+| `cmd/help.go` | Khuôn trợ giúp, lệnh `help`, danh sách lệnh |
+| `cmd/output.go` | In ấn, màu ANSI, bộ kiểm tra số đối số |
 | `cmd/context.go` | `openRepo`: mở kho cho các lệnh con |
 | `cmd/vcs*.go` | Khai báo lệnh của nhóm `vcs`, mỗi tệp một nhóm nhỏ |
 | `internal/vcs/object/` | Kiểu dữ liệu blob, tree, commit, tag; tính mã băm |
@@ -94,7 +97,7 @@ mẫu, kiểm thử phải có cả tình huống tệp đã tồn tại.
    - `Short`: một dòng ngắn.
    - `Long`: giải thích *tác dụng và lý do*, không chỉ liệt kê tham số.
    - `Example`: các lệnh mẫu chạy được, mỗi dòng một tình huống.
-   - `Args`: dùng bộ kiểm tra trong `cmd/output.go` để thông báo lỗi tiếng Việt.
+   - `Args`: dùng bộ kiểm tra trong `cmd/output.go` để báo lỗi tiếng Việt.
 3. Thêm lệnh vào `cmd.AddCommand(...)` trong `cmd/vcs.go`.
 4. Sinh lại tài liệu: `./scripts/build_agent_docs.sh`.
 
@@ -105,14 +108,71 @@ mẫu, kiểm thử phải có cả tình huống tệp đã tồn tại.
 3. Thêm nhóm vào danh sách trong `rootCmd.AddGroup(...)` nếu dùng ID mới.
 4. Gọi `registerToolGroup(...)` trong `init()` của `cmd/root.go`.
 
-## Quy ước viết mã
+## Quy tắc viết mã
 
-- Chú thích và thông điệp người dùng bằng tiếng Việt.
+Chia làm hai nhóm: **cái thuần mã nguồn thì tiếng Anh, cái người dùng đọc thì
+tiếng Việt.**
+
+| | Ngôn ngữ |
+| --- | --- |
+| Tên hàm, biến, kiểu dữ liệu, hằng số | **Tiếng Anh** |
+| Tên tệp và tên thư mục | **Tiếng Anh** |
+| Chú thích trong mã nguồn (`//`, `/* */`, `/** */`) | **Tiếng Việt** |
+| `Short`, `Long`, `Example` của mỗi lệnh | **Tiếng Việt** |
+| Mô tả cờ (`Usage`) | **Tiếng Việt** |
+| Thông báo lỗi trả về cho người dùng | **Tiếng Việt** |
+| Mọi thứ in ra màn hình: `printLine`, `printOut`, tiêu đề, thống kê | **Tiếng Việt** |
+| Thông báo của tiện ích VS Code mà người dùng đọc | **Tiếng Việt** |
+| Tài liệu cho người dùng | **Tiếng Việt** |
+| Chuỗi trong kiểm thử mà đối chiếu với output của lệnh | **Tiếng Việt** |
+
+Ranh giới là *ai đọc phần đó*. Tên do người lẫn công cụ đọc, nên phải là tiếng Anh
+cho quen thuộc và dùng được với mọi ngôn ngữ. Còn lời và thông điệp thì chỉ người
+dùng tiếng Việt đọc, nên viết bằng tiếng Việt thì tự nhiên và dễ hiểu hơn.
+
+Các quy tắc khác:
+
 - Chú thích giải thích *tại sao*, không lặp lại *cái gì* mà tên hàm đã nói.
-- Tên biến, hàm, kiểu dữ liệu bằng tiếng Anh theo chuẩn Go.
 - Không dùng gói ở tầng thấp hơn so với tầng đang làm.
-- Trả về lỗi kèm ngữ cảnh bằng tiếng Việt, ví dụ
+- Thông báo lỗi nói rõ cái gì hỏng và vì sao, kèm ngữ cảnh:
   `fmt.Errorf("không tìm thấy nhánh %s", name)`.
+
+### Tên hàm, biến và kiểu
+
+Theo chuẩn Go: chữ thường, không dấu, các từ ghép liền với nhau.
+
+```go
+func showFileDiff(repo *Repo, rel string) error       // đúng
+func hienThiKhacBiet(kho *Kho, duongDan string) error  // sai
+```
+
+### Tên tệp và tên thư mục
+
+Tên tệp và tên thư mục luôn viết bằng tiếng Anh, không dấu, không ký tự ngoài
+ASCII. Tên có dấu vỡ ở nhiều nơi: terminal trên Windows, script build chạy trên
+ba nền tảng, và người khác gõ lại đường dẫn từ thông báo lỗi thì phải gõ đúng dấu.
+
+```bash
+cmd/vcs_branch.go                            # đúng
+cmd/lenh-nhanh.go                            # sai
+internal/vcs/repo/ten-co-dau.txt             # sai, có dấu
+editors/vscode/src/test/diff-view.test.ts    # đúng
+```
+
+Quy tắc cụ thể:
+
+- Tệp Go theo chuẩn Go: chữ thường, từ ghép bằng dấu gạch dưới, ví dụ
+  `vcs_branch.go`.
+- Tệp TypeScript và Markdown dùng dấu gạch nối `-`, ví dụ `diff-view.test.ts`.
+- Chữ hoa chỉ dành cho tệp quen thuộc ở gốc kho: `README.md`, `AGENTS.md`,
+  `CHANGELOG.md`, `CONTRIBUTING.md`, `LICENSE`.
+- Tên phải nói được tệp đó làm gì, không cần mở ra mới hiểu. `diff-view.test.ts`
+  tốt hơn `nhanh.test.ts`.
+
+Có kiểm thử ở `tests/architecture/naming_test.go` chặn bốn điều: ký tự ngoài
+ASCII trong tên tệp, chữ hoa ở gốc kho, từ tiếng Việt viết không dấu trong tên tệp,
+và chữ có dấu trong tên hàm hay biến. `docs/agents/cli/` được sinh tự động nên
+tên ở đó lấy từ tên lệnh, không kiểm tra.
 
 ## Hai nguyên tắc riêng của phần trợ giúp
 
@@ -130,7 +190,7 @@ Gõ lệnh mà không kèm tham số thì lệnh đó vẫn phải làm được
 Cờ `-v` vì vậy phải in thông tin môi trường. Một cờ mà in ra trợ giúp thì
 vô dụng.
 
-Nhãn tiếng Anh do cobra sinh ra đã được ghi đè hết trong `setupHelp`. Khuôn
+Every English label cobra generates is replaced in `setupHelp`. The help
 trợ giúp nằm trong `cmd/help.go`; đừng gọi `InitDefaultHelpFlag` hay
 `InitDefaultVersionFlag` của cobra, vì hai hàm đó ép nối cờ toàn cục của lệnh
 cha vào lệnh con và làm hỏng lệnh con khai báo cờ trùng tên.
@@ -193,8 +253,9 @@ Các tệp dùng gói kiểm thử ngoài (`package diff_test`) nên chỉ gọi
 mà gói đó xuất ra.
 
 `tests/architecture/` kiểm tra các bất biến kiến trúc: không gọi chương trình
-ngoài, phụ thuộc giữa các tầng đi một chiều, mọi lệnh đủ `Short`/`Long`/
-`Example` bằng tiếng Việt, và binary chạy được với `PATH` rỗng.
+ngoài, phụ thuộc giữa các tầng đi một chiều, tên tệp và tên hàm bằng tiếng Anh,
+mọi lệnh đủ `Short`/`Long`/`Example` bằng tiếng Việt, và binary chạy được với
+`PATH` rỗng.
 
 `tests/cli/` chạy cây lệnh trong bộ nhớ để kiểm tra tầng dòng lệnh, ví dụ cách
 lệnh đọc danh sách tệp sau dấu `--`.
@@ -211,8 +272,9 @@ Hai điều cần nhớ khi sửa cho khớp với phần còn lại của kho:
 
 - Tiện ích **không** đọc tệp `.tmx` bằng tay, mọi thứ đi qua `tm vcs`. Nhờ vậy
   định dạng dữ liệu của kho không bị phụ thuộc vào nó.
-- Toàn bộ phần dịch output tiếng Việt của `tm` nằm trong `editors/vscode/src/parse.ts`.
-  Đổi câu chữ trong output của `tm` thì chỗ đó phải sửa theo.
+- Toàn bộ phần đọc output tiếng Việt của `tm` nằm trong `editors/vscode/src/parse.ts`:
+  các chữ trạng thái mà nó khớp và các thông báo lỗi mà nó nhận ra. Đổi câu chữ trong
+  output của `tm` thì tệp này phải đổi theo.
 - Lệnh `tm` luôn được gọi với `-C` đặt trước mọi thứ khác. Đặt `-C` cuối dòng lệnh
   thì khi lệnh có danh sách tệp sau dấu `--`, tm sẽ hiểu `-C` là một đường dẫn.
 

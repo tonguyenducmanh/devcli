@@ -78,6 +78,7 @@ chính kho này làm ví dụ.
 | Commit | Gõ nội dung vào ô nhập rồi bấm dấu tích, hoặc `TD: Commit` |
 | Stage, unstage, huỷ thay đổi | Nút cộng/trừ/thùng rác cạnh từng tệp, và trên tiêu đề nhóm |
 | Xem khác biệt | Bấm tên tệp để mở khung so sánh, chọn nhiều tệp để mở khung so sánh nhiều tệp |
+| Xem lịch sử của một tệp | Chuột phải lên tệp trong cây tệp, trình soạn thảo hoặc khung Source Control, rồi **View File History...**; chọn một commit để xem thay đổi của tệp tại commit đó |
 | Xem thay đổi của một commit | Bấm một dòng trong khung **Commits** |
 | Đường ngữ cảnh trong trình soạn thảo | Dấu nháy và dải khác biệt ở rìa tệp, giống git |
 | Chữ viết tắt trên cây thư mục | `M` đã sửa, `A` thêm, `D` xoá, `U` mới hoặc xung đột |
@@ -91,6 +92,7 @@ Tiện ích không tự đọc tệp `.tmx`. Mọi thứ đều đi qua `tm vcs`
 ```
 tm vcs -C /du-an status
 tm vcs -C /du-an diff --staged -U1000000 -- main.go
+tm vcs -C /du-an log -n200 -- cmd/root.go
 tm vcs -C /du-an commit -m "nội dung"
 ```
 

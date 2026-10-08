@@ -71,5 +71,6 @@
   "colors.conflict": "Resource state color for conflicted files.",
   "colors.submodule": "Resource state color for submodule folders.",
   "command.commitAll": "Commit All",
-  "command.openCommitChanges": "Open Changes"
+  "command.openCommitChanges": "Open Changes",
+  "command.fileHistory": "View File History..."
 }

@@ -9,6 +9,69 @@ bản theo [SemVer](https://semver.org/lang/vi/).
 
 ## Chưa phát hành
 
+### Quy tắc đặt tên: tên tiếng Anh, lời và thông điệp tiếng Việt
+
+Quy tắc được làm rõ bằng một câu: **cái thuần mã nguồn thì tiếng Anh, cái người
+dùng đọc thì tiếng Việt.** Ranh giới là *ai đọc phần đó*, không phải loại tệp.
+
+| Tiếng Anh | Tiếng Việt |
+| --- | --- |
+| Tên hàm, biến, kiểu dữ liệu, hằng số | Chú thích `//`, `/* */`, `/** */` |
+| Tên tệp và tên thư mục | `Short`, `Long`, `Example` |
+| | Mô tả cờ (`Usage`) |
+| | Thông báo lỗi |
+| | Mọi thứ in ra màn hình: `printLine`, `printOut`, tiêu đề, thống kê |
+| | Thông báo của tiện ích VS Code mà người dùng đọc |
+| | Tài liệu cho người dùng |
+| | Chuỗi trong kiểm thử đối chiếu với output của lệnh |
+
+Bất biến kiến trúc số 4 trong `docs/agents/AGENTS.md` viết lại cho khớp, và mục
+*Quy tắc viết mã* có bảng phân tách, lý do tách, cùng ví dụ đúng/sai cho tên hàm
+và tên tệp. Quy tắc tên tệp nêu rõ tệp Go dùng gạch dưới, tệp TypeScript và
+Markdown dùng gạch nối, và chữ hoa chỉ dành cho tệp quen thuộc ở gốc kho.
+
+Bốn kiểm thử ở `tests/architecture/naming_test.go` chặn: ký tự ngoài ASCII trong
+tên tệp, chữ hoa ở gốc kho, từ tiếng Việt viết không dấu trong tên tệp, và chữ có
+dấu trong tên hàm hay biến. Kiểm thử thứ hai bắt được một vi phạm có sẵn là hàm
+`viếtIgnoreFile` trong `tests/worktree/worktree_test.go`, nay là `writeIgnoreFile`.
+
+Phần thông điệp tiếng Việt **giữ nguyên như cũ**, không có gì phải di chuyển. Ba
+tệp kiểm thử của tiện ích được đổi tên theo quy tắc:
+`khung-so-sanh.test.ts` thành `diff-view.test.ts`, `nhanh.test.ts` thành
+`branch-stash.test.ts`, `lich-su-tep.test.ts` thành `file-history.test.ts`.
+
+### Icon tiện ích VS Code: nền đen chữ trắng
+
+Biểu tượng `editors/vscode/resources/icon.png` đổi từ sơ đồ git nền trắng sang
+nền đen với chữ `tm` màu trắng. Kích thước nâng từ 128 lên 256 px cho sắc nét hơn
+trên màn hình Retina. Font dùng khi dựng là Andale Mono, chữ canh giữa theo mép
+mực thật chứ không theo hộp font.
+
+### Xem lịch sử commit của một tệp trong tiện ích VS Code
+
+Lệnh mới **View File History...** (`tm.fileHistory`) liệt kê toàn bộ commit từng
+sửa một tệp, kèm ngày và tác giả, rồi mở khung so sánh đúng phần mà tệp đó thay
+đổi tại commit người dùng chọn. Lấy lịch sử theo tệp thì không cần mở tệp lên:
+chuột phải trong cây tệp, trong trình soạn thảo, trên tên tệp trong khung Source
+Control, hoặc gọi từ bảng lệnh khi đang mở một tệp.
+
+Dùng bản log đầy đủ thay vì `--oneline` vì danh sách lịch sử mà chỉ có mã băm thì
+không phân biệt được hai commit gần đây. Lọc theo đường dẫn là việc `tm vcs log`
+làm sẵn nên thư mục cũng xem được lịch sử của mọi tệp bên trong.
+
+| Tệp | Vai trò |
+| --- | --- |
+| `editors/vscode/src/parse.ts` | `parseLogDetailed` đọc log đầy đủ, `TmLogEntry` có thêm tác giả và thời điểm |
+| `editors/vscode/src/tm.ts` | `fileHistory` gọi `tm vcs log -n200 -- <tệp>` |
+| `editors/vscode/src/commands.ts` | Lệnh `fileHistory` và cách dựng mục hộp chọn `historyPick` |
+| `editors/vscode/package.json` | Khai báo lệnh, thêm vào menu `explorer/context` và `editor/title/context` |
+
+Phía tiện ích không cần thay đổi ở phần Go. Kiểm thử mới ở
+`editors/vscode/src/test/file-history.test.ts` (tám tình huống: lọc đúng commit của
+tệp, thứ tự mới trước cũ, có ngày và tác giả, chọn commit ra đúng hai phía, commit
+đầu tiên có phía gốc rỗng, lịch sử của thư mục, tệp chưa commit, tệp ngoài kho, huỷ
+hộp chọn) và `editors/vscode/src/test/parse-log.test.ts`.
+
 ### Tên tệp build trong `out/` là `devcli-tm-*`
 
 Tiền tố tên tệp đổi từ `td-devcli` sang `devcli-tm`, khớp với tên kho `devcli` và
@@ -52,7 +115,7 @@ Kiểm chứng:
 cd editors/vscode && npm run compile && npm test
 ```
 
-Kiểm thử mới ở `editors/vscode/src/test/khung-so-sanh.test.ts` mười tình huống:
+Kiểm thử mới ở `editors/vscode/src/test/diff-view.test.ts` mười tình huống:
 xoá dòng rồi xem khung so sánh, lưu rồi xoá thêm dòng; hoàn tác hết thì phía gốc
 vẫn là nội dung vùng chuẩn bị và tệp không còn bị ghi nhận là thay đổi; sửa, hoàn
 tác, sửa lại qua nhiều vòng; thay đổi đã stage; gỡ khỏi vùng chuẩn bị rồi sửa
