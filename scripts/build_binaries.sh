@@ -33,7 +33,7 @@ AUTHOR="Tô Nguyễn Đức Mạnh"
 
 # Số phiên bản của ứng dụng. Đổi ở đây mỗi khi phát hành bản mới.
 # Giá trị này xuất hiện trong tên tệp trong out/ và trong kết quả `tm version`.
-VERSION=0.1.0
+VERSION=0.1.1
 
 # Tên tệp thực thi, dùng làm tiền tố cho tên file trong out/.
 # Nguồn duy nhất cho cả tiện ích VS Code: build_extension.sh đọc biến này.

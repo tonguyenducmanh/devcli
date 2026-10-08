@@ -2,7 +2,7 @@
   "name": "tm-vcs",
   "displayName": "To Manh Version Control System",
   "description": "Quản lý phiên bản mã nguồn cục bộ bằng tm trong VS Code",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "tm",
   "license": "MIT",
   "icon": "resources/icon.png",
