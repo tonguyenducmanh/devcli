@@ -87,6 +87,31 @@ test('mỗi khung bên có lời nhắc khi còn trống', () => {
 });
 
 /**
+ * Tệp ignore của tm phải được tô màu như tệp ignore, không phải văn bản thuần.
+ *
+ * Không khai báo thì VS Code mở `.tmxignore` ra với ngôn ngữ `plaintext`, người
+ * dùng không thấy chỗ nào là chú thích, chỗ nào là phủ định lại quy tắc trước.
+ * Ngôn ngữ `ignore` do tiện ích git của VS Code khai báo, nên chỉ cần gắn tên
+ * tệp vào ngôn ngữ đó chứ không cần mang theo cú pháp.
+ */
+test('tệp ignore của tm dùng ngôn ngữ ignore', () => {
+	const pkg = manifest();
+	const ignore = (pkg.contributes.languages ?? []).find(language => language.id === 'ignore');
+	if (!ignore) {
+		throw new Error('chưa gắn tệp ignore của tm vào ngôn ngữ ignore');
+	}
+	if (!(ignore.extensions ?? []).includes('.tmxignore')) {
+		throw new Error('tệp .tmxignore chưa được gắn vào ngôn ngữ ignore');
+	}
+	// Tệp của riêng máy có tên là `exclude`, không có dấu chấm nào để bám vào,
+	// nên chỉ có thể khớp theo đường dẫn.
+	const patterns = ignore.filenamePatterns ?? [];
+	if (!patterns.includes('**/.tmx/info/exclude')) {
+		throw new Error('tệp .tmx/info/exclude chưa được gắn vào ngôn ngữ ignore');
+	}
+});
+
+/**
  * Mọi view trong khung Source Control phải luôn hiện, không giấu bằng `when`.
  *
  * Một view có `when` mà điều kiện chưa đúng lúc VS Code dựng khung thì không

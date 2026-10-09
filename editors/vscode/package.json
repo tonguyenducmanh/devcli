@@ -33,6 +33,21 @@
     }
   },
   "contributes": {
+    "languages": [
+      {
+        "id": "ignore",
+        "aliases": [
+          "TM Ignore",
+          "tm-ignore"
+        ],
+        "extensions": [
+          ".tmxignore"
+        ],
+        "filenamePatterns": [
+          "**/.tmx/info/exclude"
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "tm.refresh",

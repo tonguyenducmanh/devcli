@@ -394,6 +394,7 @@ export function loadExtension(vscode: Record<string, unknown>): { activate(conte
 /** package.json của tiện ích, đọc theo đường dẫn tới tệp đã biên dịch. */
 export function manifest(): {
 	contributes: {
+		languages?: { id: string; aliases?: string[]; extensions?: string[]; filenames?: string[]; filenamePatterns?: string[] }[];
 		commands: { command: string; title?: string; category?: string }[];
 		submenus: { id: string; label: string }[];
 		menus: Record<string, { command?: string; submenu?: string; when?: string; group?: string; alt?: string }[]>;
